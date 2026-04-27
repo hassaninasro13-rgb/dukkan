@@ -274,7 +274,10 @@ button{cursor:pointer}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SB=supabase.createClient('https://tdipbduxnxsdcdrwuksz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3​​​​​​​​​​​​​​​​');
+const SUPABASE_URL='https://tdipbduxnxsdcdrwuksz.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3HbfzFaCTlsmhf033OC9DWgo';
+console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
+const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,productSizes=[],productColors=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -323,6 +326,8 @@ function showLoginError(msg){
 }
 
 function startApp(){
+  if(merchant&&!merchant.id&&merchant.merchant_id)merchant.id=merchant.merchant_id;
+  console.log('[Dukkan] startApp merchant session',{merchant,merchantId:getMerchantId()});
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
@@ -330,6 +335,19 @@ function startApp(){
   document.getElementById('welcomeName').textContent=merchant.full_name||merchant.store_name||'تاجر دكّان';
   document.getElementById('storePreview').href='/?store='+encodeURIComponent(merchant.store_slug||merchant.id);
   refreshAll();
+}
+
+function getMerchantId(){
+  return merchant?.id||merchant?.merchant_id||null;
+}
+
+function isUuid(value){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||''));
+}
+
+function supabaseErrorText(error){
+  if(!error)return 'خطأ غير معروف من Supabase';
+  return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
 function logout(){
@@ -350,11 +368,46 @@ async function refreshAll(){
 }
 
 async function loadProducts(){
-  const{data,error}=await SB.from('merchant_products').select('*').eq('merchant_id',merchant.id).order('id',{ascending:false});
-  if(error){showToast('خطأ في تحميل المنتجات','error');return;}
-  products=data||[];
+  const merchantId=getMerchantId();
+  console.log('[Dukkan] loadProducts start',{table:'merchant_products',merchantId});
+  if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');return;}
+  const{data,error}=await SB.from('merchant_products')
+    .select('id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits')
+    .eq('merchant_id',merchantId)
+    .order('id',{ascending:false});
+  console.log('[Dukkan] loadProducts response',{data,error});
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  products=(data||[]).map(normalizeProduct);
   renderProducts();
   updateStats();
+}
+
+function normalizeArray(value){
+  if(Array.isArray(value))return value;
+  if(typeof value==='string')return parseTags(value);
+  return [];
+}
+
+function normalizeNumber(value){
+  const n=Number(value);
+  return Number.isFinite(n)?n:0;
+}
+
+function normalizeProduct(p){
+  return {
+    id:p.id,
+    merchant_id:p.merchant_id,
+    name:p.name||'',
+    description:p.description||'',
+    price:normalizeNumber(p.price),
+    old_price:normalizeNumber(p.old_price),
+    images:normalizeArray(p.images),
+    sizes:normalizeArray(p.sizes),
+    colors:normalizeArray(p.colors),
+    stock:normalizeNumber(p.stock),
+    is_active:p.is_active,
+    visits:normalizeNumber(p.visits)
+  };
 }
 
 function renderProducts(){
@@ -363,13 +416,13 @@ function renderProducts(){
   if(!products.length){box.innerHTML='<div class="empty-state"><div style="font-size:40px">📦</div><div style="margin-top:10px">لا توجد منتجات بعد</div></div>';return;}
   box.innerHTML=products.map(p=>{
     const img=Array.isArray(p.images)&&p.images.length?p.images[0]:'';
-    const price=Number(p.price||0).toLocaleString();
+    const price=p.price.toLocaleString();
     const old=p.old_price?'<span class="meta">قديم: '+Number(p.old_price).toLocaleString()+' IQD</span>':'';
     const sizes=Array.isArray(p.sizes)?p.sizes.join('، '):'';
     const colors=Array.isArray(p.colors)?p.colors.join('، '):'';
     return '<div class="product-card"><div class="product-top"><div class="product-main">'+
       '<img class="product-img" src="'+escAttr(img||'https://via.placeholder.com/144/161b22/f0a500?text=Dukkan')+'" alt="">'+
-      '<div><div class="product-name">'+esc(p.name||'منتج بدون اسم')+'</div><div class="product-desc">'+esc(p.description||'لا يوجد وصف')+'</div>'+
+      '<div><div class="product-name">'+esc(p.name||'—')+'</div><div class="product-desc">'+esc(p.description||'—')+'</div>'+
       '<div class="meta-row"><span class="meta">السعر: '+price+' IQD</span>'+old+'<span class="meta">المخزون: '+(p.stock||0)+'</span><span class="meta">زيارات: '+(p.visits||0)+'</span></div>'+
       '<div class="meta-row">'+(sizes?'<span class="meta">المقاسات: '+esc(sizes)+'</span>':'')+(colors?'<span class="meta">الألوان: '+esc(colors)+'</span>':'')+'</div></div></div>'+
       '<span class="status-badge '+(p.is_active===false?'status-inactive':'status-active')+'">'+(p.is_active===false?'متوقف':'مفعل')+'</span></div>'+
@@ -416,32 +469,86 @@ function renderProductTags(){
   document.getElementById('pColorsWrap').innerHTML=productColors.map((c,i)=>'<span class="tag">'+esc(c)+'<button onclick="removeProductTag(\'color\','+i+')">×</button></span>').join('');
 }
 
+function parseTags(value){
+  return value.split(',').map(v=>v.trim()).filter(Boolean);
+}
+
+function mergePendingProductTags(){
+  const sizeInput=document.getElementById('pSizeInput');
+  const colorInput=document.getElementById('pColorInput');
+  productSizes=[...new Set([...productSizes,...parseTags(sizeInput.value)])];
+  productColors=[...new Set([...productColors,...parseTags(colorInput.value)])];
+  sizeInput.value='';
+  colorInput.value='';
+  renderProductTags();
+}
+
 async function saveProduct(){
-  const name=document.getElementById('pName').value.trim();
-  if(!name){showToast('أدخل اسم المنتج','error');return;}
+  console.group('[Dukkan] saveProduct');
+  console.log('step 1: handler started',{editingProductId,table:'merchant_products'});
   const btn=document.getElementById('saveProductBtn');
-  btn.disabled=true;btn.textContent='جاري الحفظ...';
-  const img=document.getElementById('pImage').value.trim();
-  const payload={
-    merchant_id:merchant.id,
-    name,
-    description:document.getElementById('pDescription').value.trim(),
-    price:num('pPrice'),
-    old_price:num('pOldPrice'),
-    images:img?[img]:[],
-    sizes:productSizes,
-    colors:productColors,
-    stock:num('pStock'),
-    is_active:document.getElementById('pActive').value==='true'
-  };
-  const res=editingProductId
-    ? await SB.from('merchant_products').update(payload).eq('id',editingProductId).eq('merchant_id',merchant.id)
-    : await SB.from('merchant_products').insert([payload]);
-  btn.disabled=false;btn.textContent='💾 حفظ المنتج';
-  if(res.error){showToast('خطأ في حفظ المنتج','error');return;}
-  closeProductModal();
-  showToast('تم حفظ المنتج ✅','success');
-  await loadProducts();
+  try{
+    const merchantId=getMerchantId();
+    console.log('step 2: merchant session',{merchant,merchantId});
+    if(!merchantId){showToast('سجل الدخول كتاجر أولاً - لا يوجد merchant_id','error');return;}
+    if(!isUuid(merchantId)){
+      console.error('invalid merchant_id for merchant_products FK',merchantId);
+      showToast('معرّف التاجر غير صالح: '+merchantId,'error');
+      return;
+    }
+
+    const name=document.getElementById('pName').value.trim();
+    const price=num('pPrice');
+    const stock=num('pStock');
+    const oldPrice=num('pOldPrice');
+    const img=document.getElementById('pImage').value.trim();
+    console.log('step 3: raw form values',{name,price,oldPrice,img,stock,isActive:document.getElementById('pActive').value});
+    if(!name){showToast('أدخل اسم المنتج','error');return;}
+    if(!price||price<=0){showToast('أدخل سعر المنتج','error');return;}
+    if(stock<0){showToast('المخزون لا يمكن أن يكون سالباً','error');return;}
+
+    mergePendingProductTags();
+    console.log('step 4: tags merged',{productSizes,productColors});
+
+    btn.disabled=true;btn.textContent='جاري الحفظ...';
+    const payload={
+      merchant_id:merchantId,
+      name,
+      description:document.getElementById('pDescription').value.trim(),
+      price,
+      old_price:oldPrice,
+      images:img?[img]:[],
+      sizes:productSizes,
+      colors:productColors,
+      stock,
+      is_active:document.getElementById('pActive').value==='true'
+    };
+    console.log('step 5: payload ready',payload);
+
+    const query=editingProductId
+      ? SB.from('merchant_products').update(payload).eq('id',editingProductId).eq('merchant_id',merchantId).select().single()
+      : SB.from('merchant_products').insert([{...payload,visits:0}]).select().single();
+    console.log('step 6: sending Supabase request',{operation:editingProductId?'update':'insert',table:'merchant_products'});
+    const res=await query;
+    console.log('step 7: Supabase response',res);
+    if(res.error){
+      const message=supabaseErrorText(res.error);
+      console.error('saveProduct Supabase error:',res.error);
+      showToast(message,'error');
+      return;
+    }
+    console.log('step 8: save succeeded',res.data);
+    closeProductModal();
+    showToast('تم حفظ المنتج ✅','success');
+    await loadProducts();
+  }catch(err){
+    console.error('saveProduct request failed:',err);
+    showToast(err?.message||'تعذر إرسال طلب حفظ المنتج','error');
+  }finally{
+    btn.disabled=false;btn.textContent='💾 حفظ المنتج';
+    console.log('step 9: handler finished');
+    console.groupEnd();
+  }
 }
 
 async function toggleProduct(id,isActive){
