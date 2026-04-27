@@ -350,11 +350,42 @@ async function refreshAll(){
 }
 
 async function loadProducts(){
-  const{data,error}=await SB.from('merchant_products').select('*').eq('merchant_id',merchant.id).order('id',{ascending:false});
+  const{data,error}=await SB.from('merchant_products')
+    .select('id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits')
+    .eq('merchant_id',merchant.id)
+    .order('id',{ascending:false});
   if(error){showToast('خطأ في تحميل المنتجات','error');return;}
-  products=data||[];
+  products=(data||[]).map(normalizeProduct);
   renderProducts();
   updateStats();
+}
+
+function normalizeArray(value){
+  if(Array.isArray(value))return value;
+  if(typeof value==='string')return parseTags(value);
+  return [];
+}
+
+function normalizeNumber(value){
+  const n=Number(value);
+  return Number.isFinite(n)?n:0;
+}
+
+function normalizeProduct(p){
+  return {
+    id:p.id,
+    merchant_id:p.merchant_id,
+    name:p.name||'',
+    description:p.description||'',
+    price:normalizeNumber(p.price),
+    old_price:normalizeNumber(p.old_price),
+    images:normalizeArray(p.images),
+    sizes:normalizeArray(p.sizes),
+    colors:normalizeArray(p.colors),
+    stock:normalizeNumber(p.stock),
+    is_active:p.is_active,
+    visits:normalizeNumber(p.visits)
+  };
 }
 
 function renderProducts(){
@@ -363,13 +394,13 @@ function renderProducts(){
   if(!products.length){box.innerHTML='<div class="empty-state"><div style="font-size:40px">📦</div><div style="margin-top:10px">لا توجد منتجات بعد</div></div>';return;}
   box.innerHTML=products.map(p=>{
     const img=Array.isArray(p.images)&&p.images.length?p.images[0]:'';
-    const price=Number(p.price||0).toLocaleString();
+    const price=p.price.toLocaleString();
     const old=p.old_price?'<span class="meta">قديم: '+Number(p.old_price).toLocaleString()+' IQD</span>':'';
     const sizes=Array.isArray(p.sizes)?p.sizes.join('، '):'';
     const colors=Array.isArray(p.colors)?p.colors.join('، '):'';
     return '<div class="product-card"><div class="product-top"><div class="product-main">'+
       '<img class="product-img" src="'+escAttr(img||'https://via.placeholder.com/144/161b22/f0a500?text=Dukkan')+'" alt="">'+
-      '<div><div class="product-name">'+esc(p.name||'منتج بدون اسم')+'</div><div class="product-desc">'+esc(p.description||'لا يوجد وصف')+'</div>'+
+      '<div><div class="product-name">'+esc(p.name||'—')+'</div><div class="product-desc">'+esc(p.description||'—')+'</div>'+
       '<div class="meta-row"><span class="meta">السعر: '+price+' IQD</span>'+old+'<span class="meta">المخزون: '+(p.stock||0)+'</span><span class="meta">زيارات: '+(p.visits||0)+'</span></div>'+
       '<div class="meta-row">'+(sizes?'<span class="meta">المقاسات: '+esc(sizes)+'</span>':'')+(colors?'<span class="meta">الألوان: '+esc(colors)+'</span>':'')+'</div></div></div>'+
       '<span class="status-badge '+(p.is_active===false?'status-inactive':'status-active')+'">'+(p.is_active===false?'متوقف':'مفعل')+'</span></div>'+
