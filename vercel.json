@@ -1,17 +1,9 @@
 {
   "version": 2,
   "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
-    },
-    {
-      "src": "/merchant-dashboard",
-      "dest": "/merchant-dashboard.html"
-    }
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/dashboard", "dest": "/dashboard.html" },
+    { "src": "/register", "dest": "/register.html" },
+    { "src": "/merchant-dashboard", "dest": "/merchant-dashboard.html" }
   ]
 }
