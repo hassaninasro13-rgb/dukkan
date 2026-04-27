@@ -18,6 +18,10 @@ button{cursor:pointer}
 .login-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;outline:none;margin-bottom:12px}
 .login-input:focus{border-color:var(--gold)}
 .login-btn{width:100%;background:var(--gold);color:#000;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:900;padding:14px;border:none;border-radius:10px}
+.login-choice{display:grid;gap:12px}
+.login-form{display:none}
+.login-secondary{width:100%;background:var(--card2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;padding:14px;border:1px solid var(--border);border-radius:10px}
+.login-back{width:100%;background:transparent;color:var(--muted);font-size:13px;font-weight:700;padding:10px;border:none;margin-top:8px}
 .login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;display:none}
 .layout{display:flex;min-height:100vh}
 .sidebar{width:240px;background:var(--card);border-left:1px solid var(--border);padding:20px 0;position:fixed;top:0;right:0;height:100vh;display:flex;flex-direction:column}
@@ -116,11 +120,18 @@ button{cursor:pointer}
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
     <div class="login-logo">🏪 دكّان</div>
-    <div class="login-sub">تسجيل دخول التاجر لإدارة المنتجات والطلبات</div>
-    <input class="login-input" id="loginEmail" type="email" placeholder="البريد الإلكتروني" dir="ltr" style="text-align:right">
-    <input class="login-input" id="loginPass" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">دخول</button>
-    <div class="login-err" id="loginErr">بيانات الدخول غير صحيحة</div>
+    <div class="login-sub">ادخل لمتجرك أو أنشئ متجر جديد على دكّان</div>
+    <div class="login-choice" id="loginChoice">
+      <button class="login-btn" onclick="showLoginForm()">تسجيل الدخول</button>
+      <button class="login-secondary" onclick="goRegister()">إنشاء متجر جديد</button>
+    </div>
+    <div class="login-form" id="loginForm">
+      <input class="login-input" id="loginEmail" type="email" placeholder="البريد الإلكتروني" dir="ltr" style="text-align:right">
+      <input class="login-input" id="loginPass" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">دخول</button>
+      <button class="login-back" onclick="showLoginChoice()">← رجوع للخيارات</button>
+      <div class="login-err" id="loginErr">بيانات الدخول غير صحيحة</div>
+    </div>
   </div>
 </div>
 
@@ -272,6 +283,23 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{merchant=JSON.parse(saved);startApp();}catch(e){localStorage.removeItem('dukkan_merchant');}
   }
 });
+
+function showLoginForm(){
+  document.getElementById('loginChoice').style.display='none';
+  document.getElementById('loginForm').style.display='block';
+  document.getElementById('loginErr').style.display='none';
+  document.getElementById('loginEmail').focus();
+}
+
+function showLoginChoice(){
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('loginChoice').style.display='grid';
+  document.getElementById('loginErr').style.display='none';
+}
+
+function goRegister(){
+  window.location.href='/register';
+}
 
 async function doLogin(){
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
