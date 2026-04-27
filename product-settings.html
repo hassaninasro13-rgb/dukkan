@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إعدادات المنتج — دكّان</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #0e1117; --card: #161b22; --card2: #1c2333;
+  --border: #30363d; --gold: #f0a500; --green: #3fb950;
+  --red: #f85149; --blue: #58a6ff; --text: #e6edf3; --muted: #7d8590;
+}
+body { font-family:'Cairo',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* LOGIN */
+.login-wrap { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; }
+.login-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px 32px; max-width:380px; width:100%; text-align:center; }
+.login-logo { font-family:'Tajawal',sans-serif; font-size:26px; font-weight:900; color:var(--gold); margin-bottom:20px; }
+.login-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:13px; color:var(--text); font-family:'Cairo',sans-serif; font-size:15px; outline:none; margin-bottom:12px; text-align:center; letter-spacing:4px; }
+.login-input:focus { border-color:var(--gold); }
+.login-btn { width:100%; background:var(--gold); color:#000; font-family:'Tajawal',sans-serif; font-size:16px; font-weight:900; padding:14px; border:none; border-radius:10px; cursor:pointer; }
+
+/* LAYOUT */
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:220px; background:var(--card); border-left:1px solid var(--border); padding:20px 0; position:fixed; top:0; right:0; height:100vh; }
+.sidebar-logo { padding:0 20px 20px; border-bottom:1px solid var(--border); margin-bottom:12px; font-family:'Tajawal',sans-serif; font-size:20px; font-weight:900; color:var(--gold); }
+.nav-item { display:flex; align-items:center; gap:10px; padding:10px 20px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); transition:all .2s; border-radius:8px; margin:2px 10px; }
+.nav-item:hover { background:var(--card2); color:var(--text); }
+.nav-item.active { background:rgba(240,165,0,.12); color:var(--gold); }
+
+.main { margin-right:220px; flex:1; padding:24px; }
+.page-title { font-family:'Tajawal',sans-serif; font-size:22px; font-weight:900; margin-bottom:24px; display:flex; align-items:center; gap:10px; }
+
+/* SECTIONS */
+.section { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:20px; }
+.section-title { font-size:16px; font-weight:700; color:var(--gold); margin-bottom:18px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+
+/* FORM */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-group { margin-bottom:0; }
+.form-group.full { grid-column:1/-1; }
+.form-label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; }
+.form-input, .form-textarea {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; padding:11px 14px; color:var(--text);
+  font-family:'Cairo',sans-serif; font-size:14px; outline:none;
+  transition:border-color .2s; direction:rtl;
+}
+.form-input:focus, .form-textarea:focus { border-color:var(--gold); }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-input[type="number"] { direction:ltr; text-align:right; }
+
+/* IMAGE MANAGER */
+.img-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:12px; margin-bottom:16px; }
+.img-card { background:var(--bg); border:2px solid var(--border); border-radius:12px; overflow:hidden; position:relative; aspect-ratio:1; }
+.img-card img { width:100%; height:100%; object-fit:cover; }
+.img-card .img-overlay { position:absolute; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; gap:8px; opacity:0; transition:opacity .2s; }
+.img-card:hover .img-overlay { opacity:1; }
+.img-action-btn { width:32px; height:32px; border-radius:8px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.btn-del { background:var(--red); color:white; }
+.btn-main { background:var(--gold); color:#000; }
+.img-main-badge { position:absolute; top:6px; right:6px; background:var(--gold); color:#000; font-size:9px; font-weight:700; padding:2px 6px; border-radius:6px; }
+
+.img-upload-zone {
+  border:2px dashed var(--border); border-radius:12px; padding:24px;
+  text-align:center; cursor:pointer; transition:border-color .2s;
+}
+.img-upload-zone:hover { border-color:var(--gold); }
+.img-upload-zone input { display:none; }
+.upload-icon { font-size:32px; margin-bottom:8px; }
+.upload-text { font-size:13px; color:var(--muted); }
+.upload-or { font-size:12px; color:var(--muted); margin:8px 0; }
+
+.img-url-row { display:flex; gap:8px; margin-top:10px; }
+.img-url-input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'Cairo',sans-serif; font-size:13px; outline:none; }
+.img-url-input:focus { border-color:var(--gold); }
+.btn-add-url { background:var(--gold); color:#000; border:none; border-radius:8px; padding:9px 16px; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+
+/* TAGS EDITOR */
+.tags-wrap { display:flex; flex-wrap:wrap; gap:8px; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:10px; min-height:44px; }
+.tag { background:rgba(240,165,0,.15); border:1px solid rgba(240,165,0,.3); color:var(--gold); padding:5px 10px; border-radius:20px; font-size:13px; display:flex; align-items:center; gap:6px; }
+.tag-del { background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px; padding:0; line-height:1; }
+.tag-add { display:flex; gap:8px; margin-top:8px; }
+.tag-input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-family:'Cairo',sans-serif; font-size:13px; outline:none; }
+.tag-input:focus { border-color:var(--gold); }
+.btn-tag-add { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; font-family:'Cairo',sans-serif; }
+
+/* COLOR EDITOR */
+.colors-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:10px; }
+.color-item { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px; display:flex; align-items:center; gap:10px; }
+.color-preview { width:32px; height:32px; border-radius:8px; border:2px solid var(--border); flex-shrink:0; }
+.color-name-input { flex:1; background:transparent; border:none; color:var(--text); font-family:'Cairo',sans-serif; font-size:13px; outline:none; }
+.color-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:16px; }
+.color-hex-input { width:80px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:4px 8px; color:var(--text); font-size:11px; outline:none; font-family:monospace; }
+.btn-add-color { background:var(--card2); border:1px dashed var(--border); border-radius:10px; padding:10px; text-align:center; cursor:pointer; color:var(--muted); font-size:13px; font-family:'Cairo',sans-serif; }
+.btn-add-color:hover { border-color:var(--gold); color:var(--gold); }
+
+/* SAVE BTN */
+.btn-save { background:var(--green); color:white; font-family:'Tajawal',sans-serif; font-size:16px; font-weight:900; padding:14px 32px; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:opacity .2s; }
+.btn-save:hover { opacity:.85; }
+.btn-save:disabled { opacity:.5; cursor:not-allowed; }
+.btn-preview { background:var(--card2); color:var(--text); border:1px solid var(--border); font-family:'Tajawal',sans-serif; font-size:15px; font-weight:700; padding:14px 24px; border-radius:12px; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:8px; }
+
+/* TOGGLE */
+.toggle-wrap { display:flex; align-items:center; gap:10px; }
+.toggle { position:relative; width:44px; height:24px; }
+.toggle input { display:none; }
+.toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:24px; cursor:pointer; transition:background .2s; }
+.toggle-slider::before { content:''; position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:3px; right:3px; transition:transform .2s; }
+.toggle input:checked + .toggle-slider { background:var(--green); }
+.toggle input:checked + .toggle-slider::before { transform:translateX(-20px); }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:12px 20px; font-size:14px; font-weight:600; z-index:9999; transition:transform .3s; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:var(--green); color:var(--green); }
+.toast.error { border-color:var(--red); color:var(--red); }
+
+@media(max-width:768px) { .sidebar{display:none} .main{margin-right:0} .form-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">🏪 دكّان</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">إعدادات المنتج</p>
+    <input class="login-input" id="loginPass" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">دخول</button>
+    <p style="color:var(--red);font-size:13px;margin-top:10px;display:none" id="loginErr">كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="layout" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏪 دكّان</div>
+    <div class="nav-item active">⚙️ إعدادات المنتج</div>
+    <div class="nav-item" onclick="window.open('https://dukkan-drab.vercel.app/dashboard','_blank')">📦 الطلبات</div>
+    <div class="nav-item" onclick="window.open('https://dukkan-drab.vercel.app','_blank')">👁️ معاينة الموقع</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-title">⚙️ إعدادات المنتج</div>
+
+    <!-- IMAGES -->
+    <div class="section">
+      <div class="section-title">🖼️ صور المنتج</div>
+      <div class="img-grid" id="imgGrid"></div>
+
+      <div class="img-upload-zone" onclick="document.getElementById('imgFileInput').click()">
+        <input type="file" id="imgFileInput" accept="image/*" multiple onchange="handleFileUpload(this)">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">اضغط لرفع صورة من جهازك</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">PNG, JPG — بحجم أقصى 2MB</div>
+      </div>
+
+      <div class="upload-or">— أو أضف رابط صورة من الإنترنت —</div>
+      <div class="img-url-row">
+        <input class="img-url-input" id="imgUrlInput" placeholder="https://example.com/image.jpg">
+        <button class="btn-add-url" onclick="addImgUrl()">+ إضافة</button>
+      </div>
+    </div>
+
+    <!-- PRODUCT INFO -->
+    <div class="section">
+      <div class="section-title">📝 معلومات المنتج</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">اسم المنتج</label>
+          <input class="form-input" id="fName" type="text">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">العنوان الفرعي</label>
+          <input class="form-input" id="fSubtitle" type="text">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">الوصف المختصر</label>
+          <input class="form-input" id="fDesc" type="text">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">نص الشريط العلوي</label>
+          <input class="form-input" id="fTopbar" type="text">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">نص الشارة</label>
+          <input class="form-input" id="fBadge" type="text">
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div class="section">
+      <div class="section-title">💰 الأسعار والشحن</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">السعر الحالي (دينار)</label>
+          <input class="form-input" id="fPrice" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">السعر القديم (دينار)</label>
+          <input class="form-input" id="fOldPrice" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">شحن بغداد (دينار)</label>
+          <input class="form-input" id="fShipBgd" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">شحن المحافظات (دينار)</label>
+          <input class="form-input" id="fShipOther" type="number">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">رقم واتساب (مع رمز الدولة)</label>
+          <input class="form-input" id="fWhatsapp" type="text" dir="ltr" style="text-align:right" placeholder="9641234567890">
+        </div>
+      </div>
+    </div>
+
+    <!-- SIZES -->
+    <div class="section">
+      <div class="section-title">📏 المقاسات المتاحة</div>
+      <div class="tags-wrap" id="sizesWrap"></div>
+      <div class="tag-add">
+        <input class="tag-input" id="sizeInput" placeholder="أضف مقاساً مثل: XS أو 4XL" onkeydown="if(event.key==='Enter')addSize()">
+        <button class="btn-tag-add" onclick="addSize()">+ إضافة</button>
+      </div>
+    </div>
+
+    <!-- COLORS -->
+    <div class="section">
+      <div class="section-title">🎨 الألوان المتاحة</div>
+      <div class="colors-grid" id="colorsGrid"></div>
+      <button class="btn-add-color" onclick="addColor()" style="margin-top:10px;width:100%;padding:12px;border:none">+ إضافة لون جديد</button>
+    </div>
+
+    <!-- UPSELL -->
+    <div class="section">
+      <div class="section-title">🎁 إعدادات الهدية (Upsell)</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">تفعيل الهدية</label>
+          <div class="toggle-wrap">
+            <label class="toggle"><input type="checkbox" id="fUpsellActive" checked><div class="toggle-slider"></div></label>
+            <span style="font-size:13px;color:var(--muted)">تفعيل عرض الهدية المجانية</span>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">عنوان الهدية</label>
+          <input class="form-input" id="fUpsellTitle" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">قيمة الهدية (دينار)</label>
+          <input class="form-input" id="fUpsellValue" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">نص العرض</label>
+          <input class="form-input" id="fOfferText" type="text">
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px">
+      <button class="btn-save" id="saveBtn" onclick="saveSettings()">💾 حفظ التغييرات</button>
+      <a class="btn-preview" href="https://dukkan-drab.vercel.app" target="_blank">👁️ معاينة الموقع</a>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL  = 'https://tdipbduxnxsdcdrwuksz.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MjM0MTcsImV4cCI6MjA1OTI5OTQxN30.YMmFV0143s9qBB7hJfprFgxsYWJGHdAyAOzELpRKe-4';
+  const PASS = 'dukkan2025';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  let settings = {};
+  let images = [];
+  let sizes = [];
+  let colors = [];
+  let settingsId = null;
+
+  // LOGIN
+  function doLogin() {
+    if (document.getElementById('loginPass').value === PASS) {
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      loadSettings();
+    } else {
+      document.getElementById('loginErr').style.display = 'block';
+    }
+  }
+
+  // LOAD
+  async function loadSettings() {
+    const { data, error } = await db.from('product_settings').select('*').limit(1).single();
+    if (error || !data) { showToast('خطأ في التحميل', 'error'); return; }
+    settings = data;
+    settingsId = data.id;
+    images  = data.images  || [];
+    sizes   = data.sizes   || [];
+    colors  = data.colors  || [];
+
+    // Fill form
+    document.getElementById('fName').value        = data.product_name || '';
+    document.getElementById('fSubtitle').value    = data.product_subtitle || '';
+    document.getElementById('fDesc').value        = data.product_description || '';
+    document.getElementById('fTopbar').value      = data.topbar_text || '';
+    document.getElementById('fBadge').value       = data.badge_text || '';
+    document.getElementById('fPrice').value       = data.price || 59000;
+    document.getElementById('fOldPrice').value    = data.old_price || 90000;
+    document.getElementById('fShipBgd').value     = data.shipping_baghdad || 5000;
+    document.getElementById('fShipOther').value   = data.shipping_other || 6000;
+    document.getElementById('fWhatsapp').value    = data.whatsapp || '';
+    document.getElementById('fUpsellActive').checked = data.upsell_active !== false;
+    document.getElementById('fUpsellTitle').value = data.upsell_title || '';
+    document.getElementById('fUpsellValue').value = data.upsell_value || 15000;
+    document.getElementById('fOfferText').value   = data.offer_text || '';
+
+    renderImages();
+    renderSizes();
+    renderColors();
+  }
+
+  // ===== IMAGES =====
+  function renderImages() {
+    const grid = document.getElementById('imgGrid');
+    if (images.length === 0) { grid.innerHTML = ''; return; }
+    grid.innerHTML = images.map((url, i) => `
+      <div class="img-card">
+        <img src="${url}" alt="صورة ${i+1}" onerror="this.src='https://via.placeholder.com/200x200?text=خطأ'">
+        ${i === 0 ? '<div class="img-main-badge">رئيسية</div>' : ''}
+        <div class="img-overlay">
+          ${i !== 0 ? `<button class="img-action-btn btn-main" onclick="setMain(${i})" title="جعلها رئيسية">⭐</button>` : ''}
+          <button class="img-action-btn btn-del" onclick="delImg(${i})" title="حذف">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function setMain(i) { const img = images.splice(i, 1)[0]; images.unshift(img); renderImages(); }
+  function delImg(i) { if(confirm('حذف هذه الصورة؟')) { images.splice(i, 1); renderImages(); } }
+
+  function addImgUrl() {
+    const url = document.getElementById('imgUrlInput').value.trim();
+    if (!url) { showToast('أدخل رابط الصورة', 'error'); return; }
+    images.push(url);
+    document.getElementById('imgUrlInput').value = '';
+    renderImages();
+    showToast('تمت إضافة الصورة ✅', 'success');
+  }
+
+  function handleFileUpload(input) {
+    const files = Array.from(input.files);
+    files.forEach(file => {
+      if (file.size > 2 * 1024 * 1024) { showToast('الصورة أكبر من 2MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        images.push(e.target.result);
+        renderImages();
+        showToast('تمت إضافة الصورة ✅', 'success');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ===== SIZES =====
+  function renderSizes() {
+    document.getElementById('sizesWrap').innerHTML = sizes.map((s, i) => `
+      <div class="tag">${s}<button class="tag-del" onclick="delSize(${i})">×</button></div>`).join('');
+  }
+  function addSize() {
+    const v = document.getElementById('sizeInput').value.trim();
+    if (!v) return;
+    sizes.push(v);
+    document.getElementById('sizeInput').value = '';
+    renderSizes();
+  }
+  function delSize(i) { sizes.splice(i, 1); renderSizes(); }
+
+  // ===== COLORS =====
+  function renderColors() {
+    document.getElementById('colorsGrid').innerHTML = colors.map((c, i) => `
+      <div class="color-item">
+        <div class="color-preview" style="background:${c.hex}"></div>
+        <input class="color-name-input" value="${c.name}" onchange="colors[${i}].name=this.value" placeholder="اسم اللون">
+        <input type="color" value="${c.hex}" onchange="updateColorHex(${i},this.value)" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;background:transparent">
+        <button class="color-del" onclick="delColor(${i})">🗑️</button>
+      </div>`).join('');
+  }
+  function addColor() {
+    colors.push({ name: 'لون جديد', hex: '#888888' });
+    renderColors();
+  }
+  function delColor(i) { colors.splice(i, 1); renderColors(); }
+  function updateColorHex(i, hex) { colors[i].hex = hex; renderColors(); }
+
+  // ===== SAVE =====
+  async function saveSettings() {
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري الحفظ...';
+
+    const payload = {
+      product_name:        document.getElementById('fName').value,
+      product_subtitle:    document.getElementById('fSubtitle').value,
+      product_description: document.getElementById('fDesc').value,
+      topbar_text:         document.getElementById('fTopbar').value,
+      badge_text:          document.getElementById('fBadge').value,
+      price:               parseInt(document.getElementById('fPrice').value),
+      old_price:           parseInt(document.getElementById('fOldPrice').value),
+      shipping_baghdad:    parseInt(document.getElementById('fShipBgd').value),
+      shipping_other:      parseInt(document.getElementById('fShipOther').value),
+      whatsapp:            document.getElementById('fWhatsapp').value,
+      upsell_active:       document.getElementById('fUpsellActive').checked,
+      upsell_title:        document.getElementById('fUpsellTitle').value,
+      upsell_value:        parseInt(document.getElementById('fUpsellValue').value),
+      offer_text:          document.getElementById('fOfferText').value,
+      images:              images,
+      sizes:               sizes,
+      colors:              colors,
+      updated_at:          new Date().toISOString()
+    };
+
+    const { error } = await db.from('product_settings').update(payload).eq('id', settingsId);
+    btn.disabled = false;
+    btn.innerHTML = '💾 حفظ التغييرات';
+
+    if (error) { showToast('خطأ في الحفظ ❌', 'error'); return; }
+    showToast('تم حفظ الإعدادات ✅', 'success');
+  }
+
+  // TOAST
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شيب وير — تشكيل الجسم الاحترافي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Cairo', sans-serif;
+  background: #f5f5f5;
+  color: #111;
+  min-height: 100vh;
+}
+
+/* TOP BAR */
+.topbar {
+  background: #c0392b;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* HEADER */
+.header {
+  background: #1a1a2e;
+  padding: 14px 20px;
+  text-align: center;
+}
+.logo {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #FFD700;
+  letter-spacing: 1px;
+}
+.logo span { color: white; }
+
+/* HERO PRODUCT SECTION */
+.hero {
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  padding: 30px 20px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 40px;
+  background: #f5f5f5;
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+
+.hero-badge {
+  display: inline-block;
+  background: #FFD700;
+  color: #1a1a2e;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 16px;
+  border-radius: 30px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(255,215,0,0.4);
+}
+
+.hero h1 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: clamp(22px, 5.5vw, 34px);
+  font-weight: 900;
+  color: white;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+.hero h1 em {
+  color: #FFD700;
+  font-style: normal;
+}
+
+.hero-sub {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* PRODUCT IMAGE */
+.product-showcase {
+  position: relative;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.product-showcase img {
+  width: 100%;
+  border-radius: 20px;
+  border: 3px solid rgba(255,215,0,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  display: block;
+}
+.badge-discount {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  background: #e74c3c;
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+  box-shadow: 0 4px 12px rgba(231,76,60,0.5);
+}
+.badge-sold {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* THUMBNAILS */
+.thumbs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 14px;
+}
+.thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.thumb.active { border-color: #FFD700; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* BENEFITS STRIP */
+.benefits {
+  background: white;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.benefit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 70px;
+}
+.benefit-icon { font-size: 22px; }
+.benefit-text { font-size: 11px; font-weight: 700; color: #333; text-align: center; }
+
+/* PRICE BOX */
+.price-box {
+  background: white;
+  margin: 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  text-align: center;
+  border: 2px dashed #FFD700;
+}
+.price-was { font-size: 13px; color: #999; text-decoration: line-through; margin-bottom: 4px; }
+.price-now { font-size: 38px; font-weight: 900; color: #c0392b; line-height: 1; }
+.price-currency { font-size: 16px; }
+.price-cod { display: inline-block; background: #27ae60; color: white; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; margin-top: 8px; }
+
+/* COUNTDOWN */
+.countdown-wrap {
+  background: #1a1a2e;
+  margin: 0 16px 16px;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+.countdown-title { color: #FFD700; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.cd-item {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 8px 16px;
+  min-width: 56px;
+}
+.cd-num { display: block; font-size: 24px; font-weight: 900; color: #e74c3c; }
+.cd-label { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+/* ===== ORDER FORM ===== */
+.form-section {
+  background: white;
+  margin: 16px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+.form-section-header {
+  background: #1a1a2e;
+  padding: 18px 20px;
+  text-align: center;
+}
+.form-section-header h2 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #FFD700;
+  margin-bottom: 4px;
+}
+.form-section-header p { color: rgba(255,255,255,0.6); font-size: 13px; }
+
+.form-body { padding: 24px 20px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.form-group { margin-bottom: 14px; }
+.form-group.half { margin-bottom: 0; }
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 7px;
+}
+.form-label .req { color: #e74c3c; }
+
+.form-input, .form-select {
+  width: 100%;
+  background: #f8f8f8;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 13px 14px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  color: #111;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  direction: rtl;
+}
+.form-input:focus, .form-select:focus {
+  border-color: #1a1a2e;
+  box-shadow: 0 0 0 3px rgba(26,26,46,0.08);
+  background: white;
+}
+.form-input::placeholder { color: #bbb; }
+.form-select { appearance: none; cursor: pointer; }
+
+/* SIZE */
+.size-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.size-btn {
+  background: #f0f0f0;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 9px 4px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  color: #333;
+}
+.size-btn:hover { border-color: #1a1a2e; }
+.size-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+
+/* COLOR */
+.color-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.color-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.color-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.color-circle:hover { transform: scale(1.1); }
+.color-opt.active .color-circle { border-color: #FFD700; transform: scale(1.1); }
+.color-name { font-size: 10px; color: #888; }
+
+/* QTY */
+.qty-row { display: flex; align-items: center; gap: 14px; }
+.qty-btn {
+  width: 38px; height: 38px;
+  background: #f0f0f0;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cairo', sans-serif;
+  color: #333;
+  transition: background 0.2s;
+}
+.qty-btn:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+.qty-display { font-size: 22px; font-weight: 900; min-width: 28px; text-align: center; }
+.qty-tip { font-size: 12px; color: #27ae60; font-weight: 600; }
+
+/* UPSELL */
+.upsell {
+  background: linear-gradient(135deg, #e8f8ee, #f0fff4);
+  border: 2px dashed #27ae60;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+.upsell:hover { background: linear-gradient(135deg, #d4f4e0, #e8ffee); }
+.upsell-cb {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid #27ae60;
+  background: #27ae60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.upsell-info { flex: 1; }
+.upsell-title { font-size: 13px; font-weight: 700; color: #27ae60; margin-bottom: 3px; }
+.upsell-desc { font-size: 12px; color: #555; line-height: 1.5; }
+
+/* ORDER SUMMARY */
+.order-summary {
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.summary-title { font-size: 13px; font-weight: 700; color: #666; margin-bottom: 12px; }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
+}
+.summary-divider { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 900;
+  color: #1a1a2e;
+}
+.summary-total .total-num { color: #c0392b; }
+
+/* SUBMIT BTN */
+.btn-submit {
+  width: 100%;
+  background: linear-gradient(135deg, #27ae60, #1e8449);
+  color: white;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 19px;
+  font-weight: 900;
+  padding: 18px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 8px 24px rgba(39,174,96,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(39,174,96,0.45); }
+.btn-submit:active { transform: translateY(0); }
+.btn-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+.trust-row {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #888;
+}
+
+/* REVIEWS */
+.reviews-section {
+  padding: 24px 16px;
+}
+.section-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a1a2e;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.review-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.review-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.r-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  color: #FFD700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.r-name { font-size: 14px; font-weight: 700; color: #111; }
+.r-city { font-size: 12px; color: #999; }
+.r-stars { color: #FFB800; font-size: 14px; }
+.r-text { font-size: 13px; color: #555; line-height: 1.7; }
+.verified { display: inline-block; background: #e8f8ee; color: #27ae60; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-top: 8px; }
+
+/* FOOTER */
+.footer {
+  background: #1a1a2e;
+  padding: 24px 20px;
+  text-align: center;
+}
+.footer-logo { font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 900; color: #FFD700; margin-bottom: 8px; }
+.footer-text { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.8; }
+.footer-govs { font-size: 11px; color: rgba(255,215,0,0.6); margin-top: 8px; }
+
+/* WHATSAPP */
+.wa-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 54px; height: 54px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+  text-decoration: none;
+  z-index: 99;
+  animation: wa-pulse 2s infinite;
+}
+@keyframes wa-pulse {
+  0%,100%{box-shadow:0 4px 20px rgba(37,211,102,0.5)}
+  50%{box-shadow:0 4px 30px rgba(37,211,102,0.8)}
+}
+
+/* MODAL */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-bg.open { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 24px;
+  padding: 36px 24px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  animation: pop 0.3s ease;
+}
+@keyframes pop { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-emoji { font-size: 64px; margin-bottom: 14px; }
+.modal-title { font-family: 'Tajawal', sans-serif; font-size: 24px; font-weight: 900; color: #27ae60; margin-bottom: 10px; }
+.modal-text { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 16px; }
+.modal-order { background: #f5f5f5; border-radius: 10px; padding: 12px; font-size: 14px; color: #1a1a2e; font-weight: 700; margin-bottom: 20px; }
+.modal-close {
+  width: 100%;
+  background: #1a1a2e;
+  color: white;
+  font-family: 'Cairo', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+@media (max-width: 360px) {
+  .form-row { grid-template-columns: 1fr; }
+  .size-grid { grid-template-columns: repeat(4,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">🏪 <span>دكّ</span>ان</div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🔥 الأكثر مبيعاً في العراق 2025</div>
+  <h1>شيب وير تشكيل الجسم<br><em>النتيجة من أول يوم!</em></h1>
+  <p class="hero-sub">قوام مثالي • خصر رفيع • مريح طوال اليوم</p>
+
+  <div class="product-showcase">
+    <div class="badge-discount">خصم<br>40%</div>
+    <img id="mainImg" src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500&q=85" alt="شيب وير">
+    <div class="badge-sold">🔥 بيع أكثر من 4,200 قطعة</div>
+  </div>
+
+  <div class="thumbs">
+    <div class="thumb active" onclick="setImg(this,'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500&q=85')">
+      <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=100" alt="">
+    </div>
+    <div class="thumb" onclick="setImg(this,'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=85')">
+      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=100" alt="">
+    </div>
+    <div class="thumb" onclick="setImg(this,'https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=500&q=85')">
+      <img src="https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=100" alt="">
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<div class="benefits">
+  <div class="benefit-item"><div class="benefit-icon">✅</div><div class="benefit-text">دفع عند الاستلام</div></div>
+  <div class="benefit-item"><div class="benefit-icon">🚚</div><div class="benefit-text">توصيل سريع</div></div>
+  <div class="benefit-item"><div class="benefit-icon">↩️</div><div class="benefit-text">إرجاع مضمون</div></div>
+  <div class="benefit-item"><div class="benefit-icon">⭐</div><div class="benefit-text">جودة عالية</div></div>
+</div>
+
+<!-- PRICE -->
+<div class="price-box">
+  <div class="price-was">السعر الأصلي: 90,000 دينار</div>
+  <div class="price-now"><span class="price-currency">IQD </span><span id="displayPrice">59,000</span></div>
+  <div><span class="price-cod">💰 الدفع عند الاستلام فقط</span></div>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="countdown-wrap">
+  <div class="countdown-title">⏰ ينتهي العرض خلال:</div>
+  <div class="countdown">
+    <div class="cd-item"><span class="cd-num" id="cdH">02</span><span class="cd-label">ساعة</span></div>
+    <div class="cd-item"><span class="cd-num" id="cdM">47</span><span class="cd-label">دقيقة</span></div>
+    <div class="cd-item"><span class="cd-num" id="cdS">30</span><span class="cd-label">ثانية</span></div>
+  </div>
+</div>
+
+<!-- ORDER FORM -->
+<div class="form-section">
+  <div class="form-section-header">
+    <h2>📦 اطلب الآن — الدفع عند الاستلام</h2>
+    <p>أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>
+  </div>
+
+  <div class="form-body">
+
+    <!-- الاسم واللقب -->
+    <div class="form-row">
+      <div class="form-group half">
+        <label class="form-label">الاسم <span class="req">*</span></label>
+        <input class="form-input" id="fFirstName" type="text" placeholder="مثال: أحمد">
+      </div>
+      <div class="form-group half">
+        <label class="form-label">اللقب <span class="req">*</span></label>
+        <input class="form-input" id="fLastName" type="text" placeholder="مثال: الحسيني">
+      </div>
+    </div>
+
+    <!-- الهاتف -->
+    <div class="form-group">
+      <label class="form-label">رقم الهاتف <span class="req">*</span></label>
+      <input class="form-input" id="fPhone" type="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right">
+    </div>
+
+    <!-- المحافظة -->
+    <div class="form-group">
+      <label class="form-label">المحافظة <span class="req">*</span></label>
+      <select class="form-select" id="fGov" onchange="onGovChange()">
+        <option value="">-- اختر محافظتك --</option>
+        <option value="بغداد" data-ship="5000">بغداد</option>
+        <option value="البصرة" data-ship="6000">البصرة</option>
+        <option value="نينوى" data-ship="6000">نينوى</option>
+        <option value="أربيل" data-ship="6000">أربيل</option>
+        <option value="السليمانية" data-ship="6000">السليمانية</option>
+        <option value="النجف" data-ship="6000">النجف</option>
+        <option value="كربلاء" data-ship="6000">كربلاء</option>
+        <option value="ديالى" data-ship="6000">ديالى</option>
+        <option value="الأنبار" data-ship="6000">الأنبار</option>
+        <option value="كركوك" data-ship="6000">كركوك</option>
+        <option value="دهوك" data-ship="6000">دهوك</option>
+        <option value="واسط" data-ship="6000">واسط</option>
+        <option value="بابل" data-ship="6000">بابل</option>
+        <option value="القادسية" data-ship="6000">القادسية</option>
+        <option value="ميسان" data-ship="6000">ميسان</option>
+        <option value="المثنى" data-ship="6000">المثنى</option>
+        <option value="ذي قار" data-ship="6000">ذي قار</option>
+        <option value="صلاح الدين" data-ship="6000">صلاح الدين</option>
+        <option value="حلبجة" data-ship="6000">حلبجة</option>
+      </select>
+    </div>
+
+    <!-- العنوان -->
+    <div class="form-group">
+      <label class="form-label">العنوان التفصيلي <span class="req">*</span></label>
+      <input class="form-input" id="fAddress" type="text" placeholder="الحي، الشارع، رقم المنزل">
+    </div>
+
+    <!-- المقاس -->
+    <div class="form-group">
+      <label class="form-label">المقاس <span class="req">*</span></label>
+      <div class="size-grid">
+        <button class="size-btn" onclick="pickSize(this,'S')">S</button>
+        <button class="size-btn" onclick="pickSize(this,'M')">M</button>
+        <button class="size-btn" onclick="pickSize(this,'L')">L</button>
+        <button class="size-btn" onclick="pickSize(this,'XL')">XL</button>
+        <button class="size-btn" onclick="pickSize(this,'2XL')">2XL</button>
+      </div>
+    </div>
+
+    <!-- اللون -->
+    <div class="form-group">
+      <label class="form-label">اللون <span class="req">*</span></label>
+      <div class="color-row">
+        <div class="color-opt active" onclick="pickColor(this,'بيج')">
+          <div class="color-circle" style="background:#F5DEB3;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div>
+          <span class="color-name">بيج</span>
+        </div>
+        <div class="color-opt" onclick="pickColor(this,'أسود')">
+          <div class="color-circle" style="background:#1a1a1a;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>
+          <span class="color-name">أسود</span>
+        </div>
+        <div class="color-opt" onclick="pickColor(this,'خمري')">
+          <div class="color-circle" style="background:#8B3A62;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div>
+          <span class="color-name">خمري</span>
+        </div>
+        <div class="color-opt" onclick="pickColor(this,'رمادي')">
+          <div class="color-circle" style="background:#9E9E9E;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div>
+          <span class="color-name">رمادي</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- الكمية -->
+    <div class="form-group">
+      <label class="form-label">الكمية</label>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-display" id="qtyShow">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+        <span class="qty-tip">🎁 قطعتان = توصيل مجاني</span>
+      </div>
+    </div>
+
+    <!-- Upsell -->
+    <div class="upsell" onclick="toggleUpsell()">
+      <div class="upsell-cb" id="upsellCb">✓</div>
+      <div class="upsell-info">
+        <div class="upsell-title">🎁 أضف حزام الخصر مجاناً (قيمته 15,000 IQD)</div>
+        <div class="upsell-desc">احصل على حزام الخصر هدية مجانية مع طلبك اليوم فقط</div>
+      </div>
+    </div>
+
+    <!-- ملخص الطلب -->
+    <div class="order-summary">
+      <div class="summary-title">📋 ملخص الطلب</div>
+      <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">59,000 IQD</span></div>
+      <div class="summary-row"><span>رسوم التوصيل</span><span id="sShip" style="color:#27ae60">اختر المحافظة</span></div>
+      <div class="summary-row"><span>هدية إضافية</span><span style="color:#27ae60">حزام خصر مجاني ✓</span></div>
+      <hr class="summary-divider">
+      <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">59,000 IQD</span></div>
+    </div>
+
+    <!-- زر الإرسال -->
+    <button class="btn-submit" id="submitBtn" onclick="submitOrder()">
+      <span>✅</span>
+      <span>تأكيد الطلب — الدفع عند الاستلام</span>
+    </button>
+
+    <div class="trust-row">
+      <div class="trust-item">🔒 بياناتك آمنة</div>
+      <div class="trust-item">💰 لا دفع مسبق</div>
+      <div class="trust-item">↩️ إرجاع مضمون</div>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<section class="reviews-section">
+  <div class="section-title">💬 آراء زبائننا</div>
+
+  <div class="review-card">
+    <div class="review-head">
+      <div class="r-avatar">ز</div>
+      <div style="flex:1">
+        <div class="r-name">زينب الموسوي</div>
+        <div class="r-city">📍 بغداد — الكرادة</div>
+      </div>
+      <div class="r-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="r-text">منتج رائع جداً! لبسته من أول يوم وحسيت بفرق واضح. التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل البنات!</div>
+    <span class="verified">✓ مشتري موثق</span>
+  </div>
+
+  <div class="review-card">
+    <div class="review-head">
+      <div class="r-avatar">س</div>
+      <div style="flex:1">
+        <div class="r-name">سمر العبيدي</div>
+        <div class="r-city">📍 البصرة — العشار</div>
+      </div>
+      <div class="r-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="r-text">الجودة ممتازة وفعلاً يشكل الجسم بشكل احترافي. اشتريت مقاس L وجاء زين تماماً. الدفع عند الاستلام خلاني ما أخاف أطلب.</div>
+    <span class="verified">✓ مشتري موثق</span>
+  </div>
+
+  <div class="review-card">
+    <div class="review-head">
+      <div class="r-avatar">ن</div>
+      <div style="flex:1">
+        <div class="r-name">نور الهاشمي</div>
+        <div class="r-city">📍 أربيل</div>
+      </div>
+      <div class="r-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="r-text">طلبت ثانية لأختي بعد ما شافته. ممتاز بكل الكلمة، القماش ناعم ومريح وما يبان تحت الملابس. شكراً جزيلاً!</div>
+    <span class="verified">✓ مشتري موثق</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">🏪 دكّان</div>
+  <div class="footer-text">
+    التوصيل لجميع محافظات العراق • الدفع عند الاستلام<br>
+    بغداد | البصرة | نينوى | أربيل | كربلاء | النجف
+  </div>
+  <div class="footer-govs">وجميع المحافظات العراقية الـ 19</div>
+</footer>
+
+<!-- WHATSAPP -->
+<a class="wa-btn" href="https://wa.me/9641234567890" target="_blank">💬</a>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <div class="modal-emoji">🎉</div>
+    <div class="modal-title">تم تأكيد طلبك!</div>
+    <div class="modal-text">شكراً لك! سيتصل بك فريقنا خلال ساعات قليلة لتأكيد الطلب وموعد التوصيل</div>
+    <div class="modal-order">رقم طلبك: <span id="orderCode">#IQ-00001</span></div>
+    <button class="modal-close" onclick="closeModal()">حسناً، شكراً! 👍</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ===== SUPABASE CONFIG =====
+  const SUPABASE_URL = 'https://tdipbduxnxsdcdrwuksz.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MjM0MTcsImV4cCI6MjA1OTI5OTQxN30.YMmFV0143s9qBB7hJfprFgxsYWJGHdAyAOzELpRKe-4';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // STATE
+  let SIZE = '', COLOR = 'بيج', QTY = 1, SHIP = 0, UPSELL = true;
+  const BASE = 59000;
+
+  // IMG
+  function setImg(el, src) {
+    document.getElementById('mainImg').src = src;
+    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // SIZE
+  function pickSize(el, s) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    SIZE = s;
+  }
+
+  // COLOR
+  function pickColor(el, c) {
+    document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    COLOR = c;
+  }
+
+  // QTY
+  function changeQty(d) {
+    QTY = Math.max(1, Math.min(10, QTY + d));
+    document.getElementById('qtyShow').textContent = QTY;
+    recalc();
+  }
+
+  // UPSELL
+  function toggleUpsell() {
+    UPSELL = !UPSELL;
+    const cb = document.getElementById('upsellCb');
+    cb.style.background = UPSELL ? '#27ae60' : 'white';
+    cb.style.color = UPSELL ? 'white' : '#27ae60';
+    cb.textContent = UPSELL ? '✓' : '';
+  }
+
+  // GOV CHANGE
+  function onGovChange() {
+    const sel = document.getElementById('fGov');
+    const opt = sel.options[sel.selectedIndex];
+    SHIP = parseInt(opt.dataset.ship || 0);
+    recalc();
+  }
+
+  // RECALC
+  function recalc() {
+    const productTotal = BASE * QTY;
+    const shipping = QTY >= 2 ? 0 : SHIP;
+    const total = productTotal + shipping;
+
+    document.getElementById('displayPrice').textContent = productTotal.toLocaleString();
+    document.getElementById('sPrice').textContent = productTotal.toLocaleString() + ' IQD';
+
+    const shipEl = document.getElementById('sShip');
+    if (SHIP === 0) {
+      shipEl.textContent = 'اختر المحافظة';
+      shipEl.style.color = '#999';
+    } else if (QTY >= 2) {
+      shipEl.textContent = 'مجاني 🎁';
+      shipEl.style.color = '#27ae60';
+    } else {
+      shipEl.textContent = SHIP.toLocaleString() + ' IQD';
+      shipEl.style.color = '#111';
+    }
+
+    document.getElementById('sTotal').textContent = total.toLocaleString() + ' IQD';
+  }
+
+  // VALIDATE
+  function validate() {
+    const fn = document.getElementById('fFirstName').value.trim();
+    const ln = document.getElementById('fLastName').value.trim();
+    const ph = document.getElementById('fPhone').value.trim();
+    const gv = document.getElementById('fGov').value;
+    const ad = document.getElementById('fAddress').value.trim();
+
+    if (!fn) { alert('⚠️ أدخل اسمك'); return false; }
+    if (!ln) { alert('⚠️ أدخل لقبك'); return false; }
+    if (!ph || ph.length < 10) { alert('⚠️ أدخل رقم هاتف صحيح'); return false; }
+    if (!gv) { alert('⚠️ اختر محافظتك'); return false; }
+    if (!ad) { alert('⚠️ أدخل عنوانك التفصيلي'); return false; }
+    if (!SIZE) { alert('⚠️ اختر المقاس'); return false; }
+    return true;
+  }
+
+  // SUBMIT — حفظ في Supabase
+  async function submitOrder() {
+    if (!validate()) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span><span>جاري إرسال طلبك...</span>';
+
+    const productTotal = BASE * QTY;
+    const shipping = QTY >= 2 ? 0 : SHIP;
+    const total = productTotal + shipping;
+    const orderNum = 'IQ-' + Date.now().toString().slice(-6) + Math.floor(Math.random()*100);
+
+    const orderData = {
+      order_number:  orderNum,
+      first_name:    document.getElementById('fFirstName').value.trim(),
+      last_name:     document.getElementById('fLastName').value.trim(),
+      phone:         document.getElementById('fPhone').value.trim(),
+      governorate:   document.getElementById('fGov').value,
+      address:       document.getElementById('fAddress').value.trim(),
+      size:          SIZE,
+      color:         COLOR,
+      quantity:      QTY,
+      upsell:        UPSELL,
+      product_price: productTotal,
+      shipping_cost: shipping,
+      total_price:   total,
+      status:        'pending'
+    };
+
+    try {
+      const { error } = await db.from('iraq_orders').insert([orderData]);
+
+      if (error) throw error;
+
+      document.getElementById('orderCode').textContent = '#' + orderNum;
+      document.getElementById('modal').classList.add('open');
+
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ، يرجى المحاولة مرة أخرى أو التواصل معنا على واتساب');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<span>✅</span><span>تأكيد الطلب — الدفع عند الاستلام</span>';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  // COUNTDOWN
+  let secs = 2 * 3600 + 47 * 60 + 30;
+  setInterval(() => {
+    if (secs <= 0) return;
+    secs--;
+    document.getElementById('cdH').textContent = String(Math.floor(secs/3600)).padStart(2,'0');
+    document.getElementById('cdM').textContent = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+    document.getElementById('cdS').textContent = String(secs%60).padStart(2,'0');
+  }, 1000);
+</script>
+</body>
+</html>
