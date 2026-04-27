@@ -274,7 +274,7 @@ button{cursor:pointer}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SB=supabase.createClient('https://tdipbduxnxsdcdrwuksz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3​​​​​​​​​​​​​​​​');
+const SB=supabase.createClient('https://tdipbduxnxsdcdrwuksz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3HbfzFaCTlsmhf033OC9DWgo');
 let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,productSizes=[],productColors=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -416,9 +416,29 @@ function renderProductTags(){
   document.getElementById('pColorsWrap').innerHTML=productColors.map((c,i)=>'<span class="tag">'+esc(c)+'<button onclick="removeProductTag(\'color\','+i+')">×</button></span>').join('');
 }
 
+function parseTags(value){
+  return value.split(',').map(v=>v.trim()).filter(Boolean);
+}
+
+function mergePendingProductTags(){
+  const sizeInput=document.getElementById('pSizeInput');
+  const colorInput=document.getElementById('pColorInput');
+  productSizes=[...new Set([...productSizes,...parseTags(sizeInput.value)])];
+  productColors=[...new Set([...productColors,...parseTags(colorInput.value)])];
+  sizeInput.value='';
+  colorInput.value='';
+  renderProductTags();
+}
+
 async function saveProduct(){
+  if(!merchant||!merchant.id){showToast('سجل الدخول كتاجر أولاً','error');return;}
   const name=document.getElementById('pName').value.trim();
   if(!name){showToast('أدخل اسم المنتج','error');return;}
+  const price=num('pPrice');
+  if(!price||price<=0){showToast('أدخل سعر المنتج','error');return;}
+  const stock=num('pStock');
+  if(stock<0){showToast('المخزون لا يمكن أن يكون سالباً','error');return;}
+  mergePendingProductTags();
   const btn=document.getElementById('saveProductBtn');
   btn.disabled=true;btn.textContent='جاري الحفظ...';
   const img=document.getElementById('pImage').value.trim();
@@ -426,22 +446,32 @@ async function saveProduct(){
     merchant_id:merchant.id,
     name,
     description:document.getElementById('pDescription').value.trim(),
-    price:num('pPrice'),
+    price,
     old_price:num('pOldPrice'),
     images:img?[img]:[],
     sizes:productSizes,
     colors:productColors,
-    stock:num('pStock'),
+    stock,
     is_active:document.getElementById('pActive').value==='true'
   };
-  const res=editingProductId
-    ? await SB.from('merchant_products').update(payload).eq('id',editingProductId).eq('merchant_id',merchant.id)
-    : await SB.from('merchant_products').insert([payload]);
-  btn.disabled=false;btn.textContent='💾 حفظ المنتج';
-  if(res.error){showToast('خطأ في حفظ المنتج','error');return;}
-  closeProductModal();
-  showToast('تم حفظ المنتج ✅','success');
-  await loadProducts();
+  try{
+    const res=editingProductId
+      ? await SB.from('merchant_products').update(payload).eq('id',editingProductId).eq('merchant_id',merchant.id).select().single()
+      : await SB.from('merchant_products').insert([{...payload,visits:0}]).select().single();
+    if(res.error){
+      console.error('saveProduct Supabase error:',res.error);
+      showToast(res.error.message||'خطأ في حفظ المنتج','error');
+      return;
+    }
+    closeProductModal();
+    showToast('تم حفظ المنتج ✅','success');
+    await loadProducts();
+  }catch(err){
+    console.error('saveProduct request failed:',err);
+    showToast('تعذر إرسال طلب حفظ المنتج','error');
+  }finally{
+    btn.disabled=false;btn.textContent='💾 حفظ المنتج';
+  }
 }
 
 async function toggleProduct(id,isActive){
