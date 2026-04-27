@@ -8,6 +8,10 @@
     {
       "src": "/dashboard",
       "dest": "/dashboard.html"
+    },
+    {
+      "src": "/merchant-dashboard",
+      "dest": "/merchant-dashboard.html"
     }
   ]
 }
