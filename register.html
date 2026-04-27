@@ -84,13 +84,14 @@ button,input,select{font-family:'Cairo',sans-serif}
       <div class="hint">اختر اسم المتجر والرابط الذي سيظهر للزبائن</div>
       <div class="grid">
         <div class="group full"><label class="label">اسم المتجر <span>*</span></label><input class="input" id="storeName" placeholder="متجر بغداد" oninput="generateSlug(this.value)"></div>
+        <div class="group full"><label class="label">وصف المتجر</label><input class="input" id="storeDesc" placeholder="مثال: متجر ملابس وإكسسوارات"></div>
         <div class="group full">
           <label class="label">رابط المتجر (slug) <span>*</span></label>
           <input class="input" id="storeSlug" placeholder="baghdad-store" dir="ltr" style="text-align:right" oninput="cleanSlug(this.value)">
           <div class="slug-preview">رابطك: <b id="slugPreview">dukkan-drab.vercel.app/store-name</b></div>
         </div>
-        <div class="group"><label class="label">المحافظة <span>*</span></label><select class="select" id="governorate"><option value="">اختر المحافظة</option><option>بغداد</option><option>البصرة</option><option>نينوى</option><option>أربيل</option><option>السليمانية</option><option>النجف</option><option>كربلاء</option><option>ديالى</option><option>الأنبار</option><option>كركوك</option><option>دهوك</option><option>واسط</option><option>بابل</option><option>القادسية</option><option>ميسان</option><option>المثنى</option><option>ذي قار</option><option>صلاح الدين</option><option>حلبجة</option></select></div>
-        <div class="group"><label class="label">واتساب <span>*</span></label><input class="input" id="whatsapp" type="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right"></div>
+        <div class="group"><label class="label">المحافظة <span>*</span></label><select class="select" id="storeGov"><option value="">اختر المحافظة</option><option>بغداد</option><option>البصرة</option><option>نينوى</option><option>أربيل</option><option>السليمانية</option><option>النجف</option><option>كربلاء</option><option>ديالى</option><option>الأنبار</option><option>كركوك</option><option>دهوك</option><option>واسط</option><option>بابل</option><option>القادسية</option><option>ميسان</option><option>المثنى</option><option>ذي قار</option><option>صلاح الدين</option><option>حلبجة</option></select></div>
+        <div class="group"><label class="label">واتساب <span>*</span></label><input class="input" id="storeWa" type="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right"></div>
       </div>
       <div class="actions"><button class="btn btn-back" onclick="showStep(1)">رجوع</button><button class="btn btn-main" onclick="goStep3()">التالي</button></div>
     </div>
@@ -103,7 +104,7 @@ button,input,select{font-family:'Cairo',sans-serif}
         <div class="plan" onclick="selectPlan(this,'basic')"><div class="plan-badge">شائع</div><div class="plan-name">أساسي</div><div class="plan-price">15,000 IQD</div><div class="plan-desc">حتى 10 منتجات<br>طلبات أكثر<br>دعم سريع</div></div>
         <div class="plan" onclick="selectPlan(this,'pro')"><div class="plan-name">احترافي</div><div class="plan-price">30,000 IQD</div><div class="plan-desc">منتجات غير محدودة<br>إحصائيات<br>دعم أولوية</div></div>
       </div>
-      <div class="actions"><button class="btn btn-back" onclick="showStep(2)">رجوع</button><button class="btn btn-main" id="registerBtn" onclick="registerMerchant()">إنشاء المتجر</button></div>
+      <div class="actions"><button class="btn btn-back" onclick="showStep(2)">رجوع</button><button class="btn btn-main" id="registerBtn" onclick="register()">إنشاء المتجر</button></div>
     </div>
   </section>
 
@@ -125,6 +126,7 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const SB = supabase.createClient(SURL, SKEY);
 
 let selectedPlan='free';
+let firstName='',lastName='';
 
 function showStep(n){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -146,14 +148,16 @@ function goStep2(){
   if(!val('email').includes('@'))return toast('أدخل إيميل صحيح','error');
   if(val('phone').length<10)return toast('أدخل هاتف صحيح','error');
   if(val('password').length<8)return toast('كلمة المرور 8 أحرف على الأقل','error');
+  firstName=val('firstName');
+  lastName=val('lastName');
   showStep(2);
 }
 
 function goStep3(){
   if(!val('storeName'))return toast('أدخل اسم المتجر','error');
   if(!val('storeSlug'))return toast('أدخل رابط المتجر','error');
-  if(!val('governorate'))return toast('اختر المحافظة','error');
-  if(val('whatsapp').length<10)return toast('أدخل رقم واتساب صحيح','error');
+  if(!val('storeGov'))return toast('اختر المحافظة','error');
+  if(val('storeWa').length<10)return toast('أدخل رقم واتساب صحيح','error');
   showStep(3);
 }
 
@@ -179,47 +183,44 @@ function selectPlan(el,plan){
   selectedPlan=plan;
 }
 
-async function registerMerchant(){
-  const btn=document.getElementById('registerBtn');
-  btn.disabled=true;
-  btn.textContent='جاري إنشاء المتجر...';
-  const slug=val('storeSlug');
-  const email=val('email').toLowerCase();
+async function register() {
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true;
+  btn.textContent = 'جاري إنشاء المتجر...';
 
-  const{data:existingSlug}=await SB.from('merchants').select('id').eq('store_slug',slug).maybeSingle();
-  if(existingSlug){resetBtn();return toast('رابط المتجر مستخدم مسبقاً','error');}
-
-  const{data:existingEmail}=await SB.from('merchants').select('id').eq('email',email).maybeSingle();
-  if(existingEmail){resetBtn();return toast('هذا الإيميل مسجل مسبقاً','error');}
-
-  const merchantData={
-    full_name:val('firstName')+' '+val('lastName'),
-    email,
-    phone:val('phone'),
-    password_hash:btoa(document.getElementById('password').value),
-    store_name:val('storeName'),
-    store_slug:slug,
-    whatsapp:val('whatsapp'),
-    plan:selectedPlan,
-    is_active:true
+  const data = {
+    full_name: firstName + ' ' + lastName,
+    email: document.getElementById('email').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    password_hash: btoa(document.getElementById('password').value),
+    store_name: document.getElementById('storeName').value.trim(),
+    store_slug: document.getElementById('storeSlug').value.trim(),
+    store_description: document.getElementById('storeDesc').value.trim(),
+    governorate: document.getElementById('storeGov').value,
+    whatsapp: document.getElementById('storeWa').value.trim(),
+    plan: selectedPlan
   };
 
-  const{data,error}=await SB.from('merchants').insert([merchantData]).select().single();
-  if(error){resetBtn();return toast('خطأ في التسجيل: '+error.message,'error');}
+  const res = await fetch(
+    'https://tdipbduxnxsdcdrwuksz.supabase.co/functions/v1/register-merchant',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }
+  );
 
-  await SB.from('store_settings').insert([{
-    merchant_id:data.id,
-    shipping_baghdad:5000,
-    shipping_other:6000,
-    topbar_text:'توصيل لجميع محافظات العراق',
-    whatsapp:val('whatsapp')
-  }]);
+  const result = await res.json();
 
-  localStorage.setItem('dukkan_merchant',JSON.stringify(data));
-  document.getElementById('formCard').style.display='none';
-  document.getElementById('successCard').style.display='block';
-  document.getElementById('finalLink').textContent='dukkan-drab.vercel.app/'+slug;
-  toast('تم إنشاء المتجر بنجاح','success');
+  if (result.error) {
+    showToast(result.error, 'error');
+    btn.disabled = false;
+    btn.textContent = 'إنشاء المتجر';
+    return;
+  }
+
+  localStorage.setItem('dukkan_merchant', JSON.stringify(result.merchant));
+  window.location.href = '/merchant-dashboard';
 }
 
 function resetBtn(){
@@ -229,6 +230,7 @@ function resetBtn(){
 }
 
 function val(id){return document.getElementById(id).value.trim();}
+function showToast(msg,type='success'){toast(msg,type);}
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
   el.textContent=msg;
