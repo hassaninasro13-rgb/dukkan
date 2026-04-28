@@ -184,43 +184,68 @@ function selectPlan(el,plan){
 }
 
 async function register() {
+  console.group('[Dukkan] register merchant');
   const btn = document.getElementById('registerBtn');
-  btn.disabled = true;
-  btn.textContent = 'جاري إنشاء المتجر...';
+  try {
+    btn.disabled = true;
+    btn.textContent = 'جاري إنشاء المتجر...';
+    console.log('step 1: clicked register button');
 
-  const data = {
-    full_name: firstName + ' ' + lastName,
-    email: document.getElementById('email').value.trim(),
-    phone: document.getElementById('phone').value.trim(),
-    password_hash: btoa(document.getElementById('password').value),
-    store_name: document.getElementById('storeName').value.trim(),
-    store_slug: document.getElementById('storeSlug').value.trim(),
-    store_description: document.getElementById('storeDesc').value.trim(),
-    governorate: document.getElementById('storeGov').value,
-    whatsapp: document.getElementById('storeWa').value.trim(),
-    plan: selectedPlan
-  };
+    const data = {
+      full_name: firstName + ' ' + lastName,
+      email: document.getElementById('email').value.trim().toLowerCase(),
+      phone: document.getElementById('phone').value.trim(),
+      password_hash: btoa(document.getElementById('password').value),
+      store_name: document.getElementById('storeName').value.trim(),
+      store_slug: document.getElementById('storeSlug').value.trim(),
+      store_description: document.getElementById('storeDesc').value.trim(),
+      governorate: document.getElementById('storeGov').value,
+      whatsapp: document.getElementById('storeWa').value.trim(),
+      plan: selectedPlan,
+      is_active: true
+    };
+    console.log('step 2: payload ready', {...data,password_hash:'[hidden]'});
 
-  const res = await fetch(
-    'https://aukdrcusgnfjkaprgnuf.supabase.co/functions/v1/register-merchant',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }
-  );
+    console.log('step 3: checking duplicate email/slug');
+    const existing = await SB
+      .from('merchants')
+      .select('id,email,store_slug')
+      .or('email.eq.' + data.email + ',store_slug.eq.' + data.store_slug)
+      .limit(2);
+    console.log('step 4: duplicate check response', existing);
+    if (existing.error) throw existing.error;
+    const duplicates = existing.data || [];
+    if (duplicates.some(row => row.email === data.email)) throw new Error('هذا الإيميل مسجل مسبقاً');
+    if (duplicates.some(row => row.store_slug === data.store_slug)) throw new Error('رابط المتجر مستخدم مسبقاً');
 
-  const result = await res.json();
+    console.log('step 5: inserting merchant into Supabase merchants table');
+    const merchantRes = await SB.from('merchants').insert([data]).select('*').single();
+    console.log('step 6: merchant insert response', merchantRes);
+    if (merchantRes.error) throw merchantRes.error;
 
-  if (result.error) {
-    showToast(result.error, 'error');
-    btn.disabled = false;
-    btn.textContent = 'إنشاء المتجر';
-    return;
+    const settingsPayload = {
+      merchant_id: merchantRes.data.id,
+      shipping_baghdad: 5000,
+      shipping_other: 6000,
+      topbar_text: 'شحن مجاني - الدفع عند الاستلام',
+      whatsapp: data.whatsapp
+    };
+    console.log('step 7: inserting default store_settings', settingsPayload);
+    const settingsRes = await SB.from('store_settings').insert([settingsPayload]).select('*').single();
+    console.log('step 8: store_settings insert response', settingsRes);
+    if (settingsRes.error) throw settingsRes.error;
+
+    console.log('step 9: registration succeeded', merchantRes.data);
+    localStorage.setItem('dukkan_merchant', JSON.stringify(merchantRes.data));
+    window.location.href = '/merchant-dashboard';
+  } catch (err) {
+    console.error('register merchant failed:', err);
+    showToast(supabaseErrorText(err), 'error');
+    resetBtn();
+  } finally {
+    console.log('step 10: register handler finished');
+    console.groupEnd();
   }
-
-  localStorage.setItem('dukkan_merchant', JSON.stringify(result.merchant));
-  window.location.href = '/merchant-dashboard';
 }
 
 function resetBtn(){
@@ -230,6 +255,14 @@ function resetBtn(){
 }
 
 function val(id){return document.getElementById(id).value.trim();}
+function supabaseErrorText(err){
+  if(!err)return 'حدث خطأ غير معروف';
+  const msg=err.message||err.error_description||err.error||String(err);
+  const details=err.details?(' - '+err.details):'';
+  const hint=err.hint?(' - '+err.hint):'';
+  const code=err.code?(' ['+err.code+']'):'';
+  return msg+details+hint+code;
+}
 function showToast(msg,type='success'){toast(msg,type);}
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
