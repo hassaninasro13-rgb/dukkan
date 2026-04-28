@@ -2,20 +2,24 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>لوحة التاجر — دكّان</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#f5a623">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="دكّان">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-startup-image" href="./icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
 :root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
 html,body{max-width:100%;overflow-x:hidden}
-body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-top:env(safe-area-inset-top)}
 button,input,textarea,select{font-family:'Cairo',sans-serif}
+input,textarea{-webkit-user-select:text;user-select:text}
 button{cursor:pointer}
 .login-wrap{position:fixed;inset:0;background:radial-gradient(circle at top right,rgba(240,165,0,.08),transparent 36%),var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
 .login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px 30px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.28)}
@@ -133,15 +137,16 @@ button{cursor:pointer}
 .tracking-id{font-size:12px;color:var(--text);direction:ltr;text-align:left;word-break:break-all}
 .tracking-label{font-size:11px;color:var(--muted);margin-top:2px}
 .tracking-form{display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px}
-.mobile-bar{display:none;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:50;padding:10px 12px;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.mobile-bar::-webkit-scrollbar{display:none}
-.mobile-bar .nav-item{white-space:nowrap;margin:0;padding:10px 14px;min-height:44px;flex:0 0 auto}
+.bottom-nav{display:none}
+.bottom-nav-item{background:transparent;border:none;color:var(--muted);min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:800;border-radius:14px}
+.bottom-nav-item .nav-icon{font-size:21px;line-height:1}
+.bottom-nav-item.active{color:#f5a623;background:rgba(245,166,35,.1)}
 @media(max-width:820px){
   body{font-size:14px}
   .layout{display:block!important;min-height:100vh}
   .sidebar{display:none}
-  .main{margin-right:0;padding:14px;width:100%;max-width:100%;overflow:hidden}
-  .mobile-bar{display:flex}
+  .main{margin-right:0;padding:14px 14px calc(80px + env(safe-area-inset-bottom));width:100%;max-width:100%;overflow:hidden}
+  .bottom-nav{position:fixed;right:0;left:0;bottom:0;min-height:65px;height:calc(65px + env(safe-area-inset-bottom));padding:6px 10px env(safe-area-inset-bottom);background:rgba(22,27,34,.96);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;z-index:700;backdrop-filter:blur(18px)}
   .page-title{font-size:21px}
   .topbar{align-items:flex-start;margin-bottom:16px}
   .top-actions,.filters{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}
@@ -196,21 +201,21 @@ button{cursor:pointer}
   <aside class="sidebar">
     <div class="sidebar-logo">🏪 دكّان<span>لوحة التاجر</span></div>
     <div class="merchant-pill"><strong id="sideStore">—</strong><span id="sideEmail">—</span></div>
-    <button class="nav-item active" onclick="showPage('home',this)"><span>📊</span> الرئيسية</button>
-    <button class="nav-item" onclick="showPage('products',this)"><span>📦</span> المنتجات</button>
-    <button class="nav-item" onclick="showPage('orders',this)"><span>🛒</span> الطلبات</button>
-    <button class="nav-item" onclick="showPage('settings',this)"><span>⚙️</span> إعدادات المتجر</button>
+    <button class="nav-item active" data-page="home" onclick="showPage('home',this)"><span>📊</span> الرئيسية</button>
+    <button class="nav-item" data-page="products" onclick="showPage('products',this)"><span>📦</span> المنتجات</button>
+    <button class="nav-item" data-page="orders" onclick="showPage('orders',this)"><span>🛒</span> الطلبات</button>
+    <button class="nav-item" data-page="settings" onclick="showPage('settings',this)"><span>⚙️</span> إعدادات المتجر</button>
     <div class="sidebar-footer">
       <a class="side-link" id="storePreview" href="/" target="_blank">👁️ معاينة المتجر</a>
       <button class="side-link" onclick="logout()">🚪 تسجيل الخروج</button>
     </div>
   </aside>
 
-  <div class="mobile-bar">
-    <button class="nav-item active" onclick="showPage('home',this)">📊 الرئيسية</button>
-    <button class="nav-item" onclick="showPage('products',this)">📦 المنتجات</button>
-    <button class="nav-item" onclick="showPage('orders',this)">🛒 الطلبات</button>
-    <button class="nav-item" onclick="showPage('settings',this)">⚙️ إعدادات المتجر</button>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item active" data-page="home" onclick="showPage('home',this)"><span class="nav-icon">🏠</span><span>الرئيسية</span></button>
+    <button class="bottom-nav-item" data-page="products" onclick="showPage('products',this)"><span class="nav-icon">📦</span><span>المنتجات</span></button>
+    <button class="bottom-nav-item" data-page="orders" onclick="showPage('orders',this)"><span class="nav-icon">🛒</span><span>الطلبات</span></button>
+    <button class="bottom-nav-item" data-page="settings" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span><span>الإعدادات</span></button>
   </div>
 
   <main class="main">
@@ -518,9 +523,9 @@ function logout(){
 
 function showPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.bottom-nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(x=>{if(x.textContent.trim()===el.textContent.trim())x.classList.add('active');});
+  document.querySelectorAll('[data-page="'+name+'"]').forEach(x=>x.classList.add('active'));
 }
 
 async function refreshAll(){
