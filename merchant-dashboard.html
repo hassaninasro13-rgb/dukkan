@@ -804,12 +804,25 @@ async function deleteProduct(id){
 }
 
 async function loadOrders(){
-  const{data,error}=await SB.from('merchant_orders').select('*').eq('merchant_id',merchant.id).order('created_at',{ascending:false});
-  if(error){showToast('خطأ في تحميل الطلبات','error');return;}
-  orders=data||[];
+  const merchantId=getMerchantId();
+  console.group('[Dukkan] loadOrders');
+  console.log('step 1: loading orders',{merchantId,primaryTable:'orders',fallbackTable:'merchant_orders'});
+  if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');console.groupEnd();return;}
+  let res=await SB.from('orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
+  console.log('step 2: orders response',res);
+  if(res.error){
+    console.warn('orders table failed, trying merchant_orders fallback:',res.error);
+    const fallback=await SB.from('merchant_orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
+    console.log('step 3: merchant_orders fallback response',fallback);
+    res=fallback;
+  }
+  if(res.error){console.error('loadOrders Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
+  orders=res.data||[];
   renderOrders();
   renderRecentOrders();
   updateStats();
+  console.log('step 4: orders loaded',{count:orders.length});
+  console.groupEnd();
 }
 
 function setOrderFilter(f,el){
@@ -845,10 +858,22 @@ function orderCard(o){
 }
 
 async function setOrderStatus(id,status){
-  const{error}=await SB.from('merchant_orders').update({status}).eq('id',id).eq('merchant_id',merchant.id);
-  if(error){showToast('تعذر تحديث حالة الطلب','error');return;}
+  const merchantId=getMerchantId();
+  console.group('[Dukkan] setOrderStatus');
+  console.log('step 1: updating order status',{id,status,merchantId,primaryTable:'orders',fallbackTable:'merchant_orders'});
+  let res=await SB.from('orders').update({status}).eq('id',id).eq('merchant_id',merchantId).select().single();
+  console.log('step 2: orders update response',res);
+  if(res.error){
+    console.warn('orders status update failed, trying merchant_orders fallback:',res.error);
+    const fallback=await SB.from('merchant_orders').update({status}).eq('id',id).eq('merchant_id',merchantId).select().single();
+    console.log('step 3: merchant_orders update response',fallback);
+    res=fallback;
+  }
+  if(res.error){console.error('setOrderStatus Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
   const o=orders.find(x=>String(x.id)===String(id));if(o)o.status=status;
   renderOrders();renderRecentOrders();updateStats();showToast('تم تحديث الحالة ✅','success');
+  console.log('step 4: order status updated',res.data);
+  console.groupEnd();
 }
 
 async function loadSettings(){
