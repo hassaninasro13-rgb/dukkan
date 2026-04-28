@@ -1,5 +1,5 @@
 const CACHE = 'dukkan-v1';
-const FILES = ['/', '/merchant-dashboard', '/merchant-dashboard.html'];
+const FILES = ['/', '/merchant-dashboard.html'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
 });
