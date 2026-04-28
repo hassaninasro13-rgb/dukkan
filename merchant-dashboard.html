@@ -245,6 +245,8 @@ button{cursor:pointer}
             <div class="form-group"><label class="form-label">شحن بغداد (IQD)</label><input class="form-input" id="setShipBaghdad" type="number"></div>
             <div class="form-group"><label class="form-label">شحن المحافظات (IQD)</label><input class="form-input" id="setShipOther" type="number"></div>
             <div class="form-group full"><label class="form-label">نص الشريط العلوي</label><input class="form-input" id="setTopbarText"></div>
+            <div class="form-group full" style="margin-top:10px"><h3 style="font-size:15px;color:var(--gold)">ربط Google Sheets</h3><div style="font-size:12px;color:var(--muted);margin-top:4px">أضف رابط الـ Webhook من Google Apps Script لإرسال الطلبات تلقائياً إلى جدول البيانات</div></div>
+            <div class="form-group full"><label class="form-label">رابط Google Apps Script Webhook</label><input class="form-input" id="setGoogleSheetsWebhook" dir="ltr" style="text-align:right" placeholder="https://script.google.com/macros/s/.../exec"></div>
           </div>
           <div style="margin-top:18px">
             <button class="btn btn-green" id="saveSettingsBtn" onclick="saveStoreSettings()">💾 حفظ الإعدادات</button>
@@ -438,7 +440,7 @@ function supabaseErrorText(error){
   return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
-const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp';
+const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp,google_sheets_webhook';
 const TRACKING_PLATFORMS={
   facebook:{title:'Facebook Pixel',hint:'Meta/Facebook Pixel IDs'},
   tiktok:{title:'TikTok Pixel',hint:'TikTok Events Manager Pixel IDs'},
@@ -947,6 +949,7 @@ async function loadSettings(){
   document.getElementById('setShipBaghdad').value=data?.shipping_baghdad??5000;
   document.getElementById('setShipOther').value=data?.shipping_other??6000;
   document.getElementById('setTopbarText').value=data?.topbar_text||'';
+  document.getElementById('setGoogleSheetsWebhook').value=data?.google_sheets_webhook||'';
 }
 
 async function saveStoreSettings(){
@@ -968,7 +971,8 @@ async function saveStoreSettings(){
       shipping_baghdad:num('setShipBaghdad'),
       shipping_other:num('setShipOther'),
       topbar_text:document.getElementById('setTopbarText').value.trim(),
-      whatsapp
+      whatsapp,
+      google_sheets_webhook:document.getElementById('setGoogleSheetsWebhook').value.trim()
     };
     console.log('step 2: store_settings payload',settingsPayload);
 

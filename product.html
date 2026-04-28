@@ -772,7 +772,7 @@ body {
 
     const { data: settingsData } = await db
       .from('store_settings')
-      .select('whatsapp,shipping_baghdad,shipping_other')
+      .select('whatsapp,shipping_baghdad,shipping_other,google_sheets_webhook')
       .eq('merchant_id', PRODUCT.merchant_id)
       .maybeSingle();
     SETTINGS = settingsData || {};
@@ -1083,6 +1083,7 @@ body {
       }
       if (error) throw error;
       trackPurchase(total);
+      sendOrderToGoogleSheets(orderData);
       document.getElementById('orderCode').textContent = '#' + orderNum;
       document.getElementById('modal').classList.add('open');
     } catch (err) {
@@ -1091,6 +1092,30 @@ body {
     }
     btn.disabled = false;
     btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
+  }
+
+  function sendOrderToGoogleSheets(orderData) {
+    const webhook = String(SETTINGS.google_sheets_webhook || '').trim();
+    if (!webhook) return;
+    fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_number: orderData.order_number,
+        date: new Date().toLocaleString('ar-IQ'),
+        name: orderData.first_name + ' ' + orderData.last_name,
+        phone: orderData.phone,
+        governorate: orderData.governorate,
+        address: orderData.address,
+        product: orderData.product_name || PRODUCT.name,
+        size: orderData.size,
+        color: orderData.color,
+        quantity: orderData.quantity,
+        price: orderData.total_price,
+        shipping: orderData.shipping_cost,
+        status: 'جديد'
+      })
+    }).catch(() => {});
   }
   function closeModal() {
     document.getElementById('modal').classList.remove('open');
