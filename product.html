@@ -809,7 +809,7 @@ body {
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
     const mainImage = PRODUCT.images[0] || '';
-    document.getElementById('mainImg').src = mainImage || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
+    document.getElementById('mainImg').src = mainImage;
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
