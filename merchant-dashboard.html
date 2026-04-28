@@ -278,20 +278,35 @@ button{cursor:pointer}
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-group full"><label class="form-label">نص الـ badge</label><input class="form-input" id="psBadgeText" placeholder="الأكثر مبيعاً في العراق 2025"></div>
-        <div class="form-group full"><label class="form-label">نص العنوان الفرعي للهيرو</label><input class="form-input" id="psHeroSubtitle" placeholder="عرض لفترة محدودة!"></div>
-        <div class="form-group full"><label class="form-label">نص الـ sub-hero / النقاط التسويقية</label><textarea class="form-textarea" id="psSubheroText" placeholder="قوام مثالي • خصر رفيع • مريح طوال اليوم"></textarea></div>
+        <div class="form-group full"><label class="form-label">نص الشريط الأحمر العلوي</label><input class="form-input" id="psTopbarText" placeholder="شحن مجاني - الدفع عند الاستلام"></div>
+        <div class="form-group"><label class="form-label">لون الشريط</label><select class="form-input" id="psTopbarColor"><option value="red">أحمر</option><option value="green">أخضر</option><option value="blue">أزرق</option><option value="black">أسود</option></select></div>
+        <div class="form-group"><label class="form-label">نص الـ badge</label><input class="form-input" id="psBadgeText" placeholder="الأكثر مبيعاً في العراق 2025"></div>
+        <div class="form-group"><label class="form-label">العنوان الرئيسي (السطر الأول)</label><input class="form-input" id="psHeroTitle" placeholder="اسم المنتج أو عنوان مخصص"></div>
+        <div class="form-group"><label class="form-label">العنوان المميز بالأصفر</label><input class="form-input" id="psHeroHighlight" placeholder="عرض لفترة محدودة!"></div>
+        <div class="form-group full"><label class="form-label">النقاط التسويقية</label><textarea class="form-textarea" id="psSubheroText" placeholder="قوام مثالي • خصر رفيع • مريح طوال اليوم"></textarea></div>
         <div class="form-group"><label class="form-label">عدد المبيعات</label><input class="form-input" id="psSalesCount" type="number" min="0" placeholder="123"></div>
-        <div class="form-group"><label class="form-label">رقم الواتساب للتواصل</label><input class="form-input" id="psWhatsapp" dir="ltr" style="text-align:right" placeholder="07XXXXXXXXX"></div>
-        <div class="form-group full"><label class="form-label">نص الـ upsell / الهدية المجانية</label><input class="form-input" id="psUpsellText" placeholder="احصل على هدية مجانية مع طلبك اليوم فقط"></div>
+        <div class="form-group"><label class="form-label">نص الدفع عند الاستلام</label><input class="form-input" id="psCodText" placeholder="الدفع عند الاستلام فقط"></div>
         <div class="form-group">
           <label class="form-label">عداد تنازلي</label>
           <select class="form-input" id="psCountdownActive"><option value="true">مفعل</option><option value="false">متوقف</option></select>
         </div>
+        <div class="form-group"><label class="form-label">مدة العداد - ساعات</label><input class="form-input" id="psCountdownHours" type="number" min="0" placeholder="2"></div>
+        <div class="form-group"><label class="form-label">مدة العداد - دقائق</label><input class="form-input" id="psCountdownMinutes" type="number" min="0" max="59" placeholder="47"></div>
+        <div class="form-group">
+          <label class="form-label">الـ Upsell / الهدية</label>
+          <select class="form-input" id="psUpsellActive"><option value="true">مفعل</option><option value="false">متوقف</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">عنوان الهدية</label><input class="form-input" id="psUpsellTitle" placeholder="أضف هدية مجانية مع طلبك"></div>
+        <div class="form-group full"><label class="form-label">وصف الهدية</label><input class="form-input" id="psUpsellText" placeholder="احصل على هدية مجانية مع طلبك اليوم فقط"></div>
+        <div class="form-group"><label class="form-label">قيمة الهدية</label><input class="form-input" id="psUpsellValue" type="number" min="0" placeholder="15000"></div>
+        <div class="form-group"><label class="form-label">رقم الواتساب للتواصل</label><input class="form-input" id="psWhatsapp" dir="ltr" style="text-align:right" placeholder="07XXXXXXXXX"></div>
         <div class="form-group">
           <label class="form-label">قسم آراء الزبائن</label>
           <select class="form-input" id="psReviewsActive"><option value="true">مفعل</option><option value="false">متوقف</option></select>
         </div>
+        <div class="form-group full"><label class="form-label">الرأي 1</label><div class="form-grid"><input class="form-input" id="psReview1Name" placeholder="الاسم"><input class="form-input" id="psReview1City" placeholder="المدينة"><textarea class="form-textarea full" id="psReview1Text" placeholder="نص الرأي"></textarea></div></div>
+        <div class="form-group full"><label class="form-label">الرأي 2</label><div class="form-grid"><input class="form-input" id="psReview2Name" placeholder="الاسم"><input class="form-input" id="psReview2City" placeholder="المدينة"><textarea class="form-textarea full" id="psReview2Text" placeholder="نص الرأي"></textarea></div></div>
+        <div class="form-group full"><label class="form-label">الرأي 3</label><div class="form-grid"><input class="form-input" id="psReview3Name" placeholder="الاسم"><input class="form-input" id="psReview3City" placeholder="المدينة"><textarea class="form-textarea full" id="psReview3Text" placeholder="نص الرأي"></textarea></div></div>
       </div>
       <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-green" id="savePageSettingsBtn" onclick="savePageSettings()">💾 حفظ الإعدادات</button>
@@ -593,32 +608,62 @@ async function openPageSettingsModal(productId){
   editingPageSettingsProductId=productId;
   pageSettingsRecordId=null;
   const product=products.find(p=>String(p.id)===String(productId));
+  document.getElementById('psTopbarText').value='شحن مجاني - الدفع عند الاستلام';
+  document.getElementById('psTopbarColor').value='red';
   document.getElementById('psBadgeText').value='الأكثر مبيعاً في العراق 2025';
-  document.getElementById('psHeroSubtitle').value='عرض لفترة محدودة!';
+  document.getElementById('psHeroTitle').value=product?.name||'';
+  document.getElementById('psHeroHighlight').value='عرض لفترة محدودة!';
   document.getElementById('psSubheroText').value=product?.description||'';
   document.getElementById('psSalesCount').value=Math.max(120,Number(product?.visits||0)*3+120);
+  document.getElementById('psCodText').value='الدفع عند الاستلام فقط';
   document.getElementById('psCountdownActive').value='true';
+  document.getElementById('psCountdownHours').value=2;
+  document.getElementById('psCountdownMinutes').value=47;
+  document.getElementById('psUpsellActive').value='true';
+  document.getElementById('psUpsellTitle').value='أضف هدية مجانية مع طلبك';
   document.getElementById('psUpsellText').value='احصل على هدية مجانية مع طلبك اليوم فقط';
+  document.getElementById('psUpsellValue').value=15000;
   document.getElementById('psWhatsapp').value=storeSettings?.whatsapp||merchant?.whatsapp||'';
   document.getElementById('psReviewsActive').value='true';
+  setReviewFields(1,'زينب الموسوي','بغداد — الكرادة','منتج رائع جداً! التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل الناس!');
+  setReviewFields(2,'سمر العبيدي','البصرة — العشار','الجودة ممتازة والسعر مناسب. الدفع عند الاستلام خلاني ما أخاف أطلب.');
+  setReviewFields(3,'نور الهاشمي','أربيل','طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.');
   document.getElementById('pageSettingsModal').classList.add('open');
 
   const{data,error}=await SB.from('product_settings').select('*').eq('product_id',productId).maybeSingle();
   if(error){showToast(supabaseErrorText(error),'error');return;}
   if(!data)return;
   pageSettingsRecordId=data.id;
+  document.getElementById('psTopbarText').value=data.topbar_text||'شحن مجاني - الدفع عند الاستلام';
+  document.getElementById('psTopbarColor').value=data.topbar_color||'red';
   document.getElementById('psBadgeText').value=data.badge_text||'الأكثر مبيعاً في العراق 2025';
-  document.getElementById('psHeroSubtitle').value=data.hero_subtitle||'عرض لفترة محدودة!';
+  document.getElementById('psHeroTitle').value=data.hero_title||product?.name||'';
+  document.getElementById('psHeroHighlight').value=data.hero_highlight||data.hero_subtitle||'عرض لفترة محدودة!';
   document.getElementById('psSubheroText').value=data.subhero_text||product?.description||'';
   document.getElementById('psSalesCount').value=data.sales_count??'';
+  document.getElementById('psCodText').value=data.cod_text||'الدفع عند الاستلام فقط';
   document.getElementById('psCountdownActive').value=data.countdown_active===false?'false':'true';
-  document.getElementById('psUpsellText').value=data.upsell_text||data.upsell_title||'';
+  document.getElementById('psCountdownHours').value=data.countdown_hours??2;
+  document.getElementById('psCountdownMinutes').value=data.countdown_minutes??47;
+  document.getElementById('psUpsellActive').value=data.upsell_active===false?'false':'true';
+  document.getElementById('psUpsellTitle').value=data.upsell_title||'أضف هدية مجانية مع طلبك';
+  document.getElementById('psUpsellText').value=data.upsell_text||'احصل على هدية مجانية مع طلبك اليوم فقط';
+  document.getElementById('psUpsellValue').value=data.upsell_value??15000;
   document.getElementById('psWhatsapp').value=data.whatsapp||storeSettings?.whatsapp||merchant?.whatsapp||'';
   document.getElementById('psReviewsActive').value=data.reviews_active===false?'false':'true';
+  setReviewFields(1,data.review1_name||'زينب الموسوي',data.review1_city||'بغداد — الكرادة',data.review1_text||'منتج رائع جداً! التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل الناس!');
+  setReviewFields(2,data.review2_name||'سمر العبيدي',data.review2_city||'البصرة — العشار',data.review2_text||'الجودة ممتازة والسعر مناسب. الدفع عند الاستلام خلاني ما أخاف أطلب.');
+  setReviewFields(3,data.review3_name||'نور الهاشمي',data.review3_city||'أربيل',data.review3_text||'طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.');
 }
 
 function closePageSettingsModal(){
   document.getElementById('pageSettingsModal').classList.remove('open');
+}
+
+function setReviewFields(n,name,city,text){
+  document.getElementById('psReview'+n+'Name').value=name;
+  document.getElementById('psReview'+n+'City').value=city;
+  document.getElementById('psReview'+n+'Text').value=text;
 }
 
 async function savePageSettings(){
@@ -626,14 +671,32 @@ async function savePageSettings(){
   btn.disabled=true;btn.textContent='جاري الحفظ...';
   const payload={
     product_id:editingPageSettingsProductId,
+    topbar_text:document.getElementById('psTopbarText').value.trim(),
+    topbar_color:document.getElementById('psTopbarColor').value,
     badge_text:document.getElementById('psBadgeText').value.trim(),
-    hero_subtitle:document.getElementById('psHeroSubtitle').value.trim(),
+    hero_title:document.getElementById('psHeroTitle').value.trim(),
+    hero_highlight:document.getElementById('psHeroHighlight').value.trim(),
     subhero_text:document.getElementById('psSubheroText').value.trim(),
     sales_count:num('psSalesCount'),
+    cod_text:document.getElementById('psCodText').value.trim(),
     countdown_active:document.getElementById('psCountdownActive').value==='true',
+    countdown_hours:num('psCountdownHours'),
+    countdown_minutes:num('psCountdownMinutes'),
+    upsell_active:document.getElementById('psUpsellActive').value==='true',
+    upsell_title:document.getElementById('psUpsellTitle').value.trim(),
     upsell_text:document.getElementById('psUpsellText').value.trim(),
+    upsell_value:num('psUpsellValue'),
     whatsapp:document.getElementById('psWhatsapp').value.trim(),
-    reviews_active:document.getElementById('psReviewsActive').value==='true'
+    reviews_active:document.getElementById('psReviewsActive').value==='true',
+    review1_name:document.getElementById('psReview1Name').value.trim(),
+    review1_city:document.getElementById('psReview1City').value.trim(),
+    review1_text:document.getElementById('psReview1Text').value.trim(),
+    review2_name:document.getElementById('psReview2Name').value.trim(),
+    review2_city:document.getElementById('psReview2City').value.trim(),
+    review2_text:document.getElementById('psReview2Text').value.trim(),
+    review3_name:document.getElementById('psReview3Name').value.trim(),
+    review3_city:document.getElementById('psReview3City').value.trim(),
+    review3_text:document.getElementById('psReview3Text').value.trim()
   };
   const res=pageSettingsRecordId
     ? await SB.from('product_settings').update(payload).eq('id',pageSettingsRecordId).select().single()

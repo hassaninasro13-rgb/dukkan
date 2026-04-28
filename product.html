@@ -525,7 +525,7 @@ body {
 </head>
 <body>
 <!-- TOP BAR -->
-<div class="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
+<div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
 <!-- HEADER -->
 <div class="header">
   <div class="logo">🏪 <span id="storeLogoText">دكّ</span>ان</div>
@@ -553,7 +553,7 @@ body {
 <div class="price-box">
   <div class="price-was" id="oldPriceText">السعر الأصلي: 0 دينار</div>
   <div class="price-now"><span class="price-currency">IQD </span><span id="displayPrice">0</span></div>
-  <div><span class="price-cod">💰 الدفع عند الاستلام فقط</span></div>
+  <div><span class="price-cod" id="codText">💰 الدفع عند الاستلام فقط</span></div>
 </div>
 <!-- COUNTDOWN -->
 <div class="countdown-wrap" id="countdownWrap">
@@ -567,7 +567,7 @@ body {
 <!-- ORDER FORM -->
 <div class="form-section">
   <div class="form-section-header">
-    <h2>📦 اطلب الآن — الدفع عند الاستلام</h2>
+    <h2 id="orderFormTitle">📦 اطلب الآن — الدفع عند الاستلام</h2>
     <p>أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>
   </div>
   <div class="form-body">
@@ -639,10 +639,10 @@ body {
       </div>
     </div>
     <!-- Upsell -->
-    <div class="upsell" onclick="toggleUpsell()">
+    <div class="upsell" id="upsellBox" onclick="toggleUpsell()">
       <div class="upsell-cb" id="upsellCb">✓</div>
       <div class="upsell-info">
-        <div class="upsell-title">🎁 أضف هدية مجانية مع طلبك</div>
+        <div class="upsell-title" id="upsellTitle">🎁 أضف هدية مجانية مع طلبك</div>
         <div class="upsell-desc" id="upsellText">احصل على هدية مجانية مع طلبك اليوم فقط</div>
       </div>
     </div>
@@ -651,14 +651,14 @@ body {
       <div class="summary-title">📋 ملخص الطلب</div>
       <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">0 IQD</span></div>
       <div class="summary-row"><span>رسوم التوصيل</span><span id="sShip" style="color:#27ae60">اختر المحافظة</span></div>
-      <div class="summary-row"><span>هدية إضافية</span><span style="color:#27ae60">هدية مجانية ✓</span></div>
+      <div class="summary-row" id="upsellSummaryRow"><span>هدية إضافية</span><span style="color:#27ae60" id="upsellSummaryText">هدية مجانية ✓</span></div>
       <hr class="summary-divider">
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
     </div>
     <!-- زر الإرسال -->
     <button class="btn-submit" id="submitBtn" onclick="submitOrder()">
       <span>✅</span>
-      <span>تأكيد الطلب — الدفع عند الاستلام</span>
+      <span id="submitText">تأكيد الطلب — الدفع عند الاستلام</span>
     </button>
     <div class="trust-row">
       <div class="trust-item">🔒 بياناتك آمنة</div>
@@ -789,8 +789,9 @@ body {
   function renderProduct() {
     document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
     document.getElementById('storeLogoText').textContent = (MERCHANT.store_name || 'دكّان').slice(0, 8);
+    applyTopbarSettings();
     document.getElementById('heroBadge').textContent = '🔥 ' + (PAGE_SETTINGS.badge_text || 'الأكثر مبيعاً في العراق 2025');
-    document.getElementById('productTitle').innerHTML = esc(PRODUCT.name) + '<br><em>' + esc(PAGE_SETTINGS.hero_subtitle || 'عرض لفترة محدودة!') + '</em>';
+    document.getElementById('productTitle').innerHTML = esc(PAGE_SETTINGS.hero_title || PRODUCT.name) + '<br><em>' + esc(PAGE_SETTINGS.hero_highlight || PAGE_SETTINGS.hero_subtitle || 'عرض لفترة محدودة!') + '</em>';
     document.getElementById('productDesc').textContent = PAGE_SETTINGS.subhero_text || PRODUCT.description || 'منتج مميز متوفر الآن للطلب داخل العراق';
     document.getElementById('displayPrice').textContent = BASE.toLocaleString();
     document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
@@ -799,11 +800,57 @@ body {
     document.getElementById('mainImg').src = PRODUCT.images[0] || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
-    document.getElementById('upsellText').textContent = PAGE_SETTINGS.upsell_text || 'احصل على هدية مجانية مع طلبك اليوم فقط';
+    applyCodText();
+    applyUpsellSettings();
+    renderReviews();
     document.getElementById('reviewsSection').style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
+    resetCountdown();
     renderThumbs();
     renderSizes();
     renderColors();
+  }
+
+  function applyTopbarSettings() {
+    const topbar = document.getElementById('topbar');
+    topbar.textContent = '🚚 ' + (PAGE_SETTINGS.topbar_text || 'شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام');
+    const colors = { red:'#e74c3c', green:'#27ae60', blue:'#2980b9', black:'#111111' };
+    topbar.style.background = colors[PAGE_SETTINGS.topbar_color] || colors.red;
+  }
+
+  function applyCodText() {
+    const cod = PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام فقط';
+    document.getElementById('codText').textContent = '💰 ' + cod;
+    document.getElementById('orderFormTitle').textContent = '📦 اطلب الآن — ' + cod.replace(/ فقط$/, '');
+    document.getElementById('submitText').textContent = 'تأكيد الطلب — ' + cod.replace(/ فقط$/, '');
+  }
+
+  function applyUpsellSettings() {
+    const active = PAGE_SETTINGS.upsell_active !== false;
+    const box = document.getElementById('upsellBox');
+    document.getElementById('upsellTitle').textContent = '🎁 ' + (PAGE_SETTINGS.upsell_title || 'أضف هدية مجانية مع طلبك');
+    document.getElementById('upsellText').textContent = PAGE_SETTINGS.upsell_text || 'احصل على هدية مجانية مع طلبك اليوم فقط';
+    const value = Number(PAGE_SETTINGS.upsell_value || 0);
+    document.getElementById('upsellSummaryText').textContent = value ? 'هدية بقيمة ' + value.toLocaleString() + ' IQD ✓' : 'هدية مجانية ✓';
+    box.style.display = active ? 'flex' : 'none';
+    document.getElementById('upsellSummaryRow').style.display = active ? 'flex' : 'none';
+    UPSELL = active;
+    toggleUpsellVisual();
+  }
+
+  function renderReviews() {
+    const defaults = [
+      ['زينب الموسوي','بغداد — الكرادة','منتج رائع جداً! التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل الناس!'],
+      ['سمر العبيدي','البصرة — العشار','الجودة ممتازة والسعر مناسب. الدفع عند الاستلام خلاني ما أخاف أطلب.'],
+      ['نور الهاشمي','أربيل','طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.']
+    ];
+    const cards = defaults.map((d, i) => {
+      const n = i + 1;
+      const name = PAGE_SETTINGS['review' + n + '_name'] || d[0];
+      const city = PAGE_SETTINGS['review' + n + '_city'] || d[1];
+      const text = PAGE_SETTINGS['review' + n + '_text'] || d[2];
+      return '<div class="review-card"><div class="review-head"><div class="r-avatar">' + esc(name.charAt(0) || 'ز') + '</div><div style="flex:1"><div class="r-name">' + esc(name) + '</div><div class="r-city">📍 ' + esc(city) + '</div></div><div class="r-stars">⭐⭐⭐⭐⭐</div></div><div class="r-text">' + esc(text) + '</div><span class="verified">✓ مشتري موثق</span></div>';
+    }).join('');
+    document.getElementById('reviewsSection').innerHTML = '<div class="section-title">💬 آراء زبائننا</div>' + cards;
   }
 
   function renderThumbs() {
@@ -856,6 +903,10 @@ body {
   // UPSELL
   function toggleUpsell() {
     UPSELL = !UPSELL;
+    toggleUpsellVisual();
+  }
+
+  function toggleUpsellVisual() {
     const cb = document.getElementById('upsellCb');
     cb.style.background = UPSELL ? '#27ae60' : 'white';
     cb.style.color = UPSELL ? 'white' : '#27ae60';
@@ -961,13 +1012,21 @@ body {
       alert('حدث خطأ، يرجى المحاولة مرة أخرى أو التواصل معنا على واتساب');
     }
     btn.disabled = false;
-    btn.innerHTML = '<span>✅</span><span>تأكيد الطلب — الدفع عند الاستلام</span>';
+    btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
   }
   function closeModal() {
     document.getElementById('modal').classList.remove('open');
   }
   // COUNTDOWN
   let secs = 2 * 3600 + 47 * 60 + 30;
+  function resetCountdown() {
+    const hours = Number(PAGE_SETTINGS.countdown_hours ?? 2);
+    const minutes = Number(PAGE_SETTINGS.countdown_minutes ?? 47);
+    secs = Math.max(0, hours * 3600 + minutes * 60);
+    document.getElementById('cdH').textContent = String(Math.floor(secs/3600)).padStart(2,'0');
+    document.getElementById('cdM').textContent = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+    document.getElementById('cdS').textContent = String(secs%60).padStart(2,'0');
+  }
   setInterval(() => {
     if (secs <= 0) return;
     secs--;
