@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منتج دكّان</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button,input,select,textarea{font-family:'Cairo',sans-serif}
+.top-strip{background:var(--red);color:#fff;text-align:center;padding:10px 14px;font-size:13px;font-weight:900}
+.wrap{max-width:1080px;margin:0 auto;padding:18px 14px 56px}
+.store-line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.store-name{font-family:'Tajawal',sans-serif;font-size:24px;font-weight:900;color:var(--gold)}
+.live{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.3);color:var(--green);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid var(--border);border-radius:22px;overflow:hidden}
+.hero-info{padding:22px}
+.best{display:inline-flex;background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.28);color:var(--gold);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:900;margin-bottom:12px}
+h1{font-family:'Tajawal',sans-serif;font-size:clamp(28px,5vw,46px);font-weight:900;line-height:1.2;margin-bottom:12px}
+.desc{color:var(--muted);font-size:15px;line-height:1.9;margin-bottom:14px}
+.features{display:grid;gap:8px;margin-bottom:14px}
+.feature{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--text)}
+.image-card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:22px;overflow:hidden}
+.main-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--card2)}
+.discount{position:absolute;top:14px;right:14px;background:var(--red);color:#fff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:900;box-shadow:0 12px 24px rgba(248,81,73,.28)}
+.sold{position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800}
+.trust{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.trust-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center;font-size:12px;font-weight:800;color:var(--muted)}
+.trust-item span{display:block;font-size:24px;margin-bottom:6px}
+.price-box,.countdown,.order-card,.reviews,.footer{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:16px}
+.price-row{display:flex;align-items:end;justify-content:center;gap:12px;flex-wrap:wrap}
+.old-price{color:var(--muted);font-size:17px;text-decoration:line-through}
+.new-price{font-size:42px;font-weight:900;color:var(--gold);line-height:1}
+.currency{font-size:14px;color:var(--muted);font-weight:800}
+.countdown{text-align:center}
+.count-title{font-family:'Tajawal',sans-serif;color:var(--gold);font-size:18px;font-weight:900;margin-bottom:12px}
+.timer{display:flex;justify-content:center;gap:10px}
+.time{background:var(--bg);border:1px solid var(--border);border-radius:12px;min-width:70px;padding:10px}
+.time b{display:block;color:var(--red);font-size:24px}.time span{font-size:11px;color:var(--muted)}
+.order-card h2,.reviews h2{font-family:'Tajawal',sans-serif;font-size:24px;font-weight:900;text-align:center;color:var(--gold);margin-bottom:6px}
+.order-card p{text-align:center;color:var(--muted);font-size:13px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.group{margin-bottom:12px}.full{grid-column:1/-1}
+.label{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:7px}.label span{color:var(--red)}
+.input,.select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:12px 13px;font-size:14px;outline:none}.input:focus,.select:focus{border-color:var(--gold)}
+.options{display:flex;flex-wrap:wrap;gap:8px}
+.opt{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer}
+.opt.active{border-color:var(--gold);background:rgba(240,165,0,.12);color:var(--gold)}
+.qty{display:flex;align-items:center;gap:10px}.qty button{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:20px}.qty b{min-width:28px;text-align:center;font-size:20px}
+.summary{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0}
+.sum-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);margin-bottom:8px}.sum-total{font-size:17px;font-weight:900;color:var(--text);border-top:1px solid var(--border);padding-top:10px;margin-top:10px}.sum-total strong{color:var(--gold)}
+.submit{width:100%;border:none;border-radius:14px;background:var(--green);color:#fff;font-family:'Tajawal',sans-serif;font-size:18px;font-weight:900;padding:16px;cursor:pointer}.submit:disabled{opacity:.6;cursor:not-allowed}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.review{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:14px}
+.review-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.review-name{font-weight:900}.stars{color:var(--gold)}.review p{color:var(--muted);font-size:13px;line-height:1.7}
+.footer{text-align:center;color:var(--muted);font-size:12px}
+.state{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:42px 18px;text-align:center;color:var(--muted)}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 18px;z-index:99;transition:transform .3s;font-weight:800}.toast.show{transform:translateX(-50%) translateY(0)}.toast.error{color:var(--red);border-color:var(--red)}.toast.success{color:var(--green);border-color:var(--green)}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.trust,.reviews-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.wrap{padding:14px 10px 38px}.grid,.trust,.reviews-grid{grid-template-columns:1fr}.new-price{font-size:34px}.timer{gap:6px}.time{min-width:58px}}
+</style>
+</head>
+<body>
+<div class="top-strip">شحن مجاني - الدفع عند الاستلام</div>
+<main class="wrap" id="app">
+  <div class="state"><div class="spinner"></div>جاري تحميل المنتج...</div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://tdipbduxnxsdcdrwuksz.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3HbfzFaCTlsmhf033OC9DWgo';
+const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+
+let product=null,merchant=null,settings=null,selectedSize='',selectedColor='',qty=1,shipping=0,seconds=2*3600+47*60+30;
+
+document.addEventListener('DOMContentLoaded',loadProduct);
+
+async function loadProduct(){
+  const id=new URLSearchParams(location.search).get('id');
+  if(!id){showState('رابط المنتج غير صحيح');return;}
+  const {data,error}=await SB.from('merchant_products').select('id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits').eq('id',id).maybeSingle();
+  if(error){showState('تعذر تحميل المنتج: '+errorText(error));return;}
+  if(!data||data.is_active===false){showState('هذا المنتج غير متاح حالياً');return;}
+  product=normalizeProduct(data);
+
+  const {data:merchantData,error:merchantError}=await SB.from('merchants').select('id,store_name,store_slug,whatsapp,is_active').eq('id',product.merchant_id).maybeSingle();
+  if(merchantError||!merchantData){showState('تعذر تحميل المتجر');return;}
+  merchant=merchantData;
+
+  const {data:settingsData}=await SB.from('store_settings').select('whatsapp,shipping_baghdad,shipping_other,topbar_text').eq('merchant_id',merchant.id).maybeSingle();
+  settings=settingsData||{};
+  selectedSize=product.sizes[0]||'';
+  selectedColor=product.colors[0]||'';
+  await incrementVisits();
+  renderPage();
+  updateCountdown();
+  setInterval(updateCountdown,1000);
+}
+
+async function incrementVisits(){
+  await SB.from('merchant_products').update({visits:(product.visits||0)+1}).eq('id',product.id);
+}
+
+function renderPage(){
+  document.title=(product.name||'منتج')+' — '+(merchant.store_name||'دكّان');
+  const image=product.images[0]||'https://via.placeholder.com/900x900/161b22/f0a500?text=Dukkan';
+  const discount=getDiscount(product.price,product.old_price);
+  const sold=Math.max(37,(product.visits||0)*3+120);
+  document.getElementById('app').innerHTML=
+    '<div class="store-line"><div class="store-name">🏪 '+esc(merchant.store_name||'متجر دكّان')+'</div><div class="live">متاح الآن</div></div>'+
+    '<section class="hero">'+
+      '<div class="card hero-info"><span class="best">🔥 الأكثر مبيعاً</span><h1>'+esc(product.name)+'</h1><div class="desc">'+esc(product.description||'منتج مميز متوفر الآن للطلب داخل العراق.')+'</div><div class="features">'+featuresHtml(product.description)+'</div></div>'+
+      '<div class="image-card"><img class="main-img" src="'+escAttr(image)+'" alt="'+escAttr(product.name)+'">'+(discount?'<div class="discount">خصم '+discount+'%</div>':'')+'<div class="sold">🔥 بيع أكثر من '+sold.toLocaleString()+' قطعة</div></div>'+
+    '</section>'+
+    '<section class="trust"><div class="trust-item"><span>💰</span>دفع عند الاستلام</div><div class="trust-item"><span>🚚</span>توصيل سريع</div><div class="trust-item"><span>↩️</span>إرجاع مضمون</div><div class="trust-item"><span>⭐</span>جودة عالية</div></section>'+
+    '<section class="price-box"><div class="price-row">'+(product.old_price>product.price?'<span class="old-price">'+product.old_price.toLocaleString()+' IQD</span>':'')+'<span class="new-price">'+product.price.toLocaleString()+'</span><span class="currency">IQD</span></div></section>'+
+    '<section class="countdown"><div class="count-title">ينتهي العرض خلال</div><div class="timer"><div class="time"><b id="h">00</b><span>ساعة</span></div><div class="time"><b id="m">00</b><span>دقيقة</span></div><div class="time"><b id="s">00</b><span>ثانية</span></div></div></section>'+
+    orderFormHtml()+
+    reviewsHtml()+
+    '<footer class="footer">دكّان — منصة التجارة الإلكترونية العراقية<br>الدفع عند الاستلام والتوصيل لجميع المحافظات</footer>';
+  renderOptions();
+  recalc();
+}
+
+function featuresHtml(text){
+  const parts=String(text||'').split(/[،,\n.]+/).map(v=>v.trim()).filter(Boolean).slice(0,4);
+  const features=parts.length?parts:['خامة ممتازة ومريحة','توصيل سريع داخل العراق','الدفع عند الاستلام','عرض محدود لفترة قصيرة'];
+  return features.map(f=>'<div class="feature">✅ '+esc(f)+'</div>').join('');
+}
+
+function orderFormHtml(){
+  return '<section class="order-card"><h2>اطلب الآن</h2><p>أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>'+
+    '<div class="grid"><div class="group"><label class="label">الاسم <span>*</span></label><input class="input" id="firstName" placeholder="أحمد"></div><div class="group"><label class="label">اللقب <span>*</span></label><input class="input" id="lastName" placeholder="الحسيني"></div><div class="group full"><label class="label">رقم الهاتف <span>*</span></label><input class="input" id="phone" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right"></div><div class="group"><label class="label">المحافظة <span>*</span></label><select class="select" id="governorate" onchange="onGovernorateChange()">'+governorateOptions()+'</select></div><div class="group"><label class="label">الكمية</label><div class="qty"><button type="button" onclick="changeQty(-1)">−</button><b id="qtyShow">1</b><button type="button" onclick="changeQty(1)">+</button></div></div><div class="group full"><label class="label">العنوان التفصيلي <span>*</span></label><input class="input" id="address" placeholder="الحي، الشارع، أقرب نقطة دالة"></div><div class="group"><label class="label">المقاس</label><div class="options" id="sizes"></div></div><div class="group"><label class="label">اللون</label><div class="options" id="colors"></div></div></div>'+
+    '<div class="summary"><div class="sum-row"><span>سعر المنتج</span><b id="sumPrice">0 IQD</b></div><div class="sum-row"><span>التوصيل</span><b id="sumShip">اختر المحافظة</b></div><div class="sum-row sum-total"><span>المجموع</span><strong id="sumTotal">0 IQD</strong></div></div>'+
+    '<button class="submit" id="submitBtn" onclick="submitOrder()">تأكيد الطلب - الدفع عند الاستلام</button></section>';
+}
+
+function governorateOptions(){
+  const govs=['','بغداد','البصرة','نينوى','أربيل','السليمانية','النجف','كربلاء','ديالى','الأنبار','كركوك','دهوك','واسط','بابل','القادسية','ميسان','المثنى','ذي قار','صلاح الدين','حلبجة'];
+  return govs.map(g=>'<option value="'+escAttr(g)+'">'+(g||'اختر المحافظة')+'</option>').join('');
+}
+
+function renderOptions(){
+  document.getElementById('sizes').innerHTML=(product.sizes.length?product.sizes:['حر']).map(s=>'<button type="button" class="opt '+(s===selectedSize?'active':'')+'" onclick="pickSize(\''+escAttr(s)+'\')">'+esc(s)+'</button>').join('');
+  document.getElementById('colors').innerHTML=(product.colors.length?product.colors:['حسب المتوفر']).map(c=>'<button type="button" class="opt '+(c===selectedColor?'active':'')+'" onclick="pickColor(\''+escAttr(c)+'\')">'+esc(c)+'</button>').join('');
+}
+
+function pickSize(size){selectedSize=size;renderOptions();}
+function pickColor(color){selectedColor=color;renderOptions();}
+function changeQty(delta){qty=Math.max(1,Math.min(10,qty+delta));document.getElementById('qtyShow').textContent=qty;recalc();}
+function onGovernorateChange(){const gov=document.getElementById('governorate').value;shipping=gov==='بغداد'?num(settings.shipping_baghdad||5000):(gov?num(settings.shipping_other||6000):0);recalc();}
+
+function recalc(){
+  const productTotal=product.price*qty,total=productTotal+shipping;
+  document.getElementById('sumPrice').textContent=productTotal.toLocaleString()+' IQD';
+  document.getElementById('sumShip').textContent=shipping?shipping.toLocaleString()+' IQD':'اختر المحافظة';
+  document.getElementById('sumTotal').textContent=total.toLocaleString()+' IQD';
+}
+
+async function submitOrder(){
+  const firstName=val('firstName'),lastName=val('lastName'),phone=val('phone'),governorate=val('governorate'),address=val('address');
+  if(!firstName)return toast('أدخل الاسم','error');
+  if(!lastName)return toast('أدخل اللقب','error');
+  if(phone.length<10)return toast('أدخل رقم هاتف صحيح','error');
+  if(!governorate)return toast('اختر المحافظة','error');
+  if(!address)return toast('أدخل العنوان','error');
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='جاري حفظ الطلب...';
+  const total=(product.price*qty)+shipping,orderNumber='DK-'+Date.now().toString().slice(-7);
+  const extended={merchant_id:merchant.id,product_id:product.id,product_name:product.name,order_number:orderNumber,first_name:firstName,last_name:lastName,phone,governorate,address,size:selectedSize,color:selectedColor,quantity:qty,product_price:product.price,shipping_cost:shipping,total_price:total,status:'pending'};
+  const minimal={merchant_id:merchant.id,order_number:orderNumber,first_name:firstName,last_name:lastName,phone,governorate,address,size:selectedSize,color:selectedColor,quantity:qty,total_price:total,status:'pending'};
+  let res=await SB.from('orders').insert([extended]).select().single();
+  if(res.error&&/column|schema cache|Could not find/i.test(res.error.message||''))res=await SB.from('orders').insert([minimal]).select().single();
+  btn.disabled=false;btn.textContent='تأكيد الطلب - الدفع عند الاستلام';
+  if(res.error){toast(errorText(res.error),'error');return;}
+  toast('تم استلام طلبك بنجاح ✅','success');
+  btn.disabled=true;btn.textContent='تم تأكيد الطلب ✅';
+}
+
+function reviewsHtml(){
+  return '<section class="reviews"><h2>آراء الزبائن</h2><div class="reviews-grid">'+
+    review('علي من بغداد','منتج ممتاز والتوصيل كان سريع، استلمته والدفع عند الباب.')+
+    review('حسين من البصرة','الخامة جيدة والسعر مناسب. أنصح بيه.')+
+    review('مصطفى من أربيل','الطلب وصل مرتب والمقاس مضبوط، شكراً دكّان.')+
+  '</div></section>';
+}
+
+function review(name,text){return '<div class="review"><div class="review-head"><span class="review-name">'+name+'</span><span class="stars">★★★★★</span></div><p>'+text+'</p></div>';}
+
+function updateCountdown(){if(seconds>0)seconds--;document.getElementById('h').textContent=String(Math.floor(seconds/3600)).padStart(2,'0');document.getElementById('m').textContent=String(Math.floor((seconds%3600)/60)).padStart(2,'0');document.getElementById('s').textContent=String(seconds%60).padStart(2,'0');}
+function normalizeProduct(p){return {...p,price:num(p.price),old_price:num(p.old_price),stock:num(p.stock),visits:num(p.visits),images:toArray(p.images),sizes:toArray(p.sizes),colors:toArray(p.colors)};}
+function getDiscount(price,oldPrice){if(!oldPrice||oldPrice<=price)return 0;return Math.round((oldPrice-price)/oldPrice*100);}
+function showState(message){document.getElementById('app').innerHTML='<div class="state">'+esc(message)+'</div>';}
+function toArray(value){if(Array.isArray(value))return value.filter(Boolean);if(typeof value==='string')return value.split(',').map(v=>v.trim()).filter(Boolean);return [];}
+function num(value){const n=Number(value);return Number.isFinite(n)?n:0;}
+function val(id){return document.getElementById(id).value.trim();}
+function errorText(error){return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');}
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),4200);}
+function esc(value){return String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function escAttr(value){return esc(value).replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
