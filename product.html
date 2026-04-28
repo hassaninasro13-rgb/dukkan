@@ -1042,15 +1042,31 @@ body {
       old_price: Number(p.old_price || 0),
       stock: Number(p.stock || 0),
       visits: Number(p.visits || 0),
-      images: toArray(p.images),
+      images: toArray(p.images).map(url => storagePublicUrl(url, p.merchant_id)),
       sizes: toArray(p.sizes),
       colors: toArray(p.colors)
     };
   }
   function toArray(v) {
-    if (Array.isArray(v)) return v.filter(Boolean);
-    if (typeof v === 'string') return v.split(',').map(x => x.trim()).filter(Boolean);
+    if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+    if (typeof v === 'string') {
+      const trimmed = v.trim();
+      if (!trimmed) return [];
+      try {
+        const imgs = JSON.parse(trimmed || '[]');
+        if (Array.isArray(imgs)) return imgs.map(x => String(x).trim()).filter(Boolean);
+      } catch (e) {}
+      return trimmed.replace(/^\[|\]$/g,'').replace(/"/g,'').split(',').map(x => x.trim()).filter(Boolean);
+    }
     return [];
+  }
+  function storagePublicUrl(value, merchantId) {
+    const src = String(value || '').trim();
+    if (!src) return '';
+    if (/^https?:\/\//i.test(src)) return src;
+    let path = src.replace(/^\/+/,'').replace(/^product-images\//,'');
+    if (merchantId && !path.includes('/')) path = merchantId + '/' + path;
+    return SUPABASE_URL + '/storage/v1/object/public/product-images/' + path;
   }
   function discountPercent() {
     if (!PRODUCT.old_price || PRODUCT.old_price <= PRODUCT.price) return 0;

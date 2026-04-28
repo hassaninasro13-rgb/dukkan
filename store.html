@@ -134,7 +134,7 @@ function normalizeProduct(p){
     price:num(p.price),
     old_price:num(p.old_price),
     stock:num(p.stock),
-    images:toArray(p.images).map(storagePublicUrl),
+    images:toArray(p.images).map(url=>storagePublicUrl(url,merchant?.id||p.merchant_id)),
     sizes:toArray(p.sizes),
     colors:toArray(p.colors)
   };
@@ -194,11 +194,12 @@ function toArray(value){
   return [];
 }
 
-function storagePublicUrl(value){
+function storagePublicUrl(value,merchantId){
   const src=String(value||'').trim();
   if(!src)return '';
   if(/^https?:\/\//i.test(src))return src;
-  const path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  let path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  if(merchantId && !path.includes('/'))path=merchantId+'/'+path;
   const{data}=SB.storage.from('product-images').getPublicUrl(path);
   return data?.publicUrl||src;
 }

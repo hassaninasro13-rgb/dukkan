@@ -259,11 +259,11 @@ button{cursor:pointer}
           <label class="form-label">صورة المنتج</label>
           <div class="image-upload">
             <input type="hidden" id="pImageUrl">
-            <input class="file-input-hidden" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
-            <button type="button" class="btn btn-gold upload-btn" onclick="triggerProductImagePicker()">📤 رفع صورة من الجهاز</button>
+            <input class="file-input-hidden" id="pImageFile" type="file" accept="image/*" multiple onchange="handleProductImageChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="triggerProductImagePicker()">📤 رفع حتى 5 صور من الجهاز</button>
             <div class="image-preview" id="pImagePreview">
               <img id="pImagePreviewImg" src="" alt="معاينة صورة المنتج">
-              <span id="pImagePreviewText">تم اختيار الصورة</span>
+              <span id="pImagePreviewText">تم اختيار الصور</span>
             </div>
           </div>
         </div>
@@ -342,7 +342,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrl='';
+let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -470,11 +470,12 @@ function normalizeArray(value){
   return [];
 }
 
-function storagePublicUrl(value){
+function storagePublicUrl(value,merchantId=getMerchantId()){
   const src=String(value||'').trim();
   if(!src)return '';
   if(/^https?:\/\//i.test(src))return src;
-  const path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  let path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  if(merchantId && !path.includes('/'))path=merchantId+'/'+path;
   const{data}=SB.storage.from('product-images').getPublicUrl(path);
   return data?.publicUrl||src;
 }
@@ -492,7 +493,7 @@ function normalizeProduct(p){
     description:p.description||'',
     price:normalizeNumber(p.price),
     old_price:normalizeNumber(p.old_price),
-    images:normalizeArray(p.images).map(storagePublicUrl),
+    images:normalizeArray(p.images).map(url=>storagePublicUrl(url,p.merchant_id)),
     sizes:normalizeArray(p.sizes),
     colors:normalizeArray(p.colors),
     stock:normalizeNumber(p.stock),
@@ -529,10 +530,10 @@ function openProductModal(id){
   document.getElementById('pDescription').value=p?.description||'';
   document.getElementById('pPrice').value=p?.price||'';
   document.getElementById('pOldPrice').value=p?.old_price||'';
-  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?storagePublicUrl(p.images[0]):'';
-  document.getElementById('pImageUrl').value=currentProductImageUrl;
+  currentProductImageUrls=Array.isArray(p?.images)?p.images.map(url=>storagePublicUrl(url,p.merchant_id)).filter(Boolean):[];
+  document.getElementById('pImageUrl').value=JSON.stringify(currentProductImageUrls);
   document.getElementById('pImageFile').value='';
-  renderProductImagePreview(currentProductImageUrl,currentProductImageUrl?'الصورة الحالية':'');
+  renderProductImagePreview(currentProductImageUrls,currentProductImageUrls.length?'الصور الحالية':'');
   document.getElementById('pStock').value=p?.stock||0;
   document.getElementById('pActive').value=p?.is_active===false?'false':'true';
   productSizes=Array.isArray(p?.sizes)?[...p.sizes]:[];
@@ -548,35 +549,42 @@ function triggerProductImagePicker(){
 }
 
 function handleProductImageChange(event){
-  const file=event.target.files?.[0];
-  if(!file)return;
-  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
-  renderProductImagePreview(URL.createObjectURL(file),file.name);
+  const files=Array.from(event.target.files||[]);
+  if(!files.length)return;
+  if(files.length>5){showToast('يمكنك رفع 5 صور كحد أقصى','error');event.target.value='';return;}
+  if(files.some(file=>!file.type.startsWith('image/'))){showToast('اختر ملفات صور فقط','error');event.target.value='';return;}
+  renderProductImagePreview(files.map(file=>URL.createObjectURL(file)),files.map(file=>file.name).join('، '));
 }
 
 function renderProductImagePreview(src,text){
   const wrap=document.getElementById('pImagePreview');
   const img=document.getElementById('pImagePreviewImg');
   const label=document.getElementById('pImagePreviewText');
-  if(!src){wrap.classList.remove('show');img.src='';label.textContent='';return;}
-  img.src=src;
+  const images=Array.isArray(src)?src.filter(Boolean):(src?[src]:[]);
+  if(!images.length){wrap.classList.remove('show');img.src='';label.textContent='';return;}
+  img.src=images[0];
   label.textContent=text||'تم اختيار الصورة';
   wrap.classList.add('show');
 }
 
-async function uploadProductImage(merchantId){
-  const file=document.getElementById('pImageFile').files?.[0];
-  if(!file)return currentProductImageUrl;
+async function uploadProductImages(merchantId){
+  const files=Array.from(document.getElementById('pImageFile').files||[]);
+  if(!files.length)return currentProductImageUrls;
+  if(files.length>5)throw new Error('يمكنك رفع 5 صور كحد أقصى');
+  const urls=[];
+  for(const file of files){
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
   const path=merchantId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
   console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
   const{error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
   if(error)throw error;
   const{data}=SB.storage.from('product-images').getPublicUrl(path);
-  currentProductImageUrl=data.publicUrl;
-  console.log('[Dukkan] product image public url',{path,publicUrl:currentProductImageUrl});
-  document.getElementById('pImageUrl').value=currentProductImageUrl;
-  return currentProductImageUrl;
+  urls.push(data.publicUrl);
+  console.log('[Dukkan] product image public url',{path,publicUrl:data.publicUrl});
+  }
+  currentProductImageUrls=urls;
+  document.getElementById('pImageUrl').value=JSON.stringify(currentProductImageUrls);
+  return currentProductImageUrls;
 }
 
 function addProductTag(type){
@@ -631,8 +639,8 @@ async function saveProduct(){
     const price=num('pPrice');
     const stock=num('pStock');
     const oldPrice=num('pOldPrice');
-    const selectedImage=document.getElementById('pImageFile').files?.[0]?.name||'';
-    console.log('step 3: raw form values',{name,price,oldPrice,currentProductImageUrl,selectedImage,stock,isActive:document.getElementById('pActive').value});
+    const selectedImages=Array.from(document.getElementById('pImageFile').files||[]).map(file=>file.name);
+    console.log('step 3: raw form values',{name,price,oldPrice,currentProductImageUrls,selectedImages,stock,isActive:document.getElementById('pActive').value});
     if(!name){showToast('أدخل اسم المنتج','error');return;}
     if(!price||price<=0){showToast('أدخل سعر المنتج','error');return;}
     if(stock<0){showToast('المخزون لا يمكن أن يكون سالباً','error');return;}
@@ -641,8 +649,8 @@ async function saveProduct(){
     console.log('step 4: tags merged',{productSizes,productColors});
 
     btn.disabled=true;btn.textContent='جاري رفع الصورة...';
-    const img=storagePublicUrl(await uploadProductImage(merchantId));
-    console.log('step 5: image ready',{img});
+    const imageUrls=(await uploadProductImages(merchantId)).map(url=>storagePublicUrl(url,merchantId)).slice(0,5);
+    console.log('step 5: images ready',{imageUrls});
     btn.textContent='جاري الحفظ...';
     const payload={
       merchant_id:merchantId,
@@ -650,7 +658,7 @@ async function saveProduct(){
       description:document.getElementById('pDescription').value.trim(),
       price,
       old_price:oldPrice,
-      images:img?[img]:[],
+      images:JSON.stringify(imageUrls),
       sizes:productSizes,
       colors:productColors,
       stock,
