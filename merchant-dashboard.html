@@ -116,6 +116,17 @@ button{cursor:pointer}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:var(--green);color:var(--green)}
 .toast.error{border-color:var(--red);color:var(--red)}
+.tracking-center{display:grid;gap:14px}
+.tracking-platform{background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tracking-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--card2);flex-wrap:wrap}
+.tracking-title{font-weight:900;color:var(--gold)}
+.tracking-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.tracking-body{padding:14px;display:grid;gap:12px}
+.tracking-list{display:grid;gap:8px}
+.tracking-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;flex-wrap:wrap}
+.tracking-id{font-size:12px;color:var(--text);direction:ltr;text-align:left;word-break:break-all}
+.tracking-label{font-size:11px;color:var(--muted);margin-top:2px}
+.tracking-form{display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px}
 .mobile-bar{display:none;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:50;padding:12px;gap:8px;overflow:auto}
 .mobile-bar .nav-item{white-space:nowrap;margin:0;padding:8px 12px}
 @media(max-width:820px){.layout{display:block!important}.sidebar{display:none}.main{margin-right:0;padding:16px}.mobile-bar{display:flex}.form-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.product-main{width:100%}}
@@ -233,15 +244,20 @@ button{cursor:pointer}
             <div class="form-group"><label class="form-label">شحن بغداد (IQD)</label><input class="form-input" id="setShipBaghdad" type="number"></div>
             <div class="form-group"><label class="form-label">شحن المحافظات (IQD)</label><input class="form-input" id="setShipOther" type="number"></div>
             <div class="form-group full"><label class="form-label">نص الشريط العلوي</label><input class="form-input" id="setTopbarText"></div>
-            <div class="form-group full" style="margin-top:10px"><h3 style="font-size:15px;color:var(--gold)">تتبع الإعلانات</h3><div style="font-size:12px;color:var(--muted);margin-top:4px">كل الحقول اختيارية وتستخدم فقط في صفحة الهبوط عند وجود قيمة.</div></div>
-            <div class="form-group"><label class="form-label">Facebook Pixel ID</label><input class="form-input" id="setFacebookPixelId" dir="ltr" style="text-align:right" placeholder="1234567890"></div>
-            <div class="form-group"><label class="form-label">TikTok Pixel ID</label><input class="form-input" id="setTiktokPixelId" dir="ltr" style="text-align:right" placeholder="CXXXXXXXXXXXXXXX"></div>
-            <div class="form-group"><label class="form-label">Snapchat Pixel ID</label><input class="form-input" id="setSnapchatPixelId" dir="ltr" style="text-align:right" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
-            <div class="form-group"><label class="form-label">Google Ads ID (AW-XXXXXX)</label><input class="form-input" id="setGoogleAdsId" dir="ltr" style="text-align:right" placeholder="AW-123456789"></div>
-            <div class="form-group"><label class="form-label">Google Ads Conversion Label</label><input class="form-input" id="setGoogleAdsConversionLabel" dir="ltr" style="text-align:right" placeholder="AbCdEfGhIjKlMnOp"></div>
           </div>
           <div style="margin-top:18px">
             <button class="btn btn-green" id="saveSettingsBtn" onclick="saveStoreSettings()">💾 حفظ الإعدادات</button>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head">
+          <h3>مركز التتبع</h3>
+          <button class="btn btn-card" onclick="loadTrackingPixels()">🔄 تحديث</button>
+        </div>
+        <div class="section-body">
+          <div class="tracking-center" id="trackingCenter">
+            <div class="empty-state"><div class="spinner"></div>جاري تحميل Pixels...</div>
           </div>
         </div>
       </div>
@@ -348,7 +364,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
+let merchant=null,products=[],orders=[],storeSettings=null,trackingPixels=[],orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -420,7 +436,13 @@ function supabaseErrorText(error){
   return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
-const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp,facebook_pixel_id,tiktok_pixel_id,snapchat_pixel_id,google_ads_id,google_ads_conversion_label';
+const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp';
+const TRACKING_PLATFORMS={
+  facebook:{title:'Facebook Pixel',hint:'Meta/Facebook Pixel IDs'},
+  tiktok:{title:'TikTok Pixel',hint:'TikTok Events Manager Pixel IDs'},
+  snapchat:{title:'Snapchat Pixel',hint:'Snap Pixel IDs'},
+  google:{title:'Google Ads',hint:'Google Ads AW ID مع Conversion Label'}
+};
 
 async function verifyStoreSettingsSchema(){
   console.log('[Dukkan] checking store_settings columns',STORE_SETTINGS_COLUMNS.split(','));
@@ -443,7 +465,7 @@ function showPage(name,el){
 }
 
 async function refreshAll(){
-  await Promise.all([loadProducts(),loadOrders(),loadSettings()]);
+  await Promise.all([loadProducts(),loadOrders(),loadSettings(),loadTrackingPixels()]);
   updateStats();
 }
 
@@ -894,11 +916,6 @@ async function loadSettings(){
   document.getElementById('setShipBaghdad').value=data?.shipping_baghdad??5000;
   document.getElementById('setShipOther').value=data?.shipping_other??6000;
   document.getElementById('setTopbarText').value=data?.topbar_text||'';
-  document.getElementById('setFacebookPixelId').value=data?.facebook_pixel_id||'';
-  document.getElementById('setTiktokPixelId').value=data?.tiktok_pixel_id||'';
-  document.getElementById('setSnapchatPixelId').value=data?.snapchat_pixel_id||'';
-  document.getElementById('setGoogleAdsId').value=data?.google_ads_id||'';
-  document.getElementById('setGoogleAdsConversionLabel').value=data?.google_ads_conversion_label||'';
 }
 
 async function saveStoreSettings(){
@@ -920,12 +937,7 @@ async function saveStoreSettings(){
       shipping_baghdad:num('setShipBaghdad'),
       shipping_other:num('setShipOther'),
       topbar_text:document.getElementById('setTopbarText').value.trim(),
-      whatsapp,
-      facebook_pixel_id:document.getElementById('setFacebookPixelId').value.trim(),
-      tiktok_pixel_id:document.getElementById('setTiktokPixelId').value.trim(),
-      snapchat_pixel_id:document.getElementById('setSnapchatPixelId').value.trim(),
-      google_ads_id:document.getElementById('setGoogleAdsId').value.trim(),
-      google_ads_conversion_label:document.getElementById('setGoogleAdsConversionLabel').value.trim()
+      whatsapp
     };
     console.log('step 2: store_settings payload',settingsPayload);
 
@@ -954,6 +966,92 @@ async function saveStoreSettings(){
     console.log('step 6: save settings finished');
     console.groupEnd();
   }
+}
+
+async function loadTrackingPixels(){
+  const merchantId=getMerchantId();
+  console.log('[Dukkan] loadTrackingPixels start',{table:'tracking_pixels',merchantId});
+  if(!merchantId){renderTrackingCenter();return;}
+  const{data,error}=await SB.from('tracking_pixels')
+    .select('id,merchant_id,platform,pixel_id,conversion_label,label,is_active,created_at')
+    .eq('merchant_id',merchantId)
+    .order('platform',{ascending:true})
+    .order('created_at',{ascending:false});
+  console.log('[Dukkan] loadTrackingPixels response',{data,error});
+  if(error){console.error('loadTrackingPixels Supabase error:',error);showToast(supabaseErrorText(error),'error');return;}
+  trackingPixels=data||[];
+  renderTrackingCenter();
+}
+
+function renderTrackingCenter(){
+  const box=document.getElementById('trackingCenter');
+  if(!box)return;
+  box.innerHTML=Object.keys(TRACKING_PLATFORMS).map(platform=>trackingPlatformCard(platform)).join('');
+}
+
+function trackingPlatformCard(platform){
+  const cfg=TRACKING_PLATFORMS[platform];
+  const rows=trackingPixels.filter(p=>p.platform===platform);
+  const list=rows.length?rows.map(trackingPixelRow).join(''):'<div class="empty-state" style="padding:18px">لا توجد Pixels مضافة لهذه المنصة</div>';
+  const labelId='tpLabel_'+platform,pixelId='tpPixel_'+platform,conversionId='tpConversion_'+platform,formId='tpForm_'+platform;
+  const conversionField=platform==='google'
+    ? '<div class="form-group"><label class="form-label">Conversion Label</label><input class="form-input" id="'+conversionId+'" dir="ltr" style="text-align:right" placeholder="AbCdEfGhIjKlMnOp"></div>'
+    : '';
+  return '<div class="tracking-platform"><div class="tracking-head"><div><div class="tracking-title">'+esc(cfg.title)+'</div><div class="tracking-sub">'+esc(cfg.hint)+'</div></div><button class="btn btn-gold" onclick="toggleTrackingForm(\''+platform+'\')">إضافة Pixel جديد +</button></div>'+
+    '<div class="tracking-body"><div class="tracking-list">'+list+'</div>'+
+    '<div class="tracking-form" id="'+formId+'"><div class="form-grid"><div class="form-group"><label class="form-label">اسم وصفي</label><input class="form-input" id="'+labelId+'" placeholder="حملة صيف 2025"></div><div class="form-group"><label class="form-label">Pixel ID</label><input class="form-input" id="'+pixelId+'" dir="ltr" style="text-align:right" placeholder="'+(platform==='google'?'AW-123456789':'Pixel ID')+'"></div>'+conversionField+'</div><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green" onclick="saveTrackingPixel(\''+platform+'\')">💾 حفظ</button><button class="btn btn-card" onclick="toggleTrackingForm(\''+platform+'\',false)">إلغاء</button></div></div></div></div>';
+}
+
+function trackingPixelRow(pixel){
+  const state=pixel.is_active!==false;
+  const label=pixel.label||'بدون اسم وصفي';
+  const conversion=pixel.platform==='google'&&pixel.conversion_label?'<div class="tracking-label">Conversion Label: '+esc(pixel.conversion_label)+'</div>':'';
+  return '<div class="tracking-item"><div><div class="tracking-id">'+esc(pixel.pixel_id)+'</div><div class="tracking-label">'+esc(label)+'</div>'+conversion+'</div><div class="actions"><button class="btn '+(state?'btn-green':'btn-card')+'" onclick="setTrackingPixelActive(\''+escAttr(pixel.id)+'\','+(!state)+')">'+(state?'مفعل':'متوقف')+'</button><button class="btn btn-red" onclick="deleteTrackingPixel(\''+escAttr(pixel.id)+'\')">حذف</button></div></div>';
+}
+
+function toggleTrackingForm(platform,force){
+  const form=document.getElementById('tpForm_'+platform);
+  if(!form)return;
+  const open=typeof force==='boolean'?force:form.style.display!=='block';
+  form.style.display=open?'block':'none';
+}
+
+async function saveTrackingPixel(platform){
+  const merchantId=getMerchantId();
+  if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');return;}
+  const pixelId=document.getElementById('tpPixel_'+platform).value.trim();
+  const label=document.getElementById('tpLabel_'+platform).value.trim();
+  const conversionEl=document.getElementById('tpConversion_'+platform);
+  const conversionLabel=conversionEl?conversionEl.value.trim():'';
+  if(!pixelId){showToast('أدخل Pixel ID','error');return;}
+  if(platform==='google'&&!conversionLabel){showToast('أدخل Google Ads Conversion Label','error');return;}
+  const payload={merchant_id:merchantId,platform,pixel_id:pixelId,conversion_label:platform==='google'?conversionLabel:null,label,is_active:true};
+  console.log('[Dukkan] saveTrackingPixel payload',payload);
+  const{data,error}=await SB.from('tracking_pixels').insert([payload]).select().single();
+  console.log('[Dukkan] saveTrackingPixel response',{data,error});
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  trackingPixels.unshift(data);
+  renderTrackingCenter();
+  showToast('تمت إضافة Pixel ✅','success');
+}
+
+async function setTrackingPixelActive(id,isActive){
+  const merchantId=getMerchantId();
+  const{data,error}=await SB.from('tracking_pixels').update({is_active:isActive}).eq('id',id).eq('merchant_id',merchantId).select().single();
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  trackingPixels=trackingPixels.map(p=>String(p.id)===String(id)?data:p);
+  renderTrackingCenter();
+  showToast(isActive?'تم تفعيل Pixel ✅':'تم تعطيل Pixel','success');
+}
+
+async function deleteTrackingPixel(id){
+  if(!confirm('حذف هذا Pixel؟'))return;
+  const merchantId=getMerchantId();
+  const{error}=await SB.from('tracking_pixels').delete().eq('id',id).eq('merchant_id',merchantId);
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  trackingPixels=trackingPixels.filter(p=>String(p.id)!==String(id));
+  renderTrackingCenter();
+  showToast('تم حذف Pixel','success');
 }
 
 function updateStats(){

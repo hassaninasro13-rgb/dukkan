@@ -737,6 +737,7 @@ body {
   // STATE
   let SIZE = '', COLOR = '', QTY = 1, SHIP = 0, UPSELL = true;
   let PRODUCT = null, MERCHANT = null, SETTINGS = null, PAGE_SETTINGS = null;
+  let ACTIVE_PIXELS = [];
   let BASE = 0;
   let PIXELS_READY = false;
 
@@ -771,10 +772,18 @@ body {
 
     const { data: settingsData } = await db
       .from('store_settings')
-      .select('whatsapp,shipping_baghdad,shipping_other,facebook_pixel_id,tiktok_pixel_id,snapchat_pixel_id,google_ads_id,google_ads_conversion_label')
+      .select('whatsapp,shipping_baghdad,shipping_other')
       .eq('merchant_id', PRODUCT.merchant_id)
       .maybeSingle();
     SETTINGS = settingsData || {};
+
+    const { data: pixelsData, error: pixelsError } = await db
+      .from('tracking_pixels')
+      .select('platform,pixel_id,conversion_label,label,is_active')
+      .eq('merchant_id', PRODUCT.merchant_id)
+      .eq('is_active', true);
+    if (pixelsError) console.warn('[Dukkan] tracking pixels load failed', pixelsError);
+    ACTIVE_PIXELS = pixelsData || [];
     initAdPixels();
 
     const { data: pageSettingsData } = await db
@@ -944,44 +953,47 @@ body {
     document.getElementById('sTotal').textContent = total.toLocaleString() + ' IQD';
   }
 
-  function pixelId(key) {
-    return String(SETTINGS?.[key] || '').trim();
+  function pixelsFor(platform) {
+    return ACTIVE_PIXELS
+      .filter(pixel => pixel.platform === platform && pixel.pixel_id)
+      .map(pixel => ({...pixel, pixel_id:String(pixel.pixel_id || '').trim(), conversion_label:String(pixel.conversion_label || '').trim()}))
+      .filter(pixel => pixel.pixel_id);
   }
 
   function initAdPixels() {
     if (PIXELS_READY) return;
-    const facebookPixelId = pixelId('facebook_pixel_id');
-    const tiktokPixelId = pixelId('tiktok_pixel_id');
-    const snapchatPixelId = pixelId('snapchat_pixel_id');
-    const googleAdsId = pixelId('google_ads_id');
+    const facebookPixels = pixelsFor('facebook');
+    const tiktokPixels = pixelsFor('tiktok');
+    const snapchatPixels = pixelsFor('snapchat');
+    const googlePixels = pixelsFor('google');
 
-    if (facebookPixelId) {
+    if (facebookPixels.length) {
       !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', facebookPixelId);
+      facebookPixels.forEach(pixel => fbq('init', pixel.pixel_id));
       fbq('track', 'PageView');
     }
 
-    if (tiktokPixelId) {
+    if (tiktokPixels.length) {
       !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};}(window,document,'ttq');
-      ttq.load(tiktokPixelId);
+      tiktokPixels.forEach(pixel => ttq.load(pixel.pixel_id));
       ttq.page();
     }
 
-    if (snapchatPixelId) {
+    if (snapchatPixels.length) {
       (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');
-      snaptr('init', snapchatPixelId);
+      snapchatPixels.forEach(pixel => snaptr('init', pixel.pixel_id));
       snaptr('track', 'PAGE_VIEW');
     }
 
-    if (googleAdsId) {
+    if (googlePixels.length) {
       window.dataLayer = window.dataLayer || [];
       window.gtag = window.gtag || function(){dataLayer.push(arguments);};
       const script = document.createElement('script');
       script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(googleAdsId);
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(googlePixels[0].pixel_id);
       document.head.appendChild(script);
       gtag('js', new Date());
-      gtag('config', googleAdsId);
+      googlePixels.forEach(pixel => gtag('config', pixel.pixel_id));
     }
 
     PIXELS_READY = true;
@@ -989,19 +1001,18 @@ body {
 
   function trackPurchase(totalPrice) {
     const value = Number(totalPrice || 0);
-    const facebookPixelId = pixelId('facebook_pixel_id');
-    const tiktokPixelId = pixelId('tiktok_pixel_id');
-    const snapchatPixelId = pixelId('snapchat_pixel_id');
-    const googleAdsId = pixelId('google_ads_id');
-    const googleAdsConversionLabel = pixelId('google_ads_conversion_label');
+    const facebookPixels = pixelsFor('facebook');
+    const tiktokPixels = pixelsFor('tiktok');
+    const snapchatPixels = pixelsFor('snapchat');
+    const googlePixels = pixelsFor('google');
 
     try {
-      if (facebookPixelId && typeof fbq === 'function') fbq('track', 'Purchase', { value, currency: 'IQD' });
-      if (tiktokPixelId && window.ttq && typeof ttq.track === 'function') ttq.track('PlaceAnOrder', { value, currency: 'IQD' });
-      if (snapchatPixelId && typeof snaptr === 'function') snaptr('track', 'PURCHASE', { price: value, currency: 'IQD' });
-      if (googleAdsId && googleAdsConversionLabel && typeof gtag === 'function') {
-        gtag('event', 'conversion', { send_to: googleAdsId + '/' + googleAdsConversionLabel, value, currency: 'IQD' });
-      }
+      if (facebookPixels.length && typeof fbq === 'function') fbq('track', 'Purchase', { value, currency: 'IQD' });
+      if (tiktokPixels.length && window.ttq && typeof ttq.track === 'function') ttq.track('PlaceAnOrder', { value, currency: 'IQD' });
+      if (snapchatPixels.length && typeof snaptr === 'function') snaptr('track', 'PURCHASE', { price: value, currency: 'IQD' });
+      if (typeof gtag === 'function') googlePixels.forEach(pixel => {
+        if (pixel.conversion_label) gtag('event', 'conversion', { send_to: pixel.pixel_id + '/' + pixel.conversion_label, value, currency: 'IQD' });
+      });
     } catch (err) {
       console.warn('[Dukkan] purchase tracking failed', err);
     }
