@@ -785,9 +785,11 @@ async function savePageSettings(){
     review3_city:document.getElementById('psReview3City').value.trim(),
     review3_text:document.getElementById('psReview3Text').value.trim()
   };
-  const res=pageSettingsRecordId
-    ? await SB.from('product_settings').update(payload).eq('id',pageSettingsRecordId).select().single()
-    : await SB.from('product_settings').insert([payload]).select().single();
+  const res=await SB
+    .from('product_settings')
+    .upsert(payload,{onConflict:'product_id'})
+    .select()
+    .single();
   btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
   if(res.error){showToast(supabaseErrorText(res.error),'error');return;}
   pageSettingsRecordId=res.data?.id||pageSettingsRecordId;
@@ -806,16 +808,10 @@ async function deleteProduct(id){
 async function loadOrders(){
   const merchantId=getMerchantId();
   console.group('[Dukkan] loadOrders');
-  console.log('step 1: loading orders',{merchantId,primaryTable:'orders',fallbackTable:'merchant_orders'});
+  console.log('step 1: loading orders',{merchantId,table:'orders'});
   if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');console.groupEnd();return;}
-  let res=await SB.from('orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
+  const res=await SB.from('orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
   console.log('step 2: orders response',res);
-  if(res.error){
-    console.warn('orders table failed, trying merchant_orders fallback:',res.error);
-    const fallback=await SB.from('merchant_orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
-    console.log('step 3: merchant_orders fallback response',fallback);
-    res=fallback;
-  }
   if(res.error){console.error('loadOrders Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
   orders=res.data||[];
   renderOrders();
@@ -860,15 +856,9 @@ function orderCard(o){
 async function setOrderStatus(id,status){
   const merchantId=getMerchantId();
   console.group('[Dukkan] setOrderStatus');
-  console.log('step 1: updating order status',{id,status,merchantId,primaryTable:'orders',fallbackTable:'merchant_orders'});
-  let res=await SB.from('orders').update({status}).eq('id',id).eq('merchant_id',merchantId).select().single();
+  console.log('step 1: updating order status',{id,status,merchantId,table:'orders'});
+  const res=await SB.from('orders').update({status}).eq('id',id).eq('merchant_id',merchantId).select().single();
   console.log('step 2: orders update response',res);
-  if(res.error){
-    console.warn('orders status update failed, trying merchant_orders fallback:',res.error);
-    const fallback=await SB.from('merchant_orders').update({status}).eq('id',id).eq('merchant_id',merchantId).select().single();
-    console.log('step 3: merchant_orders update response',fallback);
-    res=fallback;
-  }
   if(res.error){console.error('setOrderStatus Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
   const o=orders.find(x=>String(x.id)===String(id));if(o)o.status=status;
   renderOrders();renderRecentOrders();updateStats();showToast('تم تحديث الحالة ✅','success');
