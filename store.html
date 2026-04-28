@@ -24,7 +24,7 @@ a{text-decoration:none}
 .title{font-family:'Tajawal',sans-serif;font-size:22px;font-weight:900}
 .count{background:var(--card);border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;padding:6px 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
-.product{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:transform .2s,border-color .2s,background .2s}
+.product{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:transform .2s,border-color .2s,background .2s;cursor:pointer}
 .product:hover{transform:translateY(-3px);border-color:rgba(240,165,0,.45);background:var(--card2)}
 .image-wrap{position:relative;background:var(--bg);aspect-ratio:1.05;overflow:hidden}
 .image-wrap img{width:100%;height:100%;object-fit:cover;display:block}
@@ -153,30 +153,21 @@ function productCard(p){
   const sizes=p.sizes.length?'<div class="chips"><span class="chip"><strong>المقاسات:</strong> '+esc(p.sizes.join('، '))+'</span></div>':'';
   const colors=p.colors.length?'<div class="chips"><span class="chip"><strong>الألوان:</strong> '+esc(p.colors.join('، '))+'</span></div>':'';
   const old=p.old_price>p.price?'<span class="old-price">'+p.old_price.toLocaleString()+' IQD</span>':'';
-  return '<article class="product">'+
+  return '<article class="product" onclick="window.location.href=\''+escAttr(productUrl(p))+'\'">'+
     '<div class="image-wrap"><img src="'+escAttr(image)+'" alt="'+escAttr(p.name||'منتج')+'">'+(discount?'<div class="discount">خصم '+discount+'%</div>':'')+'</div>'+
     '<div class="content">'+
       '<h3 class="name">'+esc(p.name||'منتج')+'</h3>'+
       '<p class="desc">'+esc(p.description||'لا يوجد وصف لهذا المنتج')+'</p>'+
       '<div class="price-row"><span class="price">'+p.price.toLocaleString()+'</span><span class="currency">IQD</span>'+old+'</div>'+
       sizes+colors+
-      '<a class="order-btn" href="'+escAttr(orderUrl(p))+'" target="_blank">🛒 اطلب الآن</a>'+
+      '<a class="order-btn" href="'+escAttr(productUrl(p))+'" onclick="event.stopPropagation()">🛒 اطلب الآن</a>'+
     '</div>'+
   '</article>';
 }
 
-function orderUrl(product){
-  const phone=normalizePhone(settings?.whatsapp||merchant?.whatsapp||'');
-  const text='مرحباً، أريد طلب المنتج: '+(product.name||'منتج')+' من متجر '+(merchant?.store_name||'دكّان');
-  return phone?'https://wa.me/'+phone+'?text='+encodeURIComponent(text):'#';
-}
-
-function normalizePhone(phone){
-  let p=String(phone||'').replace(/\D/g,'');
-  if(!p)return '';
-  if(p.startsWith('0'))p='964'+p.slice(1);
-  if(!p.startsWith('964'))p='964'+p;
-  return p;
+function productUrl(product){
+  const store=merchant?.store_slug?('&store='+encodeURIComponent(merchant.store_slug)):'';
+  return '/product?id='+encodeURIComponent(product.id)+store;
 }
 
 function getDiscount(price,oldPrice){
