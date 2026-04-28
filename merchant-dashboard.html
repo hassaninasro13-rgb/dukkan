@@ -93,6 +93,11 @@ button{cursor:pointer}
 .form-input,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
 .form-textarea{min-height:90px;resize:vertical}
 .form-input:focus,.form-textarea:focus{border-color:var(--gold)}
+.image-upload{background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;display:grid;gap:12px}
+.image-preview{display:none;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px}
+.image-preview.show{display:flex}
+.image-preview img{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--border);background:var(--bg)}
+.image-preview span{font-size:12px;color:var(--muted);word-break:break-all}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:800;display:none;align-items:center;justify-content:center;padding:18px}
 .modal-bg.open{display:flex}
 .modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;max-width:760px;width:100%;max-height:92vh;overflow:auto}
@@ -248,7 +253,17 @@ button{cursor:pointer}
         <div class="form-group full"><label class="form-label">الوصف</label><textarea class="form-textarea" id="pDescription"></textarea></div>
         <div class="form-group"><label class="form-label">السعر</label><input class="form-input" id="pPrice" type="number"></div>
         <div class="form-group"><label class="form-label">السعر القديم</label><input class="form-input" id="pOldPrice" type="number"></div>
-        <div class="form-group full"><label class="form-label">رابط صورة</label><input class="form-input" id="pImage" dir="ltr" style="text-align:right" placeholder="https://example.com/image.jpg"></div>
+        <div class="form-group full">
+          <label class="form-label">صورة المنتج</label>
+          <div class="image-upload">
+            <input type="hidden" id="pImageUrl">
+            <input class="form-input" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
+            <div class="image-preview" id="pImagePreview">
+              <img id="pImagePreviewImg" src="" alt="معاينة صورة المنتج">
+              <span id="pImagePreviewText">تم اختيار الصورة</span>
+            </div>
+          </div>
+        </div>
         <div class="form-group">
           <label class="form-label">المقاسات (tags)</label>
           <div class="tag-box"><input class="form-input" id="pSizeInput" placeholder="S أو M" onkeydown="if(event.key==='Enter'){event.preventDefault();addProductTag('size')}"><button class="btn btn-card" onclick="addProductTag('size')">+ إضافة</button></div>
@@ -324,7 +339,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[];
+let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrl='';
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -484,7 +499,10 @@ function openProductModal(id){
   document.getElementById('pDescription').value=p?.description||'';
   document.getElementById('pPrice').value=p?.price||'';
   document.getElementById('pOldPrice').value=p?.old_price||'';
-  document.getElementById('pImage').value=Array.isArray(p?.images)&&p.images.length?p.images[0]:'';
+  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?p.images[0]:'';
+  document.getElementById('pImageUrl').value=currentProductImageUrl;
+  document.getElementById('pImageFile').value='';
+  renderProductImagePreview(currentProductImageUrl,currentProductImageUrl?'الصورة الحالية':'');
   document.getElementById('pStock').value=p?.stock||0;
   document.getElementById('pActive').value=p?.is_active===false?'false':'true';
   productSizes=Array.isArray(p?.sizes)?[...p.sizes]:[];
@@ -494,6 +512,37 @@ function openProductModal(id){
 }
 
 function closeProductModal(){document.getElementById('productModal').classList.remove('open');}
+
+function handleProductImageChange(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
+  renderProductImagePreview(URL.createObjectURL(file),file.name);
+}
+
+function renderProductImagePreview(src,text){
+  const wrap=document.getElementById('pImagePreview');
+  const img=document.getElementById('pImagePreviewImg');
+  const label=document.getElementById('pImagePreviewText');
+  if(!src){wrap.classList.remove('show');img.src='';label.textContent='';return;}
+  img.src=src;
+  label.textContent=text||'تم اختيار الصورة';
+  wrap.classList.add('show');
+}
+
+async function uploadProductImage(merchantId){
+  const file=document.getElementById('pImageFile').files?.[0];
+  if(!file)return currentProductImageUrl;
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const path=merchantId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+  console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
+  const{error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+  if(error)throw error;
+  const{data}=SB.storage.from('product-images').getPublicUrl(path);
+  currentProductImageUrl=data.publicUrl;
+  document.getElementById('pImageUrl').value=currentProductImageUrl;
+  return currentProductImageUrl;
+}
 
 function addProductTag(type){
   const input=document.getElementById(type==='size'?'pSizeInput':'pColorInput');
@@ -547,8 +596,8 @@ async function saveProduct(){
     const price=num('pPrice');
     const stock=num('pStock');
     const oldPrice=num('pOldPrice');
-    const img=document.getElementById('pImage').value.trim();
-    console.log('step 3: raw form values',{name,price,oldPrice,img,stock,isActive:document.getElementById('pActive').value});
+    const selectedImage=document.getElementById('pImageFile').files?.[0]?.name||'';
+    console.log('step 3: raw form values',{name,price,oldPrice,currentProductImageUrl,selectedImage,stock,isActive:document.getElementById('pActive').value});
     if(!name){showToast('أدخل اسم المنتج','error');return;}
     if(!price||price<=0){showToast('أدخل سعر المنتج','error');return;}
     if(stock<0){showToast('المخزون لا يمكن أن يكون سالباً','error');return;}
@@ -556,7 +605,10 @@ async function saveProduct(){
     mergePendingProductTags();
     console.log('step 4: tags merged',{productSizes,productColors});
 
-    btn.disabled=true;btn.textContent='جاري الحفظ...';
+    btn.disabled=true;btn.textContent='جاري رفع الصورة...';
+    const img=await uploadProductImage(merchantId);
+    console.log('step 5: image ready',{img});
+    btn.textContent='جاري الحفظ...';
     const payload={
       merchant_id:merchantId,
       name,
@@ -569,21 +621,21 @@ async function saveProduct(){
       stock,
       is_active:document.getElementById('pActive').value==='true'
     };
-    console.log('step 5: payload ready',payload);
+    console.log('step 6: payload ready',payload);
 
     const query=editingProductId
       ? SB.from('merchant_products').update(payload).eq('id',editingProductId).eq('merchant_id',merchantId).select().single()
       : SB.from('merchant_products').insert([{...payload,visits:0}]).select().single();
-    console.log('step 6: sending Supabase request',{operation:editingProductId?'update':'insert',table:'merchant_products'});
+    console.log('step 7: sending Supabase request',{operation:editingProductId?'update':'insert',table:'merchant_products'});
     const res=await query;
-    console.log('step 7: Supabase response',res);
+    console.log('step 8: Supabase response',res);
     if(res.error){
       const message=supabaseErrorText(res.error);
       console.error('saveProduct Supabase error:',res.error);
       showToast(message,'error');
       return;
     }
-    console.log('step 8: save succeeded',res.data);
+    console.log('step 9: save succeeded',res.data);
     closeProductModal();
     showToast('تم حفظ المنتج ✅','success');
     await loadProducts();
@@ -592,7 +644,7 @@ async function saveProduct(){
     showToast(err?.message||'تعذر إرسال طلب حفظ المنتج','error');
   }finally{
     btn.disabled=false;btn.textContent='💾 حفظ المنتج';
-    console.log('step 9: handler finished');
+    console.log('step 10: handler finished');
     console.groupEnd();
   }
 }
