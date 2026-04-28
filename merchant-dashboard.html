@@ -333,7 +333,7 @@ function startApp(){
   document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
   document.getElementById('sideEmail').textContent=merchant.email||'';
   document.getElementById('welcomeName').textContent=merchant.full_name||merchant.store_name||'تاجر دكّان';
-  document.getElementById('storePreview').href='/?store='+encodeURIComponent(merchant.store_slug||merchant.id);
+  document.getElementById('storePreview').href='/store?store='+encodeURIComponent(merchant.store_slug||'');
   refreshAll();
 }
 
