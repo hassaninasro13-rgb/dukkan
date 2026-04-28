@@ -4,6 +4,7 @@
     { "src": "/", "dest": "/index.html" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/register", "dest": "/register.html" },
+    { "src": "/store", "dest": "/store.html" },
     { "src": "/merchant-dashboard", "dest": "/merchant-dashboard.html" }
   ]
 }
