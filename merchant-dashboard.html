@@ -94,6 +94,8 @@ button{cursor:pointer}
 .form-textarea{min-height:90px;resize:vertical}
 .form-input:focus,.form-textarea:focus{border-color:var(--gold)}
 .image-upload{background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;display:grid;gap:12px}
+.file-input-hidden{display:none}
+.upload-btn{width:max-content;max-width:100%}
 .image-preview{display:none;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px}
 .image-preview.show{display:flex}
 .image-preview img{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--border);background:var(--bg)}
@@ -257,7 +259,8 @@ button{cursor:pointer}
           <label class="form-label">صورة المنتج</label>
           <div class="image-upload">
             <input type="hidden" id="pImageUrl">
-            <input class="form-input" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
+            <input class="file-input-hidden" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="triggerProductImagePicker()">📤 رفع صورة من الجهاز</button>
             <div class="image-preview" id="pImagePreview">
               <img id="pImagePreviewImg" src="" alt="معاينة صورة المنتج">
               <span id="pImagePreviewText">تم اختيار الصورة</span>
@@ -512,6 +515,10 @@ function openProductModal(id){
 }
 
 function closeProductModal(){document.getElementById('productModal').classList.remove('open');}
+
+function triggerProductImagePicker(){
+  document.getElementById('pImageFile').click();
+}
 
 function handleProductImageChange(event){
   const file=event.target.files?.[0];
