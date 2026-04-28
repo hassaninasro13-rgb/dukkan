@@ -233,6 +233,12 @@ button{cursor:pointer}
             <div class="form-group"><label class="form-label">شحن بغداد (IQD)</label><input class="form-input" id="setShipBaghdad" type="number"></div>
             <div class="form-group"><label class="form-label">شحن المحافظات (IQD)</label><input class="form-input" id="setShipOther" type="number"></div>
             <div class="form-group full"><label class="form-label">نص الشريط العلوي</label><input class="form-input" id="setTopbarText"></div>
+            <div class="form-group full" style="margin-top:10px"><h3 style="font-size:15px;color:var(--gold)">تتبع الإعلانات</h3><div style="font-size:12px;color:var(--muted);margin-top:4px">كل الحقول اختيارية وتستخدم فقط في صفحة الهبوط عند وجود قيمة.</div></div>
+            <div class="form-group"><label class="form-label">Facebook Pixel ID</label><input class="form-input" id="setFacebookPixelId" dir="ltr" style="text-align:right" placeholder="1234567890"></div>
+            <div class="form-group"><label class="form-label">TikTok Pixel ID</label><input class="form-input" id="setTiktokPixelId" dir="ltr" style="text-align:right" placeholder="CXXXXXXXXXXXXXXX"></div>
+            <div class="form-group"><label class="form-label">Snapchat Pixel ID</label><input class="form-input" id="setSnapchatPixelId" dir="ltr" style="text-align:right" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+            <div class="form-group"><label class="form-label">Google Ads ID (AW-XXXXXX)</label><input class="form-input" id="setGoogleAdsId" dir="ltr" style="text-align:right" placeholder="AW-123456789"></div>
+            <div class="form-group"><label class="form-label">Google Ads Conversion Label</label><input class="form-input" id="setGoogleAdsConversionLabel" dir="ltr" style="text-align:right" placeholder="AbCdEfGhIjKlMnOp"></div>
           </div>
           <div style="margin-top:18px">
             <button class="btn btn-green" id="saveSettingsBtn" onclick="saveStoreSettings()">💾 حفظ الإعدادات</button>
@@ -414,7 +420,7 @@ function supabaseErrorText(error){
   return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
-const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp';
+const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp,facebook_pixel_id,tiktok_pixel_id,snapchat_pixel_id,google_ads_id,google_ads_conversion_label';
 
 async function verifyStoreSettingsSchema(){
   console.log('[Dukkan] checking store_settings columns',STORE_SETTINGS_COLUMNS.split(','));
@@ -573,14 +579,15 @@ async function uploadProductImages(merchantId){
   if(files.length>5)throw new Error('يمكنك رفع 5 صور كحد أقصى');
   const urls=[];
   for(const file of files){
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const path=merchantId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
-  console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
-  const{error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
-  if(error)throw error;
-  const{data}=SB.storage.from('product-images').getPublicUrl(path);
-  urls.push(data.publicUrl);
-  console.log('[Dukkan] product image public url',{path,publicUrl:data.publicUrl});
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-');
+    const path=merchantId+'/'+Date.now()+'-'+safeName.replace(/\.[^.]+$/,'')+'.'+ext;
+    console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
+    const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+    if(error)throw error;
+    const publicUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
+    urls.push(publicUrl);
+    console.log('[Dukkan] product image public url',{path:data.path,publicUrl});
   }
   currentProductImageUrls=urls;
   document.getElementById('pImageUrl').value=JSON.stringify(currentProductImageUrls);
@@ -887,6 +894,11 @@ async function loadSettings(){
   document.getElementById('setShipBaghdad').value=data?.shipping_baghdad??5000;
   document.getElementById('setShipOther').value=data?.shipping_other??6000;
   document.getElementById('setTopbarText').value=data?.topbar_text||'';
+  document.getElementById('setFacebookPixelId').value=data?.facebook_pixel_id||'';
+  document.getElementById('setTiktokPixelId').value=data?.tiktok_pixel_id||'';
+  document.getElementById('setSnapchatPixelId').value=data?.snapchat_pixel_id||'';
+  document.getElementById('setGoogleAdsId').value=data?.google_ads_id||'';
+  document.getElementById('setGoogleAdsConversionLabel').value=data?.google_ads_conversion_label||'';
 }
 
 async function saveStoreSettings(){
@@ -908,7 +920,12 @@ async function saveStoreSettings(){
       shipping_baghdad:num('setShipBaghdad'),
       shipping_other:num('setShipOther'),
       topbar_text:document.getElementById('setTopbarText').value.trim(),
-      whatsapp
+      whatsapp,
+      facebook_pixel_id:document.getElementById('setFacebookPixelId').value.trim(),
+      tiktok_pixel_id:document.getElementById('setTiktokPixelId').value.trim(),
+      snapchat_pixel_id:document.getElementById('setSnapchatPixelId').value.trim(),
+      google_ads_id:document.getElementById('setGoogleAdsId').value.trim(),
+      google_ads_conversion_label:document.getElementById('setGoogleAdsConversionLabel').value.trim()
     };
     console.log('step 2: store_settings payload',settingsPayload);
 

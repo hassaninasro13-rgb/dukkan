@@ -738,6 +738,7 @@ body {
   let SIZE = '', COLOR = '', QTY = 1, SHIP = 0, UPSELL = true;
   let PRODUCT = null, MERCHANT = null, SETTINGS = null, PAGE_SETTINGS = null;
   let BASE = 0;
+  let PIXELS_READY = false;
 
   document.addEventListener('DOMContentLoaded', loadProduct);
 
@@ -770,10 +771,11 @@ body {
 
     const { data: settingsData } = await db
       .from('store_settings')
-      .select('whatsapp,shipping_baghdad,shipping_other')
+      .select('whatsapp,shipping_baghdad,shipping_other,facebook_pixel_id,tiktok_pixel_id,snapchat_pixel_id,google_ads_id,google_ads_conversion_label')
       .eq('merchant_id', PRODUCT.merchant_id)
       .maybeSingle();
     SETTINGS = settingsData || {};
+    initAdPixels();
 
     const { data: pageSettingsData } = await db
       .from('product_settings')
@@ -797,7 +799,8 @@ body {
     document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
-    document.getElementById('mainImg').src = PRODUCT.images[0] || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
+    const mainImage = PRODUCT.images[0] || '';
+    document.getElementById('mainImg').src = mainImage || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
@@ -940,6 +943,69 @@ body {
     }
     document.getElementById('sTotal').textContent = total.toLocaleString() + ' IQD';
   }
+
+  function pixelId(key) {
+    return String(SETTINGS?.[key] || '').trim();
+  }
+
+  function initAdPixels() {
+    if (PIXELS_READY) return;
+    const facebookPixelId = pixelId('facebook_pixel_id');
+    const tiktokPixelId = pixelId('tiktok_pixel_id');
+    const snapchatPixelId = pixelId('snapchat_pixel_id');
+    const googleAdsId = pixelId('google_ads_id');
+
+    if (facebookPixelId) {
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', facebookPixelId);
+      fbq('track', 'PageView');
+    }
+
+    if (tiktokPixelId) {
+      !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};}(window,document,'ttq');
+      ttq.load(tiktokPixelId);
+      ttq.page();
+    }
+
+    if (snapchatPixelId) {
+      (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');
+      snaptr('init', snapchatPixelId);
+      snaptr('track', 'PAGE_VIEW');
+    }
+
+    if (googleAdsId) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function(){dataLayer.push(arguments);};
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(googleAdsId);
+      document.head.appendChild(script);
+      gtag('js', new Date());
+      gtag('config', googleAdsId);
+    }
+
+    PIXELS_READY = true;
+  }
+
+  function trackPurchase(totalPrice) {
+    const value = Number(totalPrice || 0);
+    const facebookPixelId = pixelId('facebook_pixel_id');
+    const tiktokPixelId = pixelId('tiktok_pixel_id');
+    const snapchatPixelId = pixelId('snapchat_pixel_id');
+    const googleAdsId = pixelId('google_ads_id');
+    const googleAdsConversionLabel = pixelId('google_ads_conversion_label');
+
+    try {
+      if (facebookPixelId && typeof fbq === 'function') fbq('track', 'Purchase', { value, currency: 'IQD' });
+      if (tiktokPixelId && window.ttq && typeof ttq.track === 'function') ttq.track('PlaceAnOrder', { value, currency: 'IQD' });
+      if (snapchatPixelId && typeof snaptr === 'function') snaptr('track', 'PURCHASE', { price: value, currency: 'IQD' });
+      if (googleAdsId && googleAdsConversionLabel && typeof gtag === 'function') {
+        gtag('event', 'conversion', { send_to: googleAdsId + '/' + googleAdsConversionLabel, value, currency: 'IQD' });
+      }
+    } catch (err) {
+      console.warn('[Dukkan] purchase tracking failed', err);
+    }
+  }
   // VALIDATE
   function validate() {
     const fn = document.getElementById('fFirstName').value.trim();
@@ -1005,6 +1071,7 @@ body {
         error = retry.error;
       }
       if (error) throw error;
+      trackPurchase(total);
       document.getElementById('orderCode').textContent = '#' + orderNum;
       document.getElementById('modal').classList.add('open');
     } catch (err) {
@@ -1036,16 +1103,26 @@ body {
   }, 1000);
 
   function normalizeProduct(p) {
+    const imgs = parseProductImages(p);
     return {
       ...p,
       price: Number(p.price || 0),
       old_price: Number(p.old_price || 0),
       stock: Number(p.stock || 0),
       visits: Number(p.visits || 0),
-      images: toArray(p.images).map(url => storagePublicUrl(url, p.merchant_id)),
+      images: imgs.map(url => storagePublicUrl(url, p.merchant_id)),
       sizes: toArray(p.sizes),
       colors: toArray(p.colors)
     };
+  }
+  function parseProductImages(product) {
+    let imgs = [];
+    try {
+      imgs = JSON.parse(product.images || '[]');
+    } catch (e) {
+      imgs = product.images ? [product.images] : [];
+    }
+    return Array.isArray(imgs) ? imgs.map(x => String(x).trim()).filter(Boolean) : [];
   }
   function toArray(v) {
     if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
