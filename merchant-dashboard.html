@@ -270,6 +270,37 @@ button{cursor:pointer}
   </div>
 </div>
 
+<div class="modal-bg" id="pageSettingsModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">إعدادات صفحة المنتج</div>
+      <button class="modal-close" onclick="closePageSettingsModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label class="form-label">نص الـ badge</label><input class="form-input" id="psBadgeText" placeholder="الأكثر مبيعاً في العراق 2025"></div>
+        <div class="form-group full"><label class="form-label">نص العنوان الفرعي للهيرو</label><input class="form-input" id="psHeroSubtitle" placeholder="عرض لفترة محدودة!"></div>
+        <div class="form-group full"><label class="form-label">نص الـ sub-hero / النقاط التسويقية</label><textarea class="form-textarea" id="psSubheroText" placeholder="قوام مثالي • خصر رفيع • مريح طوال اليوم"></textarea></div>
+        <div class="form-group"><label class="form-label">عدد المبيعات</label><input class="form-input" id="psSalesCount" type="number" min="0" placeholder="123"></div>
+        <div class="form-group"><label class="form-label">رقم الواتساب للتواصل</label><input class="form-input" id="psWhatsapp" dir="ltr" style="text-align:right" placeholder="07XXXXXXXXX"></div>
+        <div class="form-group full"><label class="form-label">نص الـ upsell / الهدية المجانية</label><input class="form-input" id="psUpsellText" placeholder="احصل على هدية مجانية مع طلبك اليوم فقط"></div>
+        <div class="form-group">
+          <label class="form-label">عداد تنازلي</label>
+          <select class="form-input" id="psCountdownActive"><option value="true">مفعل</option><option value="false">متوقف</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">قسم آراء الزبائن</label>
+          <select class="form-input" id="psReviewsActive"><option value="true">مفعل</option><option value="false">متوقف</option></select>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-green" id="savePageSettingsBtn" onclick="savePageSettings()">💾 حفظ الإعدادات</button>
+        <button class="btn btn-card" onclick="closePageSettingsModal()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -278,7 +309,7 @@ const SUPABASE_URL='https://tdipbduxnxsdcdrwuksz.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTY2MTcsImV4cCI6MjA5MDgzMjYxN30.gXqOd9np6dWm7aF5Oyp3HbfzFaCTlsmhf033OC9DWgo';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,productSizes=[],productColors=[];
+let merchant=null,products=[],orders=[],storeSettings=null,orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -426,7 +457,7 @@ function renderProducts(){
       '<div class="meta-row"><span class="meta">السعر: '+price+' IQD</span>'+old+'<span class="meta">المخزون: '+(p.stock||0)+'</span><span class="meta">زيارات: '+(p.visits||0)+'</span></div>'+
       '<div class="meta-row">'+(sizes?'<span class="meta">المقاسات: '+esc(sizes)+'</span>':'')+(colors?'<span class="meta">الألوان: '+esc(colors)+'</span>':'')+'</div></div></div>'+
       '<span class="status-badge '+(p.is_active===false?'status-inactive':'status-active')+'">'+(p.is_active===false?'متوقف':'مفعل')+'</span></div>'+
-      '<div class="actions"><button class="btn btn-blue" onclick="openProductModal(\''+p.id+'\')">✏️ تعديل</button><button class="btn btn-card" onclick="toggleProduct(\''+p.id+'\','+(p.is_active!==false?'false':'true')+')">'+(p.is_active!==false?'⏸️ إيقاف':'▶️ تفعيل')+'</button><button class="btn btn-red" onclick="deleteProduct(\''+p.id+'\')">🗑️ حذف</button></div></div>';
+      '<div class="actions"><button class="btn btn-blue" onclick="openProductModal(\''+p.id+'\')">✏️ تعديل</button><button class="btn btn-gold" onclick="openPageSettingsModal(\''+p.id+'\')">⚙️ إعدادات الصفحة</button><button class="btn btn-card" onclick="toggleProduct(\''+p.id+'\','+(p.is_active!==false?'false':'true')+')">'+(p.is_active!==false?'⏸️ إيقاف':'▶️ تفعيل')+'</button><button class="btn btn-red" onclick="deleteProduct(\''+p.id+'\')">🗑️ حذف</button></div></div>';
   }).join('');
 }
 
@@ -556,6 +587,62 @@ async function toggleProduct(id,isActive){
   if(error){showToast('تعذر تحديث حالة المنتج','error');return;}
   const p=products.find(x=>String(x.id)===String(id));if(p)p.is_active=isActive;
   renderProducts();updateStats();showToast('تم تحديث المنتج ✅','success');
+}
+
+async function openPageSettingsModal(productId){
+  editingPageSettingsProductId=productId;
+  pageSettingsRecordId=null;
+  const product=products.find(p=>String(p.id)===String(productId));
+  document.getElementById('psBadgeText').value='الأكثر مبيعاً في العراق 2025';
+  document.getElementById('psHeroSubtitle').value='عرض لفترة محدودة!';
+  document.getElementById('psSubheroText').value=product?.description||'';
+  document.getElementById('psSalesCount').value=Math.max(120,Number(product?.visits||0)*3+120);
+  document.getElementById('psCountdownActive').value='true';
+  document.getElementById('psUpsellText').value='احصل على هدية مجانية مع طلبك اليوم فقط';
+  document.getElementById('psWhatsapp').value=storeSettings?.whatsapp||merchant?.whatsapp||'';
+  document.getElementById('psReviewsActive').value='true';
+  document.getElementById('pageSettingsModal').classList.add('open');
+
+  const{data,error}=await SB.from('product_settings').select('*').eq('product_id',productId).maybeSingle();
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  if(!data)return;
+  pageSettingsRecordId=data.id;
+  document.getElementById('psBadgeText').value=data.badge_text||'الأكثر مبيعاً في العراق 2025';
+  document.getElementById('psHeroSubtitle').value=data.hero_subtitle||'عرض لفترة محدودة!';
+  document.getElementById('psSubheroText').value=data.subhero_text||product?.description||'';
+  document.getElementById('psSalesCount').value=data.sales_count??'';
+  document.getElementById('psCountdownActive').value=data.countdown_active===false?'false':'true';
+  document.getElementById('psUpsellText').value=data.upsell_text||data.upsell_title||'';
+  document.getElementById('psWhatsapp').value=data.whatsapp||storeSettings?.whatsapp||merchant?.whatsapp||'';
+  document.getElementById('psReviewsActive').value=data.reviews_active===false?'false':'true';
+}
+
+function closePageSettingsModal(){
+  document.getElementById('pageSettingsModal').classList.remove('open');
+}
+
+async function savePageSettings(){
+  const btn=document.getElementById('savePageSettingsBtn');
+  btn.disabled=true;btn.textContent='جاري الحفظ...';
+  const payload={
+    product_id:editingPageSettingsProductId,
+    badge_text:document.getElementById('psBadgeText').value.trim(),
+    hero_subtitle:document.getElementById('psHeroSubtitle').value.trim(),
+    subhero_text:document.getElementById('psSubheroText').value.trim(),
+    sales_count:num('psSalesCount'),
+    countdown_active:document.getElementById('psCountdownActive').value==='true',
+    upsell_text:document.getElementById('psUpsellText').value.trim(),
+    whatsapp:document.getElementById('psWhatsapp').value.trim(),
+    reviews_active:document.getElementById('psReviewsActive').value==='true'
+  };
+  const res=pageSettingsRecordId
+    ? await SB.from('product_settings').update(payload).eq('id',pageSettingsRecordId).select().single()
+    : await SB.from('product_settings').insert([payload]).select().single();
+  btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
+  if(res.error){showToast(supabaseErrorText(res.error),'error');return;}
+  pageSettingsRecordId=res.data?.id||pageSettingsRecordId;
+  showToast('تم حفظ إعدادات الصفحة ✅','success');
+  closePageSettingsModal();
 }
 
 async function deleteProduct(id){

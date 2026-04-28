@@ -532,7 +532,7 @@ body {
 </div>
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">🔥 الأكثر مبيعاً في العراق 2025</div>
+  <div class="hero-badge" id="heroBadge">🔥 الأكثر مبيعاً في العراق 2025</div>
   <h1 id="productTitle">جاري تحميل المنتج...</h1>
   <p class="hero-sub" id="productDesc">يرجى الانتظار قليلاً</p>
   <div class="product-showcase">
@@ -556,7 +556,7 @@ body {
   <div><span class="price-cod">💰 الدفع عند الاستلام فقط</span></div>
 </div>
 <!-- COUNTDOWN -->
-<div class="countdown-wrap">
+<div class="countdown-wrap" id="countdownWrap">
   <div class="countdown-title">⏰ ينتهي العرض خلال:</div>
   <div class="countdown">
     <div class="cd-item"><span class="cd-num" id="cdH">02</span><span class="cd-label">ساعة</span></div>
@@ -643,7 +643,7 @@ body {
       <div class="upsell-cb" id="upsellCb">✓</div>
       <div class="upsell-info">
         <div class="upsell-title">🎁 أضف هدية مجانية مع طلبك</div>
-        <div class="upsell-desc">احصل على هدية مجانية مع طلبك اليوم فقط</div>
+        <div class="upsell-desc" id="upsellText">احصل على هدية مجانية مع طلبك اليوم فقط</div>
       </div>
     </div>
     <!-- ملخص الطلب -->
@@ -668,7 +668,7 @@ body {
   </div>
 </div>
 <!-- REVIEWS -->
-<section class="reviews-section">
+<section class="reviews-section" id="reviewsSection">
   <div class="section-title">💬 آراء زبائننا</div>
   <div class="review-card">
     <div class="review-head">
@@ -736,7 +736,7 @@ body {
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   // STATE
   let SIZE = '', COLOR = '', QTY = 1, SHIP = 0, UPSELL = true;
-  let PRODUCT = null, MERCHANT = null, SETTINGS = null;
+  let PRODUCT = null, MERCHANT = null, SETTINGS = null, PAGE_SETTINGS = null;
   let BASE = 0;
 
   document.addEventListener('DOMContentLoaded', loadProduct);
@@ -775,6 +775,13 @@ body {
       .maybeSingle();
     SETTINGS = settingsData || {};
 
+    const { data: pageSettingsData } = await db
+      .from('product_settings')
+      .select('*')
+      .eq('product_id', PRODUCT.id)
+      .maybeSingle();
+    PAGE_SETTINGS = pageSettingsData || {};
+
     renderProduct();
     recalc();
   }
@@ -782,14 +789,18 @@ body {
   function renderProduct() {
     document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
     document.getElementById('storeLogoText').textContent = (MERCHANT.store_name || 'دكّان').slice(0, 8);
-    document.getElementById('productTitle').innerHTML = esc(PRODUCT.name) + '<br><em>عرض لفترة محدودة!</em>';
-    document.getElementById('productDesc').textContent = PRODUCT.description || 'منتج مميز متوفر الآن للطلب داخل العراق';
+    document.getElementById('heroBadge').textContent = '🔥 ' + (PAGE_SETTINGS.badge_text || 'الأكثر مبيعاً في العراق 2025');
+    document.getElementById('productTitle').innerHTML = esc(PRODUCT.name) + '<br><em>' + esc(PAGE_SETTINGS.hero_subtitle || 'عرض لفترة محدودة!') + '</em>';
+    document.getElementById('productDesc').textContent = PAGE_SETTINGS.subhero_text || PRODUCT.description || 'منتج مميز متوفر الآن للطلب داخل العراق';
     document.getElementById('displayPrice').textContent = BASE.toLocaleString();
     document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
-    document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Math.max(120, (PRODUCT.visits || 0) * 3 + 120).toLocaleString() + ' قطعة';
+    document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
     document.getElementById('mainImg').src = PRODUCT.images[0] || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
     document.getElementById('waBtn').href = whatsappUrl();
+    document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
+    document.getElementById('upsellText').textContent = PAGE_SETTINGS.upsell_text || 'احصل على هدية مجانية مع طلبك اليوم فقط';
+    document.getElementById('reviewsSection').style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
     renderThumbs();
     renderSizes();
     renderColors();
@@ -997,7 +1008,7 @@ body {
     return '#888888';
   }
   function whatsappUrl() {
-    let p = String(SETTINGS.whatsapp || MERCHANT.whatsapp || '').replace(/\D/g,'');
+    let p = String(PAGE_SETTINGS.whatsapp || SETTINGS.whatsapp || MERCHANT.whatsapp || '').replace(/\D/g,'');
     if (p.startsWith('0')) p = '964' + p.slice(1);
     if (p && !p.startsWith('964')) p = '964' + p;
     return p ? 'https://wa.me/' + p : '#';
