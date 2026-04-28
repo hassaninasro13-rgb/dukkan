@@ -457,9 +457,26 @@ async function loadProducts(){
 }
 
 function normalizeArray(value){
-  if(Array.isArray(value))return value;
-  if(typeof value==='string')return parseTags(value);
+  if(Array.isArray(value))return value.map(v=>String(v).trim()).filter(Boolean);
+  if(typeof value==='string'){
+    const trimmed=value.trim();
+    if(!trimmed)return [];
+    try{
+      const parsed=JSON.parse(trimmed);
+      if(Array.isArray(parsed))return parsed.map(v=>String(v).trim()).filter(Boolean);
+    }catch(e){}
+    return parseTags(trimmed.replace(/^\[|\]$/g,'').replace(/"/g,''));
+  }
   return [];
+}
+
+function storagePublicUrl(value){
+  const src=String(value||'').trim();
+  if(!src)return '';
+  if(/^https?:\/\//i.test(src))return src;
+  const path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  const{data}=SB.storage.from('product-images').getPublicUrl(path);
+  return data?.publicUrl||src;
 }
 
 function normalizeNumber(value){
@@ -475,7 +492,7 @@ function normalizeProduct(p){
     description:p.description||'',
     price:normalizeNumber(p.price),
     old_price:normalizeNumber(p.old_price),
-    images:normalizeArray(p.images),
+    images:normalizeArray(p.images).map(storagePublicUrl),
     sizes:normalizeArray(p.sizes),
     colors:normalizeArray(p.colors),
     stock:normalizeNumber(p.stock),
@@ -512,7 +529,7 @@ function openProductModal(id){
   document.getElementById('pDescription').value=p?.description||'';
   document.getElementById('pPrice').value=p?.price||'';
   document.getElementById('pOldPrice').value=p?.old_price||'';
-  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?p.images[0]:'';
+  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?storagePublicUrl(p.images[0]):'';
   document.getElementById('pImageUrl').value=currentProductImageUrl;
   document.getElementById('pImageFile').value='';
   renderProductImagePreview(currentProductImageUrl,currentProductImageUrl?'الصورة الحالية':'');
@@ -557,6 +574,7 @@ async function uploadProductImage(merchantId){
   if(error)throw error;
   const{data}=SB.storage.from('product-images').getPublicUrl(path);
   currentProductImageUrl=data.publicUrl;
+  console.log('[Dukkan] product image public url',{path,publicUrl:currentProductImageUrl});
   document.getElementById('pImageUrl').value=currentProductImageUrl;
   return currentProductImageUrl;
 }
@@ -623,7 +641,7 @@ async function saveProduct(){
     console.log('step 4: tags merged',{productSizes,productColors});
 
     btn.disabled=true;btn.textContent='جاري رفع الصورة...';
-    const img=await uploadProductImage(merchantId);
+    const img=storagePublicUrl(await uploadProductImage(merchantId));
     console.log('step 5: image ready',{img});
     btn.textContent='جاري الحفظ...';
     const payload={

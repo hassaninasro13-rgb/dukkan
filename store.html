@@ -134,7 +134,7 @@ function normalizeProduct(p){
     price:num(p.price),
     old_price:num(p.old_price),
     stock:num(p.stock),
-    images:toArray(p.images),
+    images:toArray(p.images).map(storagePublicUrl),
     sizes:toArray(p.sizes),
     colors:toArray(p.colors)
   };
@@ -181,9 +181,26 @@ function showState(message,type=''){
 }
 
 function toArray(value){
-  if(Array.isArray(value))return value.filter(Boolean);
-  if(typeof value==='string')return value.split(',').map(v=>v.trim()).filter(Boolean);
+  if(Array.isArray(value))return value.map(v=>String(v).trim()).filter(Boolean);
+  if(typeof value==='string'){
+    const trimmed=value.trim();
+    if(!trimmed)return [];
+    try{
+      const parsed=JSON.parse(trimmed);
+      if(Array.isArray(parsed))return parsed.map(v=>String(v).trim()).filter(Boolean);
+    }catch(e){}
+    return trimmed.replace(/^\[|\]$/g,'').replace(/"/g,'').split(',').map(v=>v.trim()).filter(Boolean);
+  }
   return [];
+}
+
+function storagePublicUrl(value){
+  const src=String(value||'').trim();
+  if(!src)return '';
+  if(/^https?:\/\//i.test(src))return src;
+  const path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  const{data}=SB.storage.from('product-images').getPublicUrl(path);
+  return data?.publicUrl||src;
 }
 
 function num(value){
