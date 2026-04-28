@@ -414,6 +414,16 @@ function supabaseErrorText(error){
   return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
+const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp';
+
+async function verifyStoreSettingsSchema(){
+  console.log('[Dukkan] checking store_settings columns',STORE_SETTINGS_COLUMNS.split(','));
+  const res=await SB.from('store_settings').select(STORE_SETTINGS_COLUMNS).limit(1);
+  console.log('[Dukkan] store_settings schema check response',res);
+  if(res.error)throw res.error;
+  return true;
+}
+
 function logout(){
   localStorage.removeItem('dukkan_merchant');
   location.reload();
@@ -824,8 +834,11 @@ async function setOrderStatus(id,status){
 }
 
 async function loadSettings(){
-  const{data,error}=await SB.from('store_settings').select('*').eq('merchant_id',merchant.id).maybeSingle();
-  if(error){showToast('خطأ في تحميل الإعدادات','error');return;}
+  const merchantId=getMerchantId();
+  console.log('[Dukkan] loadSettings start',{table:'store_settings',merchantId});
+  const{data,error}=await SB.from('store_settings').select(STORE_SETTINGS_COLUMNS).eq('merchant_id',merchantId).maybeSingle();
+  console.log('[Dukkan] loadSettings response',{data,error});
+  if(error){console.error('loadSettings Supabase error:',error);showToast(supabaseErrorText(error),'error');return;}
   storeSettings=data;
   document.getElementById('setStoreName').value=merchant.store_name||'';
   document.getElementById('setStoreDesc').value=merchant.store_description||'';
@@ -836,29 +849,53 @@ async function loadSettings(){
 }
 
 async function saveStoreSettings(){
+  console.group('[Dukkan] saveStoreSettings');
   const btn=document.getElementById('saveSettingsBtn');
-  btn.disabled=true;btn.textContent='جاري الحفظ...';
-  const storeName=document.getElementById('setStoreName').value.trim();
-  const desc=document.getElementById('setStoreDesc').value.trim();
-  const whatsapp=document.getElementById('setWhatsapp').value.trim();
-  const settingsPayload={
-    merchant_id:merchant.id,
-    shipping_baghdad:num('setShipBaghdad'),
-    shipping_other:num('setShipOther'),
-    topbar_text:document.getElementById('setTopbarText').value.trim(),
-    whatsapp
-  };
-  const settingsRes=storeSettings
-    ? await SB.from('store_settings').update(settingsPayload).eq('id',storeSettings.id).eq('merchant_id',merchant.id).select().single()
-    : await SB.from('store_settings').insert([settingsPayload]).select().single();
-  const merchantRes=await SB.from('merchants').update({store_name:storeName,store_description:desc,whatsapp}).eq('id',merchant.id).select().single();
-  btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
-  if(settingsRes.error||merchantRes.error){showToast('خطأ في حفظ الإعدادات','error');return;}
-  storeSettings=settingsRes.data;
-  merchant=merchantRes.data;
-  localStorage.setItem('dukkan_merchant',JSON.stringify(merchant));
-  document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
-  showToast('تم حفظ الإعدادات ✅','success');
+  try{
+    btn.disabled=true;btn.textContent='جاري الحفظ...';
+    const merchantId=getMerchantId();
+    console.log('step 1: save settings clicked',{merchant,merchantId,storeSettings});
+    if(!merchantId)throw new Error('لا يوجد merchant_id في جلسة التاجر');
+
+    await verifyStoreSettingsSchema();
+
+    const storeName=document.getElementById('setStoreName').value.trim();
+    const desc=document.getElementById('setStoreDesc').value.trim();
+    const whatsapp=document.getElementById('setWhatsapp').value.trim();
+    const settingsPayload={
+      merchant_id:merchantId,
+      shipping_baghdad:num('setShipBaghdad'),
+      shipping_other:num('setShipOther'),
+      topbar_text:document.getElementById('setTopbarText').value.trim(),
+      whatsapp
+    };
+    console.log('step 2: store_settings payload',settingsPayload);
+
+    const settingsRes=storeSettings
+      ? await SB.from('store_settings').update(settingsPayload).eq('merchant_id',merchantId).select(STORE_SETTINGS_COLUMNS).single()
+      : await SB.from('store_settings').insert([settingsPayload]).select(STORE_SETTINGS_COLUMNS).single();
+    console.log('step 3: store_settings save response',settingsRes);
+    if(settingsRes.error)throw settingsRes.error;
+
+    const merchantPayload={store_name:storeName,store_description:desc,whatsapp};
+    console.log('step 4: merchants payload',merchantPayload);
+    const merchantRes=await SB.from('merchants').update(merchantPayload).eq('id',merchantId).select().single();
+    console.log('step 5: merchants update response',merchantRes);
+    if(merchantRes.error)throw merchantRes.error;
+
+    storeSettings=settingsRes.data;
+    merchant=merchantRes.data;
+    localStorage.setItem('dukkan_merchant',JSON.stringify(merchant));
+    document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
+    showToast('تم حفظ الإعدادات ✅','success');
+  }catch(error){
+    console.error('saveStoreSettings failed:',error);
+    showToast(supabaseErrorText(error),'error');
+  }finally{
+    btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
+    console.log('step 6: save settings finished');
+    console.groupEnd();
+  }
 }
 
 function updateStats(){
