@@ -2,7 +2,7 @@
   "name": "دكّان",
   "short_name": "دكّان",
   "description": "منصة التجارة الإلكترونية العراقية",
-  "start_url": "./merchant-dashboard.html",
+  "start_url": "/merchant-dashboard",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#f5a623",

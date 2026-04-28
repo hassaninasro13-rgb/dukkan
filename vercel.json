@@ -1,28 +1,15 @@
 {
   "version": 2,
   "routes": [
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/sw.js", "dest": "/sw.js" },
+    { "src": "/icon-192.png", "dest": "/icon-192.png" },
+    { "src": "/icon-512.png", "dest": "/icon-512.png" },
     { "src": "/", "dest": "/index.html" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/register", "dest": "/register.html" },
     { "src": "/store", "dest": "/store.html" },
     { "src": "/product", "dest": "/product.html" },
-    { "src": "/merchant-dashboard", "dest": "/merchant-dashboard.html" },
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/sw.js", "dest": "/sw.js" },
-    { "src": "/icon-192.png", "dest": "/icon-192.png" },
-    { "src": "/icon-512.png", "dest": "/icon-512.png" }
-  ],
-  "rewrites": [
-    { "source": "/manifest.json", "destination": "/manifest.json" },
-    { "source": "/sw.js", "destination": "/sw.js" }
-  ],
-  "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Service-Worker-Allowed", "value": "/" },
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    }
+    { "src": "/merchant-dashboard", "dest": "/merchant-dashboard.html" }
   ]
 }
