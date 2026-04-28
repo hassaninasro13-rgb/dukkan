@@ -976,9 +976,11 @@ async function saveStoreSettings(){
     };
     console.log('step 2: store_settings payload',settingsPayload);
 
-    const settingsRes=storeSettings
-      ? await SB.from('store_settings').update(settingsPayload).eq('merchant_id',merchantId).select(STORE_SETTINGS_COLUMNS).single()
-      : await SB.from('store_settings').insert([settingsPayload]).select(STORE_SETTINGS_COLUMNS).single();
+    const settingsRes=await SB
+      .from('store_settings')
+      .upsert(settingsPayload,{onConflict:'merchant_id'})
+      .select(STORE_SETTINGS_COLUMNS)
+      .single();
     console.log('step 3: store_settings save response',settingsRes);
     if(settingsRes.error)throw settingsRes.error;
 
