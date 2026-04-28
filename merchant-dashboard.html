@@ -94,6 +94,8 @@ button{cursor:pointer}
 .form-textarea{min-height:90px;resize:vertical}
 .form-input:focus,.form-textarea:focus{border-color:var(--gold)}
 .image-upload{background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;display:grid;gap:12px}
+.file-input-hidden{display:none}
+.upload-btn{width:max-content;max-width:100%}
 .image-preview{display:none;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px}
 .image-preview.show{display:flex}
 .image-preview img{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--border);background:var(--bg)}
@@ -257,7 +259,8 @@ button{cursor:pointer}
           <label class="form-label">صورة المنتج</label>
           <div class="image-upload">
             <input type="hidden" id="pImageUrl">
-            <input class="form-input" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
+            <input class="file-input-hidden" id="pImageFile" type="file" accept="image/*" onchange="handleProductImageChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="triggerProductImagePicker()">📤 رفع صورة من الجهاز</button>
             <div class="image-preview" id="pImagePreview">
               <img id="pImagePreviewImg" src="" alt="معاينة صورة المنتج">
               <span id="pImagePreviewText">تم اختيار الصورة</span>
@@ -411,6 +414,16 @@ function supabaseErrorText(error){
   return [error.message,error.details,error.hint,error.code].filter(Boolean).join(' | ');
 }
 
+const STORE_SETTINGS_COLUMNS='id,merchant_id,shipping_baghdad,shipping_other,topbar_text,whatsapp';
+
+async function verifyStoreSettingsSchema(){
+  console.log('[Dukkan] checking store_settings columns',STORE_SETTINGS_COLUMNS.split(','));
+  const res=await SB.from('store_settings').select(STORE_SETTINGS_COLUMNS).limit(1);
+  console.log('[Dukkan] store_settings schema check response',res);
+  if(res.error)throw res.error;
+  return true;
+}
+
 function logout(){
   localStorage.removeItem('dukkan_merchant');
   location.reload();
@@ -444,9 +457,26 @@ async function loadProducts(){
 }
 
 function normalizeArray(value){
-  if(Array.isArray(value))return value;
-  if(typeof value==='string')return parseTags(value);
+  if(Array.isArray(value))return value.map(v=>String(v).trim()).filter(Boolean);
+  if(typeof value==='string'){
+    const trimmed=value.trim();
+    if(!trimmed)return [];
+    try{
+      const parsed=JSON.parse(trimmed);
+      if(Array.isArray(parsed))return parsed.map(v=>String(v).trim()).filter(Boolean);
+    }catch(e){}
+    return parseTags(trimmed.replace(/^\[|\]$/g,'').replace(/"/g,''));
+  }
   return [];
+}
+
+function storagePublicUrl(value){
+  const src=String(value||'').trim();
+  if(!src)return '';
+  if(/^https?:\/\//i.test(src))return src;
+  const path=src.replace(/^\/+/,'').replace(/^product-images\//,'');
+  const{data}=SB.storage.from('product-images').getPublicUrl(path);
+  return data?.publicUrl||src;
 }
 
 function normalizeNumber(value){
@@ -462,7 +492,7 @@ function normalizeProduct(p){
     description:p.description||'',
     price:normalizeNumber(p.price),
     old_price:normalizeNumber(p.old_price),
-    images:normalizeArray(p.images),
+    images:normalizeArray(p.images).map(storagePublicUrl),
     sizes:normalizeArray(p.sizes),
     colors:normalizeArray(p.colors),
     stock:normalizeNumber(p.stock),
@@ -499,7 +529,7 @@ function openProductModal(id){
   document.getElementById('pDescription').value=p?.description||'';
   document.getElementById('pPrice').value=p?.price||'';
   document.getElementById('pOldPrice').value=p?.old_price||'';
-  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?p.images[0]:'';
+  currentProductImageUrl=Array.isArray(p?.images)&&p.images.length?storagePublicUrl(p.images[0]):'';
   document.getElementById('pImageUrl').value=currentProductImageUrl;
   document.getElementById('pImageFile').value='';
   renderProductImagePreview(currentProductImageUrl,currentProductImageUrl?'الصورة الحالية':'');
@@ -512,6 +542,10 @@ function openProductModal(id){
 }
 
 function closeProductModal(){document.getElementById('productModal').classList.remove('open');}
+
+function triggerProductImagePicker(){
+  document.getElementById('pImageFile').click();
+}
 
 function handleProductImageChange(event){
   const file=event.target.files?.[0];
@@ -540,6 +574,7 @@ async function uploadProductImage(merchantId){
   if(error)throw error;
   const{data}=SB.storage.from('product-images').getPublicUrl(path);
   currentProductImageUrl=data.publicUrl;
+  console.log('[Dukkan] product image public url',{path,publicUrl:currentProductImageUrl});
   document.getElementById('pImageUrl').value=currentProductImageUrl;
   return currentProductImageUrl;
 }
@@ -606,7 +641,7 @@ async function saveProduct(){
     console.log('step 4: tags merged',{productSizes,productColors});
 
     btn.disabled=true;btn.textContent='جاري رفع الصورة...';
-    const img=await uploadProductImage(merchantId);
+    const img=storagePublicUrl(await uploadProductImage(merchantId));
     console.log('step 5: image ready',{img});
     btn.textContent='جاري الحفظ...';
     const payload={
@@ -817,8 +852,11 @@ async function setOrderStatus(id,status){
 }
 
 async function loadSettings(){
-  const{data,error}=await SB.from('store_settings').select('*').eq('merchant_id',merchant.id).maybeSingle();
-  if(error){showToast('خطأ في تحميل الإعدادات','error');return;}
+  const merchantId=getMerchantId();
+  console.log('[Dukkan] loadSettings start',{table:'store_settings',merchantId});
+  const{data,error}=await SB.from('store_settings').select(STORE_SETTINGS_COLUMNS).eq('merchant_id',merchantId).maybeSingle();
+  console.log('[Dukkan] loadSettings response',{data,error});
+  if(error){console.error('loadSettings Supabase error:',error);showToast(supabaseErrorText(error),'error');return;}
   storeSettings=data;
   document.getElementById('setStoreName').value=merchant.store_name||'';
   document.getElementById('setStoreDesc').value=merchant.store_description||'';
@@ -829,29 +867,53 @@ async function loadSettings(){
 }
 
 async function saveStoreSettings(){
+  console.group('[Dukkan] saveStoreSettings');
   const btn=document.getElementById('saveSettingsBtn');
-  btn.disabled=true;btn.textContent='جاري الحفظ...';
-  const storeName=document.getElementById('setStoreName').value.trim();
-  const desc=document.getElementById('setStoreDesc').value.trim();
-  const whatsapp=document.getElementById('setWhatsapp').value.trim();
-  const settingsPayload={
-    merchant_id:merchant.id,
-    shipping_baghdad:num('setShipBaghdad'),
-    shipping_other:num('setShipOther'),
-    topbar_text:document.getElementById('setTopbarText').value.trim(),
-    whatsapp
-  };
-  const settingsRes=storeSettings
-    ? await SB.from('store_settings').update(settingsPayload).eq('id',storeSettings.id).eq('merchant_id',merchant.id).select().single()
-    : await SB.from('store_settings').insert([settingsPayload]).select().single();
-  const merchantRes=await SB.from('merchants').update({store_name:storeName,store_description:desc,whatsapp}).eq('id',merchant.id).select().single();
-  btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
-  if(settingsRes.error||merchantRes.error){showToast('خطأ في حفظ الإعدادات','error');return;}
-  storeSettings=settingsRes.data;
-  merchant=merchantRes.data;
-  localStorage.setItem('dukkan_merchant',JSON.stringify(merchant));
-  document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
-  showToast('تم حفظ الإعدادات ✅','success');
+  try{
+    btn.disabled=true;btn.textContent='جاري الحفظ...';
+    const merchantId=getMerchantId();
+    console.log('step 1: save settings clicked',{merchant,merchantId,storeSettings});
+    if(!merchantId)throw new Error('لا يوجد merchant_id في جلسة التاجر');
+
+    await verifyStoreSettingsSchema();
+
+    const storeName=document.getElementById('setStoreName').value.trim();
+    const desc=document.getElementById('setStoreDesc').value.trim();
+    const whatsapp=document.getElementById('setWhatsapp').value.trim();
+    const settingsPayload={
+      merchant_id:merchantId,
+      shipping_baghdad:num('setShipBaghdad'),
+      shipping_other:num('setShipOther'),
+      topbar_text:document.getElementById('setTopbarText').value.trim(),
+      whatsapp
+    };
+    console.log('step 2: store_settings payload',settingsPayload);
+
+    const settingsRes=storeSettings
+      ? await SB.from('store_settings').update(settingsPayload).eq('merchant_id',merchantId).select(STORE_SETTINGS_COLUMNS).single()
+      : await SB.from('store_settings').insert([settingsPayload]).select(STORE_SETTINGS_COLUMNS).single();
+    console.log('step 3: store_settings save response',settingsRes);
+    if(settingsRes.error)throw settingsRes.error;
+
+    const merchantPayload={store_name:storeName,store_description:desc,whatsapp};
+    console.log('step 4: merchants payload',merchantPayload);
+    const merchantRes=await SB.from('merchants').update(merchantPayload).eq('id',merchantId).select().single();
+    console.log('step 5: merchants update response',merchantRes);
+    if(merchantRes.error)throw merchantRes.error;
+
+    storeSettings=settingsRes.data;
+    merchant=merchantRes.data;
+    localStorage.setItem('dukkan_merchant',JSON.stringify(merchant));
+    document.getElementById('sideStore').textContent=merchant.store_name||'متجري';
+    showToast('تم حفظ الإعدادات ✅','success');
+  }catch(error){
+    console.error('saveStoreSettings failed:',error);
+    showToast(supabaseErrorText(error),'error');
+  }finally{
+    btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
+    console.log('step 6: save settings finished');
+    console.groupEnd();
+  }
 }
 
 function updateStats(){
