@@ -8,6 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
+html,body{max-width:100%;overflow-x:hidden}
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 button,input,textarea,select{font-family:'Cairo',sans-serif}
 button{cursor:pointer}
@@ -44,7 +45,7 @@ button{cursor:pointer}
 .live-badge{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.3);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px}
 .live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.btn{border:1px solid transparent;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;transition:all .2s}
+.btn{border:1px solid transparent;border-radius:9px;padding:9px 15px;min-height:44px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;transition:all .2s}
 .btn:hover{opacity:.86;transform:translateY(-1px)}
 .btn-gold{background:var(--gold);color:#000}
 .btn-card{background:var(--card2);border-color:var(--border);color:var(--text)}
@@ -62,7 +63,7 @@ button{cursor:pointer}
 .section-body{padding:20px}
 .count-pill{background:var(--card2);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:12px}
 .filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.filter-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;transition:all .2s}
+.filter-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;min-height:44px;border-radius:20px;font-size:12px;font-weight:600;transition:all .2s}
 .filter-btn.active{background:rgba(240,165,0,.12);border-color:var(--gold);color:var(--gold)}
 .grid-list{display:grid;gap:12px}
 .product-card,.order-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;transition:background .15s}
@@ -127,10 +128,43 @@ button{cursor:pointer}
 .tracking-id{font-size:12px;color:var(--text);direction:ltr;text-align:left;word-break:break-all}
 .tracking-label{font-size:11px;color:var(--muted);margin-top:2px}
 .tracking-form{display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px}
-.mobile-bar{display:none;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:50;padding:12px;gap:8px;overflow:auto}
-.mobile-bar .nav-item{white-space:nowrap;margin:0;padding:8px 12px}
-@media(max-width:820px){.layout{display:block!important}.sidebar{display:none}.main{margin-right:0;padding:16px}.mobile-bar{display:flex}.form-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.product-main{width:100%}}
-@media(max-width:480px){.stats-grid{grid-template-columns:1fr}.actions,.top-actions{width:100%}.btn{flex:1}.modal-body{padding:16px}}
+.mobile-bar{display:none;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:50;padding:10px 12px;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mobile-bar::-webkit-scrollbar{display:none}
+.mobile-bar .nav-item{white-space:nowrap;margin:0;padding:10px 14px;min-height:44px;flex:0 0 auto}
+@media(max-width:820px){
+  body{font-size:14px}
+  .layout{display:block!important;min-height:100vh}
+  .sidebar{display:none}
+  .main{margin-right:0;padding:14px;width:100%;max-width:100%;overflow:hidden}
+  .mobile-bar{display:flex}
+  .page-title{font-size:21px}
+  .topbar{align-items:flex-start;margin-bottom:16px}
+  .top-actions,.filters{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .top-actions .btn,.filters .filter-btn,.filters .btn{flex:0 0 auto;white-space:nowrap}
+  .form-grid,.stats-grid,.order-info{grid-template-columns:1fr}
+  .section{border-radius:14px;margin-bottom:16px}
+  .section-head,.section-body{padding:14px}
+  .product-card,.order-card,.stat-card{width:100%;padding:14px}
+  .product-top,.order-top{display:grid;grid-template-columns:1fr;gap:10px}
+  .product-main{width:100%;display:grid;grid-template-columns:76px minmax(0,1fr)}
+  .product-main>div{min-width:0}
+  .product-desc{max-width:100%;overflow-wrap:anywhere}
+  .meta-row,.actions{width:100%;gap:8px}
+  .actions .btn{flex:1 1 calc(50% - 8px);min-width:130px}
+  .modal-bg{align-items:flex-start;padding:10px}
+  .modal-box{width:100%;max-height:calc(100vh - 20px);border-radius:16px}
+}
+@media(max-width:480px){
+  .main{padding:12px}
+  .stats-grid{grid-template-columns:1fr}
+  .actions,.top-actions{width:100%}
+  .btn,.filter-btn{font-size:13px;min-height:44px}
+  .actions .btn{flex-basis:100%;width:100%}
+  .product-main{grid-template-columns:64px minmax(0,1fr)}
+  .product-img{width:64px;height:64px}
+  .modal-body{padding:16px}
+  .toast{max-width:calc(100vw - 24px);white-space:normal;text-align:center}
+}
 </style>
 </head>
 <body>
@@ -428,7 +462,23 @@ function startApp(){
 }
 
 function getMerchantId(){
-  return merchant?.id||merchant?.merchant_id||null;
+  const session=readMerchantSession();
+  return session?.id||session?.merchant_id||session?.merchantId||null;
+}
+
+function readMerchantSession(){
+  if(merchant)return merchant;
+  try{
+    const saved=JSON.parse(localStorage.getItem('dukkan_merchant')||'null');
+    if(saved&&typeof saved==='object'){
+      merchant=saved;
+      if(!merchant.id&&(merchant.merchant_id||merchant.merchantId))merchant.id=merchant.merchant_id||merchant.merchantId;
+      return merchant;
+    }
+  }catch(e){
+    console.warn('[Dukkan] invalid dukkan_merchant localStorage value',e);
+  }
+  return null;
 }
 
 function isUuid(value){
@@ -475,10 +525,10 @@ async function refreshAll(){
 
 async function loadProducts(){
   const merchantId=getMerchantId();
-  console.log('[Dukkan] loadProducts start',{table:'merchant_products',merchantId});
+  console.log('[Dukkan] loadProducts start',{table:'merchant_products',merchantId,merchant,localStorageMerchant:localStorage.getItem('dukkan_merchant')});
   if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');return;}
   const{data,error}=await SB.from('merchant_products')
-    .select('id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits')
+    .select('*')
     .eq('merchant_id',merchantId)
     .order('id',{ascending:false});
   console.log('[Dukkan] loadProducts response',{data,error});
@@ -726,7 +776,8 @@ async function saveProduct(){
 }
 
 async function toggleProduct(id,isActive){
-  const{error}=await SB.from('merchant_products').update({is_active:isActive}).eq('id',id).eq('merchant_id',merchant.id);
+  const merchantId=getMerchantId();
+  const{error}=await SB.from('merchant_products').update({is_active:isActive}).eq('id',id).eq('merchant_id',merchantId);
   if(error){showToast('تعذر تحديث حالة المنتج','error');return;}
   const p=products.find(x=>String(x.id)===String(id));if(p)p.is_active=isActive;
   renderProducts();updateStats();showToast('تم تحديث المنتج ✅','success');
@@ -840,7 +891,8 @@ async function savePageSettings(){
 
 async function deleteProduct(id){
   if(!confirm('حذف المنتج؟'))return;
-  const{error}=await SB.from('merchant_products').delete().eq('id',id).eq('merchant_id',merchant.id);
+  const merchantId=getMerchantId();
+  const{error}=await SB.from('merchant_products').delete().eq('id',id).eq('merchant_id',merchantId);
   if(error){showToast('تعذر حذف المنتج','error');return;}
   products=products.filter(p=>String(p.id)!==String(id));
   renderProducts();updateStats();showToast('تم حذف المنتج','success');
