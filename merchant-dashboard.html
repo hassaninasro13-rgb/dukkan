@@ -573,14 +573,15 @@ async function uploadProductImages(merchantId){
   if(files.length>5)throw new Error('يمكنك رفع 5 صور كحد أقصى');
   const urls=[];
   for(const file of files){
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const path=merchantId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
-  console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
-  const{error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
-  if(error)throw error;
-  const{data}=SB.storage.from('product-images').getPublicUrl(path);
-  urls.push(data.publicUrl);
-  console.log('[Dukkan] product image public url',{path,publicUrl:data.publicUrl});
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-');
+    const path=merchantId+'/'+Date.now()+'-'+safeName.replace(/\.[^.]+$/,'')+'.'+ext;
+    console.log('[Dukkan] uploading product image',{bucket:'product-images',path,type:file.type,size:file.size});
+    const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+    if(error)throw error;
+    const publicUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
+    urls.push(publicUrl);
+    console.log('[Dukkan] product image public url',{path:data.path,publicUrl});
   }
   currentProductImageUrls=urls;
   document.getElementById('pImageUrl').value=JSON.stringify(currentProductImageUrls);

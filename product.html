@@ -797,7 +797,8 @@ body {
     document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
-    document.getElementById('mainImg').src = PRODUCT.images[0] || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
+    const mainImage = PRODUCT.images[0] || '';
+    document.getElementById('mainImg').src = mainImage || 'https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan';
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
@@ -1036,16 +1037,26 @@ body {
   }, 1000);
 
   function normalizeProduct(p) {
+    const imgs = parseProductImages(p);
     return {
       ...p,
       price: Number(p.price || 0),
       old_price: Number(p.old_price || 0),
       stock: Number(p.stock || 0),
       visits: Number(p.visits || 0),
-      images: toArray(p.images).map(url => storagePublicUrl(url, p.merchant_id)),
+      images: imgs.map(url => storagePublicUrl(url, p.merchant_id)),
       sizes: toArray(p.sizes),
       colors: toArray(p.colors)
     };
+  }
+  function parseProductImages(product) {
+    let imgs = [];
+    try {
+      imgs = JSON.parse(product.images || '[]');
+    } catch (e) {
+      imgs = product.images ? [product.images] : [];
+    }
+    return Array.isArray(imgs) ? imgs.map(x => String(x).trim()).filter(Boolean) : [];
   }
   function toArray(v) {
     if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
