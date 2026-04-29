@@ -177,6 +177,18 @@ button{cursor:pointer}
 .tracking-form{display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px}
 .radio-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
 .radio-option{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;cursor:pointer}
+.layout-mode-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+.layout-mode-card{
+  display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid var(--border);border-radius:14px;background:var(--bg);
+  cursor:pointer;font:inherit;color:inherit;text-align:center;transition:border-color .2s,box-shadow .2s;
+}
+.layout-mode-card.selected{border-color:#f5a623;box-shadow:0 0 0 2px rgba(245,166,35,.25)}
+.layout-mode-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.layout-card-title{font-size:13px;font-weight:900;line-height:1.3}
+.layout-card-thumb{width:100%;max-width:132px;border-radius:10px;overflow:hidden;background:linear-gradient(145deg,#16213e,#1a1a2e);padding:8px}
+.layout-card-thumb svg{display:block;width:100%;height:auto}
+.layout-card-desc{font-size:11px;color:var(--muted);font-weight:700}
+.image-preview.banner-preview img{width:100%;max-width:160px;height:96px;object-fit:contain}
 .bottom-nav{display:none}
 .bottom-nav-item{background:transparent;border:none;color:var(--muted);min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:800;border-radius:14px}
 .bottom-nav-item .nav-icon{font-size:21px;line-height:1}
@@ -217,6 +229,7 @@ button{cursor:pointer}
   .product-main{grid-template-columns:64px minmax(0,1fr)}
   .product-img{width:64px;height:64px}
   .modal-body{padding:16px}
+  .layout-mode-cards{grid-template-columns:1fr}
   .toast{max-width:calc(100vw - 24px);white-space:normal;text-align:center}
 }
 </style>
@@ -452,7 +465,27 @@ button{cursor:pointer}
         <div class="form-group"><label class="form-label">السعر</label><input class="form-input" id="pPrice" type="number"></div>
         <div class="form-group"><label class="form-label">السعر القديم</label><input class="form-input" id="pOldPrice" type="number"></div>
         <div class="form-group full">
-          <label class="form-label">صورة المنتج</label>
+          <label class="form-label">تصميم صفحة المنتج</label>
+          <div class="layout-mode-cards" role="radiogroup" aria-label="نوع التصميم">
+            <button type="button" class="layout-mode-card selected" data-layout="gallery" onclick="selectProductLayoutMode('gallery')" aria-pressed="true">
+              <div class="layout-card-title">📸 معرض الصور</div>
+              <div class="layout-card-thumb" aria-hidden="true">
+                <svg viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect fill="#0f3460" x="6" y="14" width="32" height="48" rx="4"/><rect fill="#2980b9" x="44" y="10" width="32" height="52" rx="4"/><rect fill="#f5a623" x="82" y="18" width="32" height="44" rx="4"/></svg>
+              </div>
+              <div class="layout-card-desc">صور متعددة</div>
+            </button>
+            <button type="button" class="layout-mode-card" data-layout="banner" onclick="selectProductLayoutMode('banner')" aria-pressed="false">
+              <div class="layout-card-title">🖼️ صورة طويلة</div>
+              <div class="layout-card-thumb" aria-hidden="true">
+                <svg viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect fill="#1a1a2e" x="38" y="4" width="44" height="64" rx="5"/><rect fill="#e74c3c" x="46" y="16" width="28" height="6" rx="2"/><rect fill="#27ae60" x="46" y="28" width="28" height="4" rx="1"/><rect fill="#f5a623" x="46" y="38" width="20" height="4" rx="1"/></svg>
+              </div>
+              <div class="layout-card-desc">إنفوجرافيك</div>
+            </button>
+          </div>
+          <input type="hidden" id="pLayoutMode" value="gallery">
+        </div>
+        <div class="form-group full" id="pGalleryImagesWrap">
+          <label class="form-label">صور المنتج (معرض)</label>
           <div class="image-upload">
             <input type="hidden" id="pImageUrl">
             <input class="file-input-hidden" id="pImageFile" type="file" accept="image/*" multiple onchange="handleProductImageChange(event)">
@@ -460,6 +493,18 @@ button{cursor:pointer}
             <div class="image-preview" id="pImagePreview">
               <img id="pImagePreviewImg" src="" alt="معاينة صورة المنتج">
               <span id="pImagePreviewText">تم اختيار الصور</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group full" id="pBannerFieldWrap" style="display:none">
+          <label class="form-label">صورة طويلة (إنفوجرافيك)</label>
+          <div class="image-upload">
+            <input type="hidden" id="pBannerImageHidden">
+            <input class="file-input-hidden" id="pBannerFile" type="file" accept="image/*" onchange="handleProductBannerFileChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="document.getElementById('pBannerFile').click()">📤 رفع صورة طويلة واحدة</button>
+            <div class="image-preview banner-preview" id="pProductBannerPreview">
+              <img id="pProductBannerPreviewImg" src="" alt="معاينة البانر">
+              <span id="pProductBannerPreviewText"></span>
             </div>
           </div>
         </div>
@@ -493,25 +538,6 @@ button{cursor:pointer}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full"><label class="form-label">نص الشريط الأحمر العلوي</label><input class="form-input" id="psTopbarText" placeholder="شحن مجاني - الدفع عند الاستلام"></div>
-        <div class="form-group full">
-          <label class="form-label">نوع تصميم الصفحة</label>
-          <div class="radio-row">
-            <label class="radio-option"><input type="radio" name="layoutMode" value="gallery" onchange="toggleBannerImageField()"> 📸 صور متعددة (gallery)</label>
-            <label class="radio-option"><input type="radio" name="layoutMode" value="banner" onchange="toggleBannerImageField()"> 🖼️ صورة طويلة واحدة</label>
-          </div>
-        </div>
-        <div class="form-group full" id="bannerImageField" style="display:none">
-          <label class="form-label">صورة البانر الطويلة</label>
-          <div class="image-upload">
-            <input type="hidden" id="psBannerImage">
-            <input class="file-input-hidden" id="psBannerFile" type="file" accept="image/*" onchange="handleBannerImageChange(event)">
-            <button type="button" class="btn btn-gold upload-btn" onclick="triggerBannerImagePicker()">📤 رفع صورة طويلة واحدة</button>
-            <div class="image-preview" id="psBannerPreview">
-              <img id="psBannerPreviewImg" src="" alt="معاينة صورة البانر">
-              <span id="psBannerPreviewText">تم اختيار صورة البانر</span>
-            </div>
-          </div>
-        </div>
         <div class="form-group"><label class="form-label">لون الشريط</label><select class="form-input" id="psTopbarColor"><option value="red">أحمر</option><option value="green">أخضر</option><option value="blue">أزرق</option><option value="black">أسود</option></select></div>
         <div class="form-group"><label class="form-label">نص الـ badge</label><input class="form-input" id="psBadgeText" placeholder="الأكثر مبيعاً في العراق 2025"></div>
         <div class="form-group"><label class="form-label">العنوان الرئيسي (السطر الأول)</label><input class="form-input" id="psHeroTitle" placeholder="اسم المنتج أو عنوان مخصص"></div>
@@ -559,7 +585,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],currentBannerImageUrl='';
+let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],productModalBannerUrl='';
 let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -765,7 +791,7 @@ function renderProducts(){
   }).join('');
 }
 
-function openProductModal(id){
+async function openProductModal(id){
   editingProductId=id||null;
   const p=id?products.find(x=>String(x.id)===String(id)):null;
   document.getElementById('productModalTitle').textContent=p?'تعديل منتج':'إضافة منتج';
@@ -782,7 +808,84 @@ function openProductModal(id){
   productSizes=Array.isArray(p?.sizes)?[...p.sizes]:[];
   productColors=Array.isArray(p?.colors)?[...p.colors]:[];
   renderProductTags();
+
+  let layout='gallery',bannerUrl='';
+  if(id){
+    const{data:ps}=await SB.from('product_settings').select('layout_mode,banner_image').eq('product_id',id).maybeSingle();
+    if(ps){
+      layout=ps.layout_mode==='banner'?'banner':'gallery';
+      bannerUrl=ps.banner_image||'';
+    }
+  }
+  selectProductLayoutMode(layout);
+  productModalBannerUrl=bannerUrl;
+  document.getElementById('pBannerImageHidden').value=bannerUrl;
+  document.getElementById('pBannerFile').value='';
+  renderProductBannerPreview(bannerUrl,bannerUrl?'الصورة الحالية':'');
+
   document.getElementById('productModal').classList.add('open');
+}
+
+function selectProductLayoutMode(mode){
+  const m=mode==='banner'?'banner':'gallery';
+  const hidden=document.getElementById('pLayoutMode');
+  if(hidden)hidden.value=m;
+  document.querySelectorAll('.layout-mode-card').forEach(btn=>{
+    const on=btn.dataset.layout===m;
+    btn.classList.toggle('selected',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+  });
+  const gal=document.getElementById('pGalleryImagesWrap');
+  const ban=document.getElementById('pBannerFieldWrap');
+  if(gal)gal.style.display=m==='gallery'?'block':'none';
+  if(ban)ban.style.display=m==='banner'?'block':'none';
+}
+
+function getProductModalLayoutMode(){
+  return document.getElementById('pLayoutMode')?.value==='banner'?'banner':'gallery';
+}
+
+function handleProductBannerFileChange(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
+  renderProductBannerPreview(URL.createObjectURL(file),file.name);
+}
+
+function renderProductBannerPreview(src,text){
+  const wrap=document.getElementById('pProductBannerPreview');
+  const img=document.getElementById('pProductBannerPreviewImg');
+  const label=document.getElementById('pProductBannerPreviewText');
+  if(!wrap||!img)return;
+  if(!src){wrap.classList.remove('show');img.src='';if(label)label.textContent='';return;}
+  img.src=src;
+  if(label)label.textContent=text||'تم اختيار صورة البانر';
+  wrap.classList.add('show');
+}
+
+async function uploadProductModalBannerImage(merchantId){
+  const file=document.getElementById('pBannerFile').files?.[0];
+  if(!file)return productModalBannerUrl||'';
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'');
+  const path=merchantId+'/banners/'+Date.now()+'-'+safeName+'.'+ext;
+  const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+  if(error)throw error;
+  productModalBannerUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
+  document.getElementById('pBannerImageHidden').value=productModalBannerUrl;
+  return productModalBannerUrl;
+}
+
+async function persistProductLayoutSettings(productId,layoutMode,bannerImage){
+  const patch={layout_mode:layoutMode,banner_image:layoutMode==='banner'?bannerImage:null};
+  const{data:row}=await SB.from('product_settings').select('id').eq('product_id',productId).maybeSingle();
+  if(row?.id){
+    const{error}=await SB.from('product_settings').update(patch).eq('product_id',productId);
+    if(error)throw error;
+  }else{
+    const{error}=await SB.from('product_settings').insert({product_id:productId,...patch});
+    if(error)throw error;
+  }
 }
 
 function closeProductModal(){document.getElementById('productModal').classList.remove('open');}
@@ -889,6 +992,15 @@ async function saveProduct(){
     if(!price||price<=0){showToast('أدخل سعر المنتج','error');return;}
     if(stock<0){showToast('المخزون لا يمكن أن يكون سالباً','error');return;}
 
+    const layoutMode=getProductModalLayoutMode();
+    if(layoutMode==='banner'){
+      const hasBannerFile=document.getElementById('pBannerFile').files?.[0];
+      if(!hasBannerFile && !productModalBannerUrl){
+        showToast('ارفع صورة البانر لوضع الصورة الطويلة','error');
+        return;
+      }
+    }
+
     mergePendingProductTags();
     console.log('step 4: tags merged',{productSizes,productColors});
 
@@ -922,6 +1034,25 @@ async function saveProduct(){
       showToast(message,'error');
       return;
     }
+    const productId=res.data.id;
+    try{
+      let bannerFinal=productModalBannerUrl;
+      if(layoutMode==='banner'){
+        btn.textContent='جاري رفع البانر...';
+        bannerFinal=await uploadProductModalBannerImage(merchantId);
+        if(!bannerFinal){
+          showToast('تعذر حفظ صورة البانر','error');
+          await loadProducts();
+          return;
+        }
+      }
+      await persistProductLayoutSettings(productId,layoutMode,layoutMode==='banner'?bannerFinal:null);
+    }catch(layoutErr){
+      console.error('saveProduct layout settings failed:',layoutErr);
+      showToast(supabaseErrorText(layoutErr)||layoutErr?.message||'تم حفظ المنتج لكن فشل حفظ تصميم الصفحة','error');
+      await loadProducts();
+      return;
+    }
     console.log('step 9: save succeeded',res.data);
     closeProductModal();
     showToast('تم حفظ المنتج ✅','success');
@@ -947,12 +1078,7 @@ async function toggleProduct(id,isActive){
 async function openPageSettingsModal(productId){
   editingPageSettingsProductId=productId;
   pageSettingsRecordId=null;
-  currentBannerImageUrl='';
   const product=products.find(p=>String(p.id)===String(productId));
-  setLayoutMode('gallery');
-  document.getElementById('psBannerImage').value='';
-  document.getElementById('psBannerFile').value='';
-  renderBannerImagePreview('');
   document.getElementById('psTopbarText').value='شحن مجاني - الدفع عند الاستلام';
   document.getElementById('psTopbarColor').value='red';
   document.getElementById('psBadgeText').value='الأكثر مبيعاً في العراق 2025';
@@ -979,10 +1105,6 @@ async function openPageSettingsModal(productId){
   if(error){showToast(supabaseErrorText(error),'error');return;}
   if(!data)return;
   pageSettingsRecordId=data.id;
-  setLayoutMode(data.layout_mode||'gallery');
-  currentBannerImageUrl=data.banner_image||'';
-  document.getElementById('psBannerImage').value=currentBannerImageUrl;
-  renderBannerImagePreview(currentBannerImageUrl,currentBannerImageUrl?'الصورة الحالية':'');
   document.getElementById('psTopbarText').value=data.topbar_text||'شحن مجاني - الدفع عند الاستلام';
   document.getElementById('psTopbarColor').value=data.topbar_color||'red';
   document.getElementById('psBadgeText').value=data.badge_text||'الأكثر مبيعاً في العراق 2025';
@@ -1005,56 +1127,6 @@ async function openPageSettingsModal(productId){
   setReviewFields(3,data.review3_name||'نور الهاشمي',data.review3_city||'أربيل',data.review3_text||'طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.');
 }
 
-function setLayoutMode(mode){
-  const selected=mode==='banner'?'banner':'gallery';
-  document.querySelectorAll('input[name="layoutMode"]').forEach(input=>{input.checked=input.value===selected;});
-  toggleBannerImageField();
-}
-
-function getLayoutMode(){
-  return document.querySelector('input[name="layoutMode"]:checked')?.value||'gallery';
-}
-
-function toggleBannerImageField(){
-  const field=document.getElementById('bannerImageField');
-  if(field)field.style.display=getLayoutMode()==='banner'?'block':'none';
-}
-
-function triggerBannerImagePicker(){
-  document.getElementById('psBannerFile').click();
-}
-
-function handleBannerImageChange(event){
-  const file=event.target.files?.[0];
-  if(!file)return;
-  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
-  renderBannerImagePreview(URL.createObjectURL(file),file.name);
-}
-
-function renderBannerImagePreview(src,text){
-  const wrap=document.getElementById('psBannerPreview');
-  const img=document.getElementById('psBannerPreviewImg');
-  const label=document.getElementById('psBannerPreviewText');
-  if(!src){wrap.classList.remove('show');img.src='';label.textContent='';return;}
-  img.src=src;
-  label.textContent=text||'تم اختيار صورة البانر';
-  wrap.classList.add('show');
-}
-
-async function uploadBannerImage(){
-  const file=document.getElementById('psBannerFile').files?.[0];
-  if(!file)return currentBannerImageUrl;
-  const merchantId=getMerchantId();
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'');
-  const path=merchantId+'/banners/'+Date.now()+'-'+safeName+'.'+ext;
-  const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
-  if(error)throw error;
-  currentBannerImageUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
-  document.getElementById('psBannerImage').value=currentBannerImageUrl;
-  return currentBannerImageUrl;
-}
-
 function closePageSettingsModal(){
   document.getElementById('pageSettingsModal').classList.remove('open');
 }
@@ -1068,19 +1140,8 @@ function setReviewFields(n,name,city,text){
 async function savePageSettings(){
   const btn=document.getElementById('savePageSettingsBtn');
   btn.disabled=true;btn.textContent='جاري الحفظ...';
-  let bannerImage=currentBannerImageUrl;
-  try{
-    if(getLayoutMode()==='banner')bannerImage=await uploadBannerImage();
-    if(getLayoutMode()==='banner'&&!bannerImage)throw new Error('ارفع صورة البانر أولاً');
-  }catch(error){
-    btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
-    showToast(error?.message||'تعذر رفع صورة البانر','error');
-    return;
-  }
   const payload={
     product_id:editingPageSettingsProductId,
-    layout_mode:getLayoutMode(),
-    banner_image:bannerImage||null,
     topbar_text:document.getElementById('psTopbarText').value.trim(),
     topbar_color:document.getElementById('psTopbarColor').value,
     badge_text:document.getElementById('psBadgeText').value.trim(),
