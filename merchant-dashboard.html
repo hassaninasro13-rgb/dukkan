@@ -175,6 +175,8 @@ button{cursor:pointer}
 .tracking-id{font-size:12px;color:var(--text);direction:ltr;text-align:left;word-break:break-all}
 .tracking-label{font-size:11px;color:var(--muted);margin-top:2px}
 .tracking-form{display:none;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px}
+.radio-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.radio-option{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;cursor:pointer}
 .bottom-nav{display:none}
 .bottom-nav-item{background:transparent;border:none;color:var(--muted);min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:800;border-radius:14px}
 .bottom-nav-item .nav-icon{font-size:21px;line-height:1}
@@ -491,6 +493,25 @@ button{cursor:pointer}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full"><label class="form-label">نص الشريط الأحمر العلوي</label><input class="form-input" id="psTopbarText" placeholder="شحن مجاني - الدفع عند الاستلام"></div>
+        <div class="form-group full">
+          <label class="form-label">نوع تصميم الصفحة</label>
+          <div class="radio-row">
+            <label class="radio-option"><input type="radio" name="layoutMode" value="gallery" onchange="toggleBannerImageField()"> 📸 صور متعددة (gallery)</label>
+            <label class="radio-option"><input type="radio" name="layoutMode" value="banner" onchange="toggleBannerImageField()"> 🖼️ صورة طويلة واحدة</label>
+          </div>
+        </div>
+        <div class="form-group full" id="bannerImageField" style="display:none">
+          <label class="form-label">صورة البانر الطويلة</label>
+          <div class="image-upload">
+            <input type="hidden" id="psBannerImage">
+            <input class="file-input-hidden" id="psBannerFile" type="file" accept="image/*" onchange="handleBannerImageChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="triggerBannerImagePicker()">📤 رفع صورة طويلة واحدة</button>
+            <div class="image-preview" id="psBannerPreview">
+              <img id="psBannerPreviewImg" src="" alt="معاينة صورة البانر">
+              <span id="psBannerPreviewText">تم اختيار صورة البانر</span>
+            </div>
+          </div>
+        </div>
         <div class="form-group"><label class="form-label">لون الشريط</label><select class="form-input" id="psTopbarColor"><option value="red">أحمر</option><option value="green">أخضر</option><option value="blue">أزرق</option><option value="black">أسود</option></select></div>
         <div class="form-group"><label class="form-label">نص الـ badge</label><input class="form-input" id="psBadgeText" placeholder="الأكثر مبيعاً في العراق 2025"></div>
         <div class="form-group"><label class="form-label">العنوان الرئيسي (السطر الأول)</label><input class="form-input" id="psHeroTitle" placeholder="اسم المنتج أو عنوان مخصص"></div>
@@ -538,7 +559,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
+let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],currentBannerImageUrl='';
 let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -926,7 +947,12 @@ async function toggleProduct(id,isActive){
 async function openPageSettingsModal(productId){
   editingPageSettingsProductId=productId;
   pageSettingsRecordId=null;
+  currentBannerImageUrl='';
   const product=products.find(p=>String(p.id)===String(productId));
+  setLayoutMode('gallery');
+  document.getElementById('psBannerImage').value='';
+  document.getElementById('psBannerFile').value='';
+  renderBannerImagePreview('');
   document.getElementById('psTopbarText').value='شحن مجاني - الدفع عند الاستلام';
   document.getElementById('psTopbarColor').value='red';
   document.getElementById('psBadgeText').value='الأكثر مبيعاً في العراق 2025';
@@ -953,6 +979,10 @@ async function openPageSettingsModal(productId){
   if(error){showToast(supabaseErrorText(error),'error');return;}
   if(!data)return;
   pageSettingsRecordId=data.id;
+  setLayoutMode(data.layout_mode||'gallery');
+  currentBannerImageUrl=data.banner_image||'';
+  document.getElementById('psBannerImage').value=currentBannerImageUrl;
+  renderBannerImagePreview(currentBannerImageUrl,currentBannerImageUrl?'الصورة الحالية':'');
   document.getElementById('psTopbarText').value=data.topbar_text||'شحن مجاني - الدفع عند الاستلام';
   document.getElementById('psTopbarColor').value=data.topbar_color||'red';
   document.getElementById('psBadgeText').value=data.badge_text||'الأكثر مبيعاً في العراق 2025';
@@ -975,6 +1005,56 @@ async function openPageSettingsModal(productId){
   setReviewFields(3,data.review3_name||'نور الهاشمي',data.review3_city||'أربيل',data.review3_text||'طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.');
 }
 
+function setLayoutMode(mode){
+  const selected=mode==='banner'?'banner':'gallery';
+  document.querySelectorAll('input[name="layoutMode"]').forEach(input=>{input.checked=input.value===selected;});
+  toggleBannerImageField();
+}
+
+function getLayoutMode(){
+  return document.querySelector('input[name="layoutMode"]:checked')?.value||'gallery';
+}
+
+function toggleBannerImageField(){
+  const field=document.getElementById('bannerImageField');
+  if(field)field.style.display=getLayoutMode()==='banner'?'block':'none';
+}
+
+function triggerBannerImagePicker(){
+  document.getElementById('psBannerFile').click();
+}
+
+function handleBannerImageChange(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
+  renderBannerImagePreview(URL.createObjectURL(file),file.name);
+}
+
+function renderBannerImagePreview(src,text){
+  const wrap=document.getElementById('psBannerPreview');
+  const img=document.getElementById('psBannerPreviewImg');
+  const label=document.getElementById('psBannerPreviewText');
+  if(!src){wrap.classList.remove('show');img.src='';label.textContent='';return;}
+  img.src=src;
+  label.textContent=text||'تم اختيار صورة البانر';
+  wrap.classList.add('show');
+}
+
+async function uploadBannerImage(){
+  const file=document.getElementById('psBannerFile').files?.[0];
+  if(!file)return currentBannerImageUrl;
+  const merchantId=getMerchantId();
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'');
+  const path=merchantId+'/banners/'+Date.now()+'-'+safeName+'.'+ext;
+  const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+  if(error)throw error;
+  currentBannerImageUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
+  document.getElementById('psBannerImage').value=currentBannerImageUrl;
+  return currentBannerImageUrl;
+}
+
 function closePageSettingsModal(){
   document.getElementById('pageSettingsModal').classList.remove('open');
 }
@@ -988,8 +1068,19 @@ function setReviewFields(n,name,city,text){
 async function savePageSettings(){
   const btn=document.getElementById('savePageSettingsBtn');
   btn.disabled=true;btn.textContent='جاري الحفظ...';
+  let bannerImage=currentBannerImageUrl;
+  try{
+    if(getLayoutMode()==='banner')bannerImage=await uploadBannerImage();
+    if(getLayoutMode()==='banner'&&!bannerImage)throw new Error('ارفع صورة البانر أولاً');
+  }catch(error){
+    btn.disabled=false;btn.textContent='💾 حفظ الإعدادات';
+    showToast(error?.message||'تعذر رفع صورة البانر','error');
+    return;
+  }
   const payload={
     product_id:editingPageSettingsProductId,
+    layout_mode:getLayoutMode(),
+    banner_image:bannerImage||null,
     topbar_text:document.getElementById('psTopbarText').value.trim(),
     topbar_color:document.getElementById('psTopbarColor').value,
     badge_text:document.getElementById('psBadgeText').value.trim(),

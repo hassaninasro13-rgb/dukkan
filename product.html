@@ -95,6 +95,34 @@ body {
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   display: block;
 }
+.banner-image {
+  width: 100%;
+  display: none;
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.banner-mode .hero {
+  padding: 0;
+}
+.banner-mode .hero-badge,
+.banner-mode #productTitle,
+.banner-mode #productDesc,
+.banner-mode .product-showcase,
+.banner-mode .thumbs,
+.banner-mode .benefits,
+.banner-mode .price-box,
+.banner-mode .countdown-wrap {
+  display: none !important;
+}
+.banner-mode .banner-image {
+  display: block;
+}
+.banner-mode .form-section {
+  margin: 0;
+  border-radius: 0;
+}
 .badge-discount {
   position: absolute;
   top: -10px;
@@ -542,11 +570,12 @@ body {
   <div class="hero-badge" id="heroBadge">🔥 الأكثر مبيعاً في العراق 2025</div>
   <h1 id="productTitle">جاري تحميل المنتج...</h1>
   <p class="hero-sub" id="productDesc">يرجى الانتظار قليلاً</p>
-  <div class="product-showcase">
+  <div class="product-showcase" id="productShowcase">
     <div class="badge-discount" id="discountBadge">خصم<br>0%</div>
     <img id="mainImg" src="https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan" alt="منتج">
     <div class="badge-sold" id="soldBadge">🔥 بيع أكثر من 120 قطعة</div>
   </div>
+  <img id="bannerImg" class="banner-image" src="" alt="صورة المنتج" style="width:100%; display:none; margin-bottom:0;">
   <div class="thumbs" id="thumbs"></div>
 </section>
 <!-- BENEFITS -->
@@ -837,6 +866,7 @@ body {
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
     const mainImage = PRODUCT.images[0] || '';
     document.getElementById('mainImg').src = mainImage;
+    applyLayoutMode();
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
@@ -844,9 +874,24 @@ body {
     renderReviews();
     document.getElementById('reviewsSection').style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
     resetCountdown();
-    renderThumbs();
+    if ((PAGE_SETTINGS.layout_mode || 'gallery') === 'banner' && PAGE_SETTINGS.banner_image) {
+      document.getElementById('thumbs').innerHTML = '';
+    } else {
+      renderThumbs();
+    }
     renderSizes();
     renderColors();
+  }
+
+  function applyLayoutMode() {
+    const bannerSrc = PAGE_SETTINGS.banner_image
+      ? storagePublicUrl(PAGE_SETTINGS.banner_image, PRODUCT.merchant_id)
+      : '';
+    const useBanner = PAGE_SETTINGS.layout_mode === 'banner' && !!bannerSrc;
+    document.body.classList.toggle('banner-mode', useBanner);
+    const bannerImg = document.getElementById('bannerImg');
+    bannerImg.src = useBanner ? bannerSrc : '';
+    bannerImg.style.display = useBanner ? 'block' : 'none';
   }
 
   function applyTopbarSettings() {
