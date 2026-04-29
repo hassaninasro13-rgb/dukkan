@@ -881,9 +881,7 @@ body.banner-mode {
       const product = products?.[0] || null;
       console.log('[DEBUG] product:', product, 'error:', error);
       if (!product) {
-        if (error) console.error('[DEBUG] merchant_products query failed', error);
-        const heroTitle = document.querySelector('.hero h1');
-        if (heroTitle) heroTitle.textContent = 'المنتج غير موجود';
+        document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
         return;
       }
 
