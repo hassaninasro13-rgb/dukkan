@@ -117,6 +117,13 @@ button{cursor:pointer}
 .order-sheet-actions{padding:0 20px 18px;display:flex;gap:8px;flex-wrap:wrap}
 .coupon-code{font-size:18px;font-weight:900;color:var(--gold);direction:ltr;text-align:left;letter-spacing:.08em}
 .coupon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
+.chart-box{height:260px;position:relative}
+.province-list{display:grid;gap:12px}
+.province-row{display:grid;grid-template-columns:110px 1fr 42px;align-items:center;gap:10px;font-size:13px}
+.province-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.province-bar{height:9px;background:var(--bg);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+.province-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ffd56a);border-radius:999px}
+.province-count{color:var(--muted);text-align:left;font-weight:800}
 .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -260,10 +267,19 @@ button{cursor:pointer}
         </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">📦 إجمالي المنتجات</div><div class="stat-value" style="color:var(--gold)" id="statProducts">—</div><div class="stat-sub">منتجات المتجر</div></div>
-        <div class="stat-card"><div class="stat-label">🛒 الطلبات</div><div class="stat-value" style="color:var(--blue)" id="statOrders">—</div><div class="stat-sub">كل الطلبات</div></div>
-        <div class="stat-card"><div class="stat-label">💰 الإيرادات</div><div class="stat-value" style="color:var(--green)" id="statRevenue">—</div><div class="stat-sub">الطلبات الموصلة IQD</div></div>
-        <div class="stat-card"><div class="stat-label">🚚 نسبة التوصيل</div><div class="stat-value" style="color:var(--gold)" id="statDelivery">—</div><div class="stat-sub">من إجمالي الطلبات</div></div>
+        <div class="stat-card"><div class="stat-label">👁️ زيارات اليوم</div><div class="stat-value" style="color:var(--gold)" id="statTodayViews">—</div><div class="stat-sub">مشاهدات صفحات المنتجات اليوم</div></div>
+        <div class="stat-card"><div class="stat-label">📅 زيارات الشهر</div><div class="stat-value" style="color:var(--blue)" id="statMonthViews">—</div><div class="stat-sub">من بداية الشهر الحالي</div></div>
+        <div class="stat-card"><div class="stat-label">🛒 إجمالي الطلبات</div><div class="stat-value" style="color:var(--gold)" id="statTotalOrders">—</div><div class="stat-sub">كل الطلبات</div></div>
+        <div class="stat-card"><div class="stat-label">💰 الإيرادات</div><div class="stat-value" style="color:var(--green)" id="statRevenue">—</div><div class="stat-sub">الموصلة فقط IQD</div></div>
+        <div class="stat-card"><div class="stat-label">📊 معدل التحويل</div><div class="stat-value" style="color:var(--blue)" id="statConversion">—</div><div class="stat-sub">الطلبات ÷ زيارات الشهر</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h3>طلبات آخر 7 أيام</h3></div>
+        <div class="section-body"><div class="chart-box"><canvas id="ordersChart"></canvas></div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h3>أفضل 5 محافظات</h3></div>
+        <div class="section-body"><div class="province-list" id="topGovernorates"><div class="empty-state">لا توجد بيانات بعد</div></div></div>
       </div>
       <div class="section">
         <div class="section-head"><h3>آخر 5 طلبات</h3><span class="count-pill" id="recentCount">0 طلب</span></div>
@@ -502,12 +518,14 @@ button{cursor:pointer}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
+let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -624,7 +642,7 @@ function showPage(name,el){
 }
 
 async function refreshAll(){
-  await Promise.all([loadProducts(),loadOrders(),loadCoupons(),loadSettings(),loadTrackingPixels()]);
+  await Promise.all([loadProducts(),loadOrders(),loadCoupons(),loadSettings(),loadTrackingPixels(),loadAnalytics()]);
   updateStats();
 }
 
@@ -1017,6 +1035,98 @@ async function loadOrders(){
   updateStats();
   console.log('step 4: orders loaded',{count:orders.length});
   console.groupEnd();
+}
+
+async function loadAnalytics(){
+  const merchantId=getMerchantId();
+  if(!merchantId)return;
+  const today=new Date().toISOString().split('T')[0];
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString();
+  const [todayViewsRes,monthViewsRes,ordersRes]=await Promise.all([
+    SB.from('page_views').select('*',{count:'exact',head:true}).eq('merchant_id',merchantId).gte('viewed_at',today),
+    SB.from('page_views').select('*',{count:'exact',head:true}).eq('merchant_id',merchantId).gte('viewed_at',monthStart),
+    SB.from('orders').select('total_price,status,governorate,created_at').eq('merchant_id',merchantId)
+  ]);
+  if(todayViewsRes.error)console.warn('[Dukkan] today views count failed',todayViewsRes.error);
+  if(monthViewsRes.error)console.warn('[Dukkan] month views count failed',monthViewsRes.error);
+  if(ordersRes.error){console.warn('[Dukkan] analytics orders load failed',ordersRes.error);return;}
+  const ordersData=ordersRes.data||[];
+  const totalOrders=ordersData.length;
+  const totalRevenue=ordersData
+    .filter(o=>o.status==='delivered')
+    .reduce((sum,o)=>sum+Number(o.total_price||0),0);
+  const monthViews=Number(monthViewsRes.count||0);
+  analytics={
+    todayViews:Number(todayViewsRes.count||0),
+    monthViews,
+    totalOrders,
+    totalRevenue,
+    conversionRate:monthViews>0?((totalOrders/monthViews)*100).toFixed(1):0,
+    ordersData
+  };
+  updateStats();
+  renderOrdersChart(ordersData);
+  renderTopGovernorates(ordersData);
+}
+
+function lastSevenDays(){
+  return Array.from({length:7},(_,i)=>{
+    const d=new Date();
+    d.setDate(d.getDate()-(6-i));
+    const key=d.toISOString().slice(0,10);
+    const label=d.toLocaleDateString('ar-IQ',{weekday:'short',day:'numeric'});
+    return {key,label};
+  });
+}
+
+function renderOrdersChart(ordersData){
+  const canvas=document.getElementById('ordersChart');
+  if(!canvas||!window.Chart)return;
+  const days=lastSevenDays();
+  const counts=days.map(day=>ordersData.filter(o=>String(o.created_at||'').slice(0,10)===day.key).length);
+  if(ordersChart)ordersChart.destroy();
+  ordersChart=new Chart(canvas,{
+    type:'line',
+    data:{
+      labels:days.map(d=>d.label),
+      datasets:[{
+        label:'الطلبات',
+        data:counts,
+        borderColor:'#f5a623',
+        backgroundColor:'rgba(245,166,35,.16)',
+        pointBackgroundColor:'#f5a623',
+        pointBorderColor:'#f5a623',
+        tension:.35,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#7d8590'},grid:{color:'rgba(48,54,61,.45)'}},
+        y:{beginAtZero:true,ticks:{color:'#7d8590',precision:0},grid:{color:'rgba(48,54,61,.45)'}}
+      }
+    }
+  });
+}
+
+function renderTopGovernorates(ordersData){
+  const box=document.getElementById('topGovernorates');
+  if(!box)return;
+  const counts=ordersData.reduce((acc,o)=>{
+    const gov=o.governorate||'غير محدد';
+    acc[gov]=(acc[gov]||0)+1;
+    return acc;
+  },{});
+  const rows=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!rows.length){box.innerHTML='<div class="empty-state">لا توجد بيانات بعد</div>';return;}
+  const max=Math.max(...rows.map(row=>row[1]),1);
+  box.innerHTML=rows.map(([gov,count])=>{
+    const pct=Math.round(count/max*100);
+    return '<div class="province-row"><div class="province-name">'+esc(gov)+'</div><div class="province-bar"><div class="province-fill" style="width:'+pct+'%"></div></div><div class="province-count">'+count+'</div></div>';
+  }).join('');
 }
 
 async function loadCoupons(){
@@ -1441,11 +1551,17 @@ async function deleteTrackingPixel(id){
 
 function updateStats(){
   const delivered=orders.filter(o=>o.status==='delivered');
-  const revenue=delivered.reduce((s,o)=>s+Number(o.total_price||0),0);
-  document.getElementById('statProducts').textContent=products.length;
-  document.getElementById('statOrders').textContent=orders.length;
-  document.getElementById('statRevenue').textContent=revenue.toLocaleString();
-  document.getElementById('statDelivery').textContent=(orders.length?Math.round(delivered.length/orders.length*100):0)+'%';
+  const fallbackRevenue=delivered.reduce((s,o)=>s+Number(o.total_price||0),0);
+  setText('statTodayViews',analytics.todayViews.toLocaleString());
+  setText('statMonthViews',analytics.monthViews.toLocaleString());
+  setText('statTotalOrders',(analytics.totalOrders||orders.length).toLocaleString());
+  setText('statRevenue',Number(analytics.totalRevenue||fallbackRevenue).toLocaleString());
+  setText('statConversion',(analytics.conversionRate||0)+'%');
+}
+
+function setText(id,value){
+  const el=document.getElementById(id);
+  if(el)el.textContent=value;
 }
 
 function normalizePhone(phone){

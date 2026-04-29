@@ -776,6 +776,7 @@ body {
 
     PRODUCT = normalizeProduct(data);
     BASE = PRODUCT.price;
+    await recordPageView(productId);
 
     const { data: merchantData } = await db
       .from('merchants')
@@ -809,6 +810,18 @@ body {
 
     renderProduct();
     recalc();
+  }
+
+  async function recordPageView(productId) {
+    try {
+      await db.from('page_views').insert({
+        merchant_id: PRODUCT.merchant_id,
+        product_id: productId,
+        device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      });
+    } catch (error) {
+      console.warn('[Dukkan] page view tracking failed', error);
+    }
   }
 
   function renderProduct() {
