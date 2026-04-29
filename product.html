@@ -117,7 +117,7 @@ body {
   box-shadow: none;
 }
 .banner-load-wrap {
-  display: none;
+  display: block;
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -149,13 +149,17 @@ body {
 @keyframes banner-spin {
   to { transform: rotate(360deg); }
 }
+/* Banner block: after header; hidden until body.banner-mode */
+.banner-section {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+}
+body.banner-mode .banner-section {
+  display: block;
+}
 .banner-mode .hero::after { display: none !important; }
 .banner-mode .hero {
-  padding: 0;
-  background: transparent;
-}
-.banner-mode .header,
-.banner-mode .gallery-only {
   display: none !important;
 }
 .banner-mode .banner-only {
@@ -180,21 +184,8 @@ body {
 body.banner-mode {
   background: #f5f5f5;
 }
-.banner-mode .hero-badge,
-.banner-mode #productTitle,
-.banner-mode #productDesc,
-.banner-mode .product-showcase,
-.banner-mode .thumbs,
-.banner-mode .benefits,
-.banner-mode .price-box,
-.banner-mode .countdown-wrap {
+.banner-mode .gallery-only {
   display: none !important;
-}
-.banner-mode .banner-load-wrap {
-  display: block;
-}
-.banner-mode .banner-image {
-  display: block;
 }
 .badge-discount {
   position: absolute;
@@ -635,10 +626,17 @@ body.banner-mode {
 <!-- TOP BAR -->
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
 <!-- HEADER -->
-<div class="header gallery-only">
+<header class="header">
   <div class="logo">🏪 <span id="storeLogoText">دكّان</span></div>
-</div>
-<!-- HERO -->
+</header>
+<!-- BANNER (long image) — بعد الهيدر مباشرة -->
+<section id="bannerSection" class="banner-section" aria-hidden="true">
+  <div id="bannerLoadWrap" class="banner-load-wrap">
+    <div id="bannerSpinner" class="banner-spinner" role="status" aria-live="polite"><div class="banner-spinner-dot"></div></div>
+    <img id="bannerImg" class="banner-image" src="" alt="إنفوجرافيك المنتج" width="1200" loading="eager" decoding="async" style="width:100%;max-width:100%;height:auto;display:block;">
+  </div>
+</section>
+<!-- HERO — معرض المنتج (معطّل في وضع البانر) -->
 <section class="hero">
   <div class="hero-badge" id="heroBadge">🔥 الأكثر مبيعاً في العراق 2025</div>
   <h1 id="productTitle">جاري تحميل المنتج...</h1>
@@ -649,27 +647,23 @@ body.banner-mode {
     <div id="mainImgPlaceholder" class="main-img-placeholder" style="display:flex" aria-hidden="true"><span style="font-size:48px">📦</span></div>
     <div class="badge-sold" id="soldBadge">🔥 بيع أكثر من 120 قطعة</div>
   </div>
-  <div id="bannerLoadWrap" class="banner-load-wrap">
-    <div id="bannerSpinner" class="banner-spinner" role="status" aria-live="polite"><div class="banner-spinner-dot"></div></div>
-    <img id="bannerImg" class="banner-image" src="" alt="إنفوجرافيك المنتج" width="1200" loading="eager" decoding="async" style="width:100%;max-width:100%;height:auto;display:block;">
-  </div>
   <div class="thumbs" id="thumbs"></div>
 </section>
 <!-- BENEFITS -->
-<div class="benefits gallery-only">
+<div class="benefits">
   <div class="benefit-item"><div class="benefit-icon">✅</div><div class="benefit-text">دفع عند الاستلام</div></div>
   <div class="benefit-item"><div class="benefit-icon">🚚</div><div class="benefit-text">توصيل سريع</div></div>
   <div class="benefit-item"><div class="benefit-icon">↩️</div><div class="benefit-text">إرجاع مضمون</div></div>
   <div class="benefit-item"><div class="benefit-icon">⭐</div><div class="benefit-text">جودة عالية</div></div>
 </div>
 <!-- PRICE -->
-<div class="price-box gallery-only">
+<div class="price-box">
   <div class="price-was" id="oldPriceText">السعر الأصلي: 0 دينار</div>
   <div class="price-now"><span class="price-currency">IQD </span><span id="displayPrice">0</span></div>
   <div><span class="price-cod" id="codText">💰 الدفع عند الاستلام فقط</span></div>
 </div>
 <!-- COUNTDOWN -->
-<div class="countdown-wrap gallery-only" id="countdownWrap">
+<div class="countdown-wrap" id="countdownWrap">
   <div class="countdown-title">⏰ ينتهي العرض خلال:</div>
   <div class="countdown">
     <div class="cd-item"><span class="cd-num" id="cdH">02</span><span class="cd-label">ساعة</span></div>
@@ -890,9 +884,6 @@ body.banner-mode {
     ACTIVE_PIXELS = bundle.pixels;
     BASE = PRODUCT.price;
 
-    const isBanner = (PAGE_SETTINGS.layout_mode === 'banner') && !!PAGE_SETTINGS.banner_image;
-    if (isBanner) stripDomForBannerLayout();
-
     applyLayoutMode();
 
     await recordPageView(productId);
@@ -965,16 +956,6 @@ body.banner-mode {
     };
   }
 
-  function stripDomForBannerLayout() {
-    document.querySelectorAll('.gallery-only').forEach(el => {
-      try { el.remove(); } catch (e) {}
-    });
-    ['heroBadge', 'productTitle', 'productDesc', 'productShowcase', 'thumbs'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.remove();
-    });
-    clearCountdownTimer();
-  }
 
   async function recordPageView(productId) {
     try {
@@ -992,9 +973,16 @@ body.banner-mode {
     const useBannerLayout = document.body.classList.contains('banner-mode');
     if (useBannerLayout) {
       document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
+      document.getElementById('storeLogoText').textContent = MERCHANT.store_name || 'دكّان';
       applyTopbarSettings();
+      document.getElementById('displayPrice').textContent = BASE.toLocaleString();
+      document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
+      const cw = document.getElementById('countdownWrap');
+      if (cw) cw.style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
       document.getElementById('waBtn').href = whatsappUrl();
       applyCodText();
+      applyUpsellSettings();
+      resetCountdown();
       return;
     }
 
@@ -1040,11 +1028,11 @@ body.banner-mode {
       : '';
     const useBanner = PAGE_SETTINGS.layout_mode === 'banner' && !!bannerSrc;
     document.body.classList.toggle('banner-mode', useBanner);
-    const wrap = document.getElementById('bannerLoadWrap');
+    const section = document.getElementById('bannerSection');
     const bannerImg = document.getElementById('bannerImg');
     const spin = document.getElementById('bannerSpinner');
     if (!useBanner) {
-      if (wrap) wrap.style.display = 'none';
+      if (section) section.setAttribute('aria-hidden', 'true');
       if (bannerImg) {
         bannerImg.onload = null;
         bannerImg.onerror = null;
@@ -1053,7 +1041,7 @@ body.banner-mode {
       if (spin) spin.classList.remove('is-hidden');
       return;
     }
-    if (wrap) wrap.style.display = 'block';
+    if (section) section.removeAttribute('aria-hidden');
     if (spin) spin.classList.remove('is-hidden');
     if (bannerImg && bannerSrc) {
       bannerImg.onload = function () {
