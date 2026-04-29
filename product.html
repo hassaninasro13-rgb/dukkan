@@ -1173,6 +1173,8 @@ body {
         error = retry.error;
       }
       if (error) throw error;
+      const remainingStock = await decrementProductStock(orderData.quantity);
+      if (remainingStock !== null && remainingStock <= 5) notifyLowStockWhatsApp(orderData.product_name, remainingStock);
       notifyMerchantWhatsApp(orderData);
       await incrementCouponUse();
       trackPurchase(total);
@@ -1184,6 +1186,21 @@ body {
     }
     btn.disabled = false;
     btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
+  }
+
+  async function decrementProductStock(quantity) {
+    const currentStock = Number(PRODUCT.stock || 0);
+    const nextStock = Math.max(0, currentStock - Number(quantity || 1));
+    const { error } = await db
+      .from('merchant_products')
+      .update({ stock: nextStock })
+      .eq('id', PRODUCT.id);
+    if (error) {
+      console.warn('[Dukkan] stock decrement failed', error);
+      return null;
+    }
+    PRODUCT.stock = nextStock;
+    return nextStock;
   }
 
   function merchantWhatsAppPhone() {
@@ -1211,6 +1228,15 @@ body {
 ━━━━━━━━━━━━━
 ⏰ ${new Date().toLocaleString('ar-IQ')}`;
 
+    window.open(`https://wa.me/${merchantPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  function notifyLowStockWhatsApp(productName, remainingStock) {
+    const merchantPhone = merchantWhatsAppPhone();
+    if (!merchantPhone) return;
+    const msg = `⚠️ *تنبيه مخزون منخفض!*
+المنتج: ${productName}
+المخزون المتبقي: ${remainingStock}`;
     window.open(`https://wa.me/${merchantPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
