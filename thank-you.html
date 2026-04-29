@@ -1,119 +1,193 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تم استلام طلبك — دكّان</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f5a623;--green:#3fb950;--text:#f0f6fc;--muted:#9aa4b2}
-body{font-family:'Cairo',sans-serif;background:radial-gradient(circle at top,rgba(245,166,35,.16),transparent 34%),linear-gradient(160deg,#0e1117 0%,#101827 58%,#0b1020 100%);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px}
-.card{width:100%;max-width:520px;background:rgba(22,27,34,.92);border:1px solid rgba(245,166,35,.18);border-radius:28px;padding:30px 22px;box-shadow:0 28px 90px rgba(0,0,0,.42);text-align:center;overflow:hidden;position:relative}
-.card::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.04),transparent);pointer-events:none}
-.check{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;background:rgba(63,185,80,.14);border:2px solid rgba(63,185,80,.35);display:flex;align-items:center;justify-content:center;font-size:52px;animation:pop .75s ease both,pulse 1.8s ease-in-out infinite}
-@keyframes pop{0%{transform:scale(.35);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,.28)}50%{box-shadow:0 0 0 18px rgba(63,185,80,0)}}
-h1{font-family:'Tajawal',sans-serif;font-size:clamp(26px,7vw,36px);line-height:1.25;margin-bottom:10px}
-.order-no{display:inline-flex;align-items:center;justify-content:center;margin:8px 0 12px;padding:8px 16px;border-radius:999px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);color:var(--gold);font-size:22px;font-weight:900;direction:ltr}
-.subtitle{color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:20px}
-.details{display:grid;gap:10px;margin:20px 0;text-align:right}
-.detail{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.label{font-size:12px;color:var(--muted);white-space:nowrap}
-.value{font-weight:900;text-align:left;word-break:break-word}
-.total{color:var(--gold);direction:ltr}
-.actions{display:grid;gap:10px;margin-top:22px}
-.btn{border:none;border-radius:16px;min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:900;font-size:15px;transition:transform .2s,opacity .2s}
-.btn:hover{transform:translateY(-1px);opacity:.9}
-.btn-wa{background:var(--green);color:#03120a}
-.btn-store{background:rgba(245,166,35,.14);border:1px solid rgba(245,166,35,.35);color:var(--gold)}
-@media(max-width:480px){body{padding:14px}.card{padding:26px 16px;border-radius:24px}.detail{align-items:flex-start;flex-direction:column}.value{text-align:right}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تم الطلب - دكّان</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #0f0f1a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .success-icon {
+      width: 100px;
+      height: 100px;
+      background: rgba(34,197,94,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 50px;
+      animation: pulse 1s ease-in-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #22c55e;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+    .order-number {
+      background: rgba(245,166,35,0.1);
+      border: 2px solid #f5a623;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .order-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+    .order-code {
+      font-size: 24px;
+      font-weight: 900;
+      color: #f5a623;
+      letter-spacing: 2px;
+    }
+    .details-card {
+      background: #1e1e2e;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: right;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2a3e;
+      font-size: 14px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #94a3b8; }
+    .detail-value { font-weight: 700; color: #fff; }
+    .total-value { color: #f5a623; font-size: 18px; }
+    .btn-whatsapp {
+      display: block;
+      width: 100%;
+      background: #25d366;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+      text-decoration: none;
+    }
+    .btn-back {
+      display: block;
+      width: 100%;
+      background: transparent;
+      color: #f5a623;
+      border: 2px solid #f5a623;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-<main class="card">
-  <div class="check">✅</div>
-  <h1 id="thankyouTitle">تم استلام طلبك بنجاح! 🎉</h1>
-  <div class="order-no" id="orderNo">#IQ-XXXXXXXX</div>
-  <p class="subtitle" id="thankyouMessage">سيتواصل معك فريقنا خلال 24 ساعة لتأكيد الطلب</p>
-
-  <section class="details" aria-label="معلومات الطلب">
-    <div class="detail"><span class="label">اسم المنتج</span><span class="value" id="productName">—</span></div>
-    <div class="detail"><span class="label">الإجمالي</span><span class="value total" id="total">—</span></div>
-  </section>
-
-  <div class="actions">
-    <a class="btn btn-wa" id="whatsappBtn" href="#" target="_blank" rel="noopener">💬 تواصل عبر واتساب</a>
-    <a class="btn btn-store" id="storeBtn" href="/store">تصفح منتجات أخرى</a>
+  <div class="container">
+    <div class="success-icon">✅</div>
+    <h1 id="thankTitle">تم استلام طلبك! 🎉</h1>
+    <p class="subtitle" id="thankMessage">سيتواصل معك فريقنا خلال 24 ساعة</p>
+    <div class="order-number">
+      <div class="order-label">رقم طلبك</div>
+      <div class="order-code" id="orderNum">-</div>
+    </div>
+    <div class="details-card">
+      <div class="detail-row">
+        <span class="detail-value" id="productName">-</span>
+        <span class="detail-label">المنتج</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-value" id="qtyVal">1</span>
+        <span class="detail-label">الكمية</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-value total-value" id="totalVal">-</span>
+        <span class="detail-label">الإجمالي</span>
+      </div>
+    </div>
+    <a id="btnWhatsapp" class="btn-whatsapp" style="display:none">💬 تواصل معنا على واتساب</a>
+    <a id="btnBack" class="btn-back" href="#">🏪 العودة للمتجر</a>
   </div>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const params = new URLSearchParams(window.location.search);
-const get = key => (params.get(key) || '').trim();
-const escText = value => value || '—';
-const order = get('order') || 'IQ-XXXXXXXX';
-const total = Number(get('total') || 0);
-const store = get('store');
-let merchant = null;
-let settings = null;
-
-document.getElementById('orderNo').textContent = '#' + order.replace(/^#/, '');
-document.getElementById('productName').textContent = escText(get('name'));
-document.getElementById('total').textContent = total ? total.toLocaleString() + ' IQD' : escText(get('total'));
-document.getElementById('storeBtn').href = store ? '/store?store=' + encodeURIComponent(store) : '/store';
-loadThankYouSettings();
-
-async function loadThankYouSettings() {
-  try {
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('orderNum').textContent = params.get('order') || '-';
+    document.getElementById('productName').textContent = params.get('name') || '-';
+    document.getElementById('qtyVal').textContent = params.get('qty') || '1';
+    document.getElementById('totalVal').textContent = Number(params.get('total')||0).toLocaleString('ar-IQ') + ' IQD';
+    const store = params.get('store');
     if (store) {
-      const merchantRes = await db
-        .from('merchants')
-        .select('id,store_name,store_slug,whatsapp')
-        .eq('store_slug', store)
-        .maybeSingle();
-      if (merchantRes.error) throw merchantRes.error;
-      merchant = merchantRes.data;
+      document.getElementById('btnBack').href = `/store?store=${encodeURIComponent(store)}`;
+      loadStoreSettings(store);
     }
 
-    if (merchant?.id) {
-      const settingsRes = await db
-        .from('store_settings')
-        .select('thankyou_title,thankyou_message,thankyou_whatsapp_enabled,thankyou_whatsapp_message,whatsapp')
-        .eq('merchant_id', merchant.id)
-        .maybeSingle();
-      if (settingsRes.error) throw settingsRes.error;
-      settings = settingsRes.data || {};
+    async function loadStoreSettings(storeSlug) {
+      try {
+        const {data: merchant, error: merchantError} = await sb
+          .from('merchants')
+          .select('id')
+          .eq('store_slug', storeSlug)
+          .maybeSingle();
+        if (merchantError) throw merchantError;
+        if (!merchant?.id) return;
+
+        const {data, error} = await sb
+          .from('store_settings')
+          .select('thankyou_title,thankyou_message,thankyou_whatsapp_enabled,whatsapp')
+          .eq('merchant_id', merchant.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return;
+        if (data.thankyou_title) document.getElementById('thankTitle').textContent = data.thankyou_title;
+        if (data.thankyou_message) document.getElementById('thankMessage').textContent = data.thankyou_message;
+        if (data.thankyou_whatsapp_enabled && data.whatsapp) {
+          const btn = document.getElementById('btnWhatsapp');
+          const phone = data.whatsapp.replace(/\D/g,'');
+          btn.style.display = 'block';
+          btn.href = `https://wa.me/${phone}?text=${encodeURIComponent('مرحباً، أريد الاستفسار عن طلبي رقم: ' + params.get('order'))}`;
+        }
+      } catch (error) {
+        console.warn('[Dukkan] failed to load thank-you settings', error);
+      }
     }
-  } catch (error) {
-    console.warn('[Dukkan] thank-you settings load failed', error);
-  }
-  applyThankYouSettings();
-}
-
-function applyThankYouSettings() {
-  const title = settings?.thankyou_title || 'تم استلام طلبك بنجاح! 🎉';
-  const message = settings?.thankyou_message || 'سيتواصل معك فريقنا خلال 24 ساعة لتأكيد الطلب';
-  document.getElementById('thankyouTitle').textContent = title;
-  document.getElementById('thankyouMessage').textContent = message;
-
-  const whatsappBtn = document.getElementById('whatsappBtn');
-  const enabled = settings?.thankyou_whatsapp_enabled !== false;
-  let cleanPhone = String(settings?.whatsapp || merchant?.whatsapp || '').replace(/\D/g, '');
-  if (cleanPhone.startsWith('0')) cleanPhone = '964' + cleanPhone.slice(1);
-  if (cleanPhone && !cleanPhone.startsWith('964')) cleanPhone = '964' + cleanPhone;
-  if (!enabled || !cleanPhone) {
-    whatsappBtn.style.display = 'none';
-    return;
-  }
-  const defaultMsg = settings?.thankyou_whatsapp_message || 'مرحباً، أريد الاستفسار عن طلبي #{{order}}';
-  const messageText = defaultMsg.replaceAll('{{order}}', order).replaceAll('{order}', order);
-  whatsappBtn.href = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(messageText);
-}
-</script>
+  </script>
 </body>
 </html>
