@@ -36,7 +36,20 @@ body {
   color: #FFD700;
   letter-spacing: 1px;
 }
-.logo span { color: white; }
+.logo span { color: #FFD700; }
+.main-img-placeholder {
+  background: #1e1e2e;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  box-sizing: border-box;
+  border: 3px solid rgba(255,215,0,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.main-img-placeholder span { font-size: 48px; line-height: 1; }
 /* HERO PRODUCT SECTION */
 .hero {
   background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
@@ -563,7 +576,7 @@ body {
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">🏪 <span id="storeLogoText">دكّ</span>ان</div>
+  <div class="logo">🏪 <span id="storeLogoText">دكّان</span></div>
 </div>
 <!-- HERO -->
 <section class="hero">
@@ -572,7 +585,8 @@ body {
   <p class="hero-sub" id="productDesc">يرجى الانتظار قليلاً</p>
   <div class="product-showcase" id="productShowcase">
     <div class="badge-discount" id="discountBadge">خصم<br>0%</div>
-    <img id="mainImg" src="https://via.placeholder.com/500x500/1a1a2e/FFD700?text=Dukkan" alt="منتج">
+    <img id="mainImg" src="" alt="منتج" style="display:none">
+    <div id="mainImgPlaceholder" class="main-img-placeholder" style="display:flex" aria-hidden="true"><span style="font-size:48px">📦</span></div>
     <div class="badge-sold" id="soldBadge">🔥 بيع أكثر من 120 قطعة</div>
   </div>
   <img id="bannerImg" class="banner-image" src="" alt="صورة المنتج" style="width:100%; display:none; margin-bottom:0;">
@@ -805,7 +819,7 @@ body {
 
     PRODUCT = normalizeProduct(data);
     BASE = PRODUCT.price;
-    await recordPageView(productId);
+      await recordPageView(productId);
 
     const { data: merchantData } = await db
       .from('merchants')
@@ -855,7 +869,7 @@ body {
 
   function renderProduct() {
     document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
-    document.getElementById('storeLogoText').textContent = (MERCHANT.store_name || 'دكّان').slice(0, 8);
+    document.getElementById('storeLogoText').textContent = MERCHANT.store_name || 'دكّان';
     applyTopbarSettings();
     document.getElementById('heroBadge').textContent = '🔥 ' + (PAGE_SETTINGS.badge_text || 'الأكثر مبيعاً في العراق 2025');
     document.getElementById('productTitle').innerHTML = esc(PAGE_SETTINGS.hero_title || PRODUCT.name) + '<br><em>' + esc(PAGE_SETTINGS.hero_highlight || PAGE_SETTINGS.hero_subtitle || 'عرض لفترة محدودة!') + '</em>';
@@ -865,8 +879,24 @@ body {
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
     const mainImage = PRODUCT.images[0] || '';
-    document.getElementById('mainImg').src = mainImage;
     applyLayoutMode();
+    const imgEl = document.getElementById('mainImg');
+    const phEl = document.getElementById('mainImgPlaceholder');
+    const useBannerLayout = document.body.classList.contains('banner-mode');
+    if (!useBannerLayout) {
+      if (mainImage) {
+        imgEl.src = mainImage;
+        imgEl.style.display = 'block';
+        phEl.style.display = 'none';
+      } else {
+        imgEl.removeAttribute('src');
+        imgEl.style.display = 'none';
+        phEl.style.display = 'flex';
+      }
+    } else {
+      imgEl.style.display = 'none';
+      phEl.style.display = 'none';
+    }
     document.getElementById('waBtn').href = whatsappUrl();
     document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
@@ -938,7 +968,11 @@ body {
   }
 
   function renderThumbs() {
-    const images = PRODUCT.images.length ? PRODUCT.images : [document.getElementById('mainImg').src];
+    const images = PRODUCT.images.filter(Boolean);
+    if (!images.length) {
+      document.getElementById('thumbs').innerHTML = '';
+      return;
+    }
     document.getElementById('thumbs').innerHTML = images.map((src, i) =>
       '<div class="thumb ' + (i === 0 ? 'active' : '') + '" onclick="setImg(this,\'' + escAttr(src) + '\')"><img src="' + escAttr(src) + '" alt=""></div>'
     ).join('');
