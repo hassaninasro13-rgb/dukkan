@@ -110,11 +110,44 @@ body {
 }
 .banner-image {
   width: 100%;
-  display: none;
+  display: block;
   margin-bottom: 0;
   border: 0;
   border-radius: 0;
   box-shadow: none;
+}
+.banner-load-wrap {
+  display: none;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+.banner-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e2e;
+  z-index: 2;
+  min-height: 140px;
+  transition: opacity 0.2s;
+}
+.banner-spinner.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.banner-spinner-dot {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(245, 166, 35, 0.25);
+  border-top-color: #f5a623;
+  border-radius: 50%;
+  animation: banner-spin 0.75s linear infinite;
+}
+@keyframes banner-spin {
+  to { transform: rotate(360deg); }
 }
 .banner-mode .hero::after { display: none !important; }
 .banner-mode .hero {
@@ -156,6 +189,9 @@ body.banner-mode {
 .banner-mode .price-box,
 .banner-mode .countdown-wrap {
   display: none !important;
+}
+.banner-mode .banner-load-wrap {
+  display: block;
 }
 .banner-mode .banner-image {
   display: block;
@@ -613,7 +649,10 @@ body.banner-mode {
     <div id="mainImgPlaceholder" class="main-img-placeholder" style="display:flex" aria-hidden="true"><span style="font-size:48px">📦</span></div>
     <div class="badge-sold" id="soldBadge">🔥 بيع أكثر من 120 قطعة</div>
   </div>
-  <img id="bannerImg" class="banner-image" src="" alt="صورة المنتج" style="width:100%; display:none; margin-bottom:0;">
+  <div id="bannerLoadWrap" class="banner-load-wrap">
+    <div id="bannerSpinner" class="banner-spinner" role="status" aria-live="polite"><div class="banner-spinner-dot"></div></div>
+    <img id="bannerImg" class="banner-image" src="" alt="إنفوجرافيك المنتج" width="1200" loading="eager" decoding="async" style="width:100%;max-width:100%;height:auto;display:block;">
+  </div>
   <div class="thumbs" id="thumbs"></div>
 </section>
 <!-- BENEFITS -->
@@ -833,54 +872,108 @@ body.banner-mode {
     const productId = params.get('id');
     if (!productId) { alert('رابط المنتج غير صحيح'); return; }
 
+    const bundle = await fetchProductPageBundle(productId);
+    if (bundle.inactive) {
+      alert('تعذر تحميل المنتج');
+      return;
+    }
+    if (bundle.error) {
+      console.error(bundle.error);
+      alert('تعذر تحميل المنتج');
+      return;
+    }
+
+    PRODUCT = bundle.product;
+    PAGE_SETTINGS = bundle.pageSettings;
+    MERCHANT = bundle.merchant;
+    SETTINGS = bundle.settings;
+    ACTIVE_PIXELS = bundle.pixels;
+    BASE = PRODUCT.price;
+
+    const isBanner = (PAGE_SETTINGS.layout_mode === 'banner') && !!PAGE_SETTINGS.banner_image;
+    if (isBanner) stripDomForBannerLayout();
+
+    applyLayoutMode();
+
+    await recordPageView(productId);
+    initAdPixels();
+    renderProduct();
+    recalc();
+  }
+
+  const PRODUCT_PAGE_SELECT = 'id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits,product_settings(*),merchants!inner(id,store_name,store_slug,whatsapp,store_settings(whatsapp,shipping_baghdad,shipping_other,google_sheets_webhook),tracking_pixels(platform,pixel_id,conversion_label,label,is_active))';
+
+  async function fetchProductPageBundle(productId) {
+    const { data, error } = await db
+      .from('merchant_products')
+      .select(PRODUCT_PAGE_SELECT)
+      .eq('id', productId)
+      .maybeSingle();
+
+    if (!error && data) {
+      if (data.is_active === false) return { inactive: true };
+      return normalizePageBundle(data);
+    }
+
+    console.warn('[Dukkan] single-query product page failed, using fallback', error);
+    return fetchProductPageBundleLegacy(productId);
+  }
+
+  function normalizePageBundle(row) {
+    const ps = row.product_settings;
+    const pageSettings = Array.isArray(ps) ? (ps[0] || {}) : (ps && typeof ps === 'object' ? ps : {});
+    const mRaw = row.merchants;
+    const merchantRow = Array.isArray(mRaw) ? mRaw[0] : mRaw;
+    const ss = merchantRow && merchantRow.store_settings;
+    const settings = Array.isArray(ss) ? (ss[0] || {}) : (ss || {});
+    const tp = merchantRow && merchantRow.tracking_pixels;
+    const pixels = (Array.isArray(tp) ? tp : []).filter(p => p && p.is_active !== false);
+    const { product_settings: _ps, merchants: _m, ...rawProduct } = row;
+    const product = normalizeProduct(rawProduct);
+    const merchant = merchantRow
+      ? {
+          id: merchantRow.id,
+          store_name: merchantRow.store_name,
+          store_slug: merchantRow.store_slug,
+          whatsapp: merchantRow.whatsapp
+        }
+      : {};
+    return { product, pageSettings, merchant, settings, pixels };
+  }
+
+  async function fetchProductPageBundleLegacy(productId) {
     const { data, error } = await db
       .from('merchant_products')
       .select('id,merchant_id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits')
       .eq('id', productId)
       .maybeSingle();
+    if (error || !data) return { error: error || new Error('product not found') };
+    if (data.is_active === false) return { inactive: true };
+    const product = normalizeProduct(data);
+    const [merchantRes, settingsRes, pixelsRes, pageRes] = await Promise.all([
+      db.from('merchants').select('id,store_name,store_slug,whatsapp').eq('id', product.merchant_id).maybeSingle(),
+      db.from('store_settings').select('whatsapp,shipping_baghdad,shipping_other,google_sheets_webhook').eq('merchant_id', product.merchant_id).maybeSingle(),
+      db.from('tracking_pixels').select('platform,pixel_id,conversion_label,label,is_active').eq('merchant_id', product.merchant_id).eq('is_active', true),
+      db.from('product_settings').select('*').eq('product_id', product.id).maybeSingle()
+    ]);
+    return {
+      product,
+      pageSettings: pageRes.data || {},
+      merchant: merchantRes.data || {},
+      settings: settingsRes.data || {},
+      pixels: pixelsRes.data || []
+    };
+  }
 
-    if (error || !data || data.is_active === false) {
-      console.error(error);
-      alert('تعذر تحميل المنتج');
-      return;
-    }
-
-    PRODUCT = normalizeProduct(data);
-    BASE = PRODUCT.price;
-      await recordPageView(productId);
-
-    const { data: merchantData } = await db
-      .from('merchants')
-      .select('id,store_name,store_slug,whatsapp')
-      .eq('id', PRODUCT.merchant_id)
-      .maybeSingle();
-    MERCHANT = merchantData || {};
-
-    const { data: settingsData } = await db
-      .from('store_settings')
-      .select('whatsapp,shipping_baghdad,shipping_other,google_sheets_webhook')
-      .eq('merchant_id', PRODUCT.merchant_id)
-      .maybeSingle();
-    SETTINGS = settingsData || {};
-
-    const { data: pixelsData, error: pixelsError } = await db
-      .from('tracking_pixels')
-      .select('platform,pixel_id,conversion_label,label,is_active')
-      .eq('merchant_id', PRODUCT.merchant_id)
-      .eq('is_active', true);
-    if (pixelsError) console.warn('[Dukkan] tracking pixels load failed', pixelsError);
-    ACTIVE_PIXELS = pixelsData || [];
-    initAdPixels();
-
-    const { data: pageSettingsData } = await db
-      .from('product_settings')
-      .select('*')
-      .eq('product_id', PRODUCT.id)
-      .maybeSingle();
-    PAGE_SETTINGS = pageSettingsData || {};
-
-    renderProduct();
-    recalc();
+  function stripDomForBannerLayout() {
+    document.querySelectorAll('.gallery-only').forEach(el => {
+      try { el.remove(); } catch (e) {}
+    });
+    ['heroBadge', 'productTitle', 'productDesc', 'productShowcase', 'thumbs'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    clearCountdownTimer();
   }
 
   async function recordPageView(productId) {
@@ -896,6 +989,15 @@ body.banner-mode {
   }
 
   function renderProduct() {
+    const useBannerLayout = document.body.classList.contains('banner-mode');
+    if (useBannerLayout) {
+      document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
+      applyTopbarSettings();
+      document.getElementById('waBtn').href = whatsappUrl();
+      applyCodText();
+      return;
+    }
+
     document.title = PRODUCT.name + ' — ' + (MERCHANT.store_name || 'دكّان');
     document.getElementById('storeLogoText').textContent = MERCHANT.store_name || 'دكّان';
     applyTopbarSettings();
@@ -907,36 +1009,27 @@ body.banner-mode {
     document.getElementById('discountBadge').innerHTML = 'خصم<br>' + discountPercent() + '%';
     document.getElementById('soldBadge').textContent = '🔥 بيع أكثر من ' + Number(PAGE_SETTINGS.sales_count || Math.max(120, (PRODUCT.visits || 0) * 3 + 120)).toLocaleString() + ' قطعة';
     const mainImage = PRODUCT.images[0] || '';
-    applyLayoutMode();
     const imgEl = document.getElementById('mainImg');
     const phEl = document.getElementById('mainImgPlaceholder');
-    const useBannerLayout = document.body.classList.contains('banner-mode');
-    if (!useBannerLayout) {
-      if (mainImage) {
-        imgEl.src = mainImage;
-        imgEl.style.display = 'block';
-        phEl.style.display = 'none';
-      } else {
-        imgEl.removeAttribute('src');
-        imgEl.style.display = 'none';
-        phEl.style.display = 'flex';
-      }
-    } else {
-      imgEl.style.display = 'none';
+    if (mainImage) {
+      imgEl.src = mainImage;
+      imgEl.style.display = 'block';
       phEl.style.display = 'none';
+    } else {
+      imgEl.removeAttribute('src');
+      imgEl.style.display = 'none';
+      phEl.style.display = 'flex';
     }
     document.getElementById('waBtn').href = whatsappUrl();
-    document.getElementById('countdownWrap').style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
+    const cw = document.getElementById('countdownWrap');
+    if (cw) cw.style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
     applyUpsellSettings();
     renderReviews();
-    document.getElementById('reviewsSection').style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
+    const rs = document.getElementById('reviewsSection');
+    if (rs) rs.style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
     resetCountdown();
-    if ((PAGE_SETTINGS.layout_mode || 'gallery') === 'banner' && PAGE_SETTINGS.banner_image) {
-      document.getElementById('thumbs').innerHTML = '';
-    } else {
-      renderThumbs();
-    }
+    renderThumbs();
     renderSizes();
     renderColors();
   }
@@ -947,9 +1040,33 @@ body.banner-mode {
       : '';
     const useBanner = PAGE_SETTINGS.layout_mode === 'banner' && !!bannerSrc;
     document.body.classList.toggle('banner-mode', useBanner);
+    const wrap = document.getElementById('bannerLoadWrap');
     const bannerImg = document.getElementById('bannerImg');
-    bannerImg.src = useBanner ? bannerSrc : '';
-    bannerImg.style.display = useBanner ? 'block' : 'none';
+    const spin = document.getElementById('bannerSpinner');
+    if (!useBanner) {
+      if (wrap) wrap.style.display = 'none';
+      if (bannerImg) {
+        bannerImg.onload = null;
+        bannerImg.onerror = null;
+        bannerImg.removeAttribute('src');
+      }
+      if (spin) spin.classList.remove('is-hidden');
+      return;
+    }
+    if (wrap) wrap.style.display = 'block';
+    if (spin) spin.classList.remove('is-hidden');
+    if (bannerImg && bannerSrc) {
+      bannerImg.onload = function () {
+        if (spin) spin.classList.add('is-hidden');
+      };
+      bannerImg.onerror = function () {
+        if (spin) spin.classList.add('is-hidden');
+      };
+      bannerImg.src = bannerSrc;
+      if (bannerImg.complete && bannerImg.naturalHeight > 0) {
+        if (spin) spin.classList.add('is-hidden');
+      }
+    }
   }
 
   function applyTopbarSettings() {
@@ -957,17 +1074,22 @@ body.banner-mode {
     topbar.textContent = '🚚 ' + (PAGE_SETTINGS.topbar_text || 'شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام');
     const colors = { red:'#e74c3c', green:'#27ae60', blue:'#2980b9', black:'#111111' };
     topbar.style.background = colors[PAGE_SETTINGS.topbar_color] || colors.red;
+    const cod = document.getElementById('codText');
+    if (cod) cod.textContent = '💰 ' + (PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام فقط');
   }
 
   function applyCodText() {
     const cod = PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام فقط';
-    document.getElementById('codText').textContent = '💰 ' + cod;
+    const codEl = document.getElementById('codText');
+    if (codEl) codEl.textContent = '💰 ' + cod;
     const short = cod.replace(/ فقط$/, '');
     const banner = document.body.classList.contains('banner-mode');
-    document.getElementById('orderFormTitle').textContent = banner ? '📦 اطلب الآن' : ('📦 اطلب الآن — ' + short);
+    const oft = document.getElementById('orderFormTitle');
+    if (oft) oft.textContent = banner ? '📦 اطلب الآن' : ('📦 اطلب الآن — ' + short);
     const sub = document.getElementById('formSectionSubtitle');
     if (sub) sub.textContent = banner ? '' : 'أكمل بياناتك وسنتواصل معك لتأكيد الطلب';
-    document.getElementById('submitText').textContent = 'تأكيد الطلب — ' + short;
+    const st = document.getElementById('submitText');
+    if (st) st.textContent = 'تأكيد الطلب — ' + short;
   }
 
   function applyUpsellSettings() {
@@ -1064,6 +1186,7 @@ body.banner-mode {
 
   function toggleUpsellVisual() {
     const cb = document.getElementById('upsellCb');
+    if (!cb) return;
     cb.style.background = UPSELL ? '#27ae60' : 'white';
     cb.style.color = UPSELL ? 'white' : '#27ae60';
     cb.textContent = UPSELL ? '✓' : '';
@@ -1088,22 +1211,29 @@ body.banner-mode {
   // RECALC
   function recalc() {
     const { productTotal, total, discount } = orderTotals();
-    document.getElementById('displayPrice').textContent = productTotal.toLocaleString();
-    document.getElementById('sPrice').textContent = productTotal.toLocaleString() + ' IQD';
+    const dp = document.getElementById('displayPrice');
+    if (dp) dp.textContent = productTotal.toLocaleString();
+    const sPrice = document.getElementById('sPrice');
+    if (sPrice) sPrice.textContent = productTotal.toLocaleString() + ' IQD';
     const shipEl = document.getElementById('sShip');
-    if (SHIP === 0) {
-      shipEl.textContent = 'اختر المحافظة';
-      shipEl.style.color = '#999';
-    } else if (QTY >= 2) {
-      shipEl.textContent = 'مجاني 🎁';
-      shipEl.style.color = '#27ae60';
-    } else {
-      shipEl.textContent = SHIP.toLocaleString() + ' IQD';
-      shipEl.style.color = '#111';
+    if (shipEl) {
+      if (SHIP === 0) {
+        shipEl.textContent = 'اختر المحافظة';
+        shipEl.style.color = '#999';
+      } else if (QTY >= 2) {
+        shipEl.textContent = 'مجاني 🎁';
+        shipEl.style.color = '#27ae60';
+      } else {
+        shipEl.textContent = SHIP.toLocaleString() + ' IQD';
+        shipEl.style.color = '#111';
+      }
     }
-    document.getElementById('discountSummaryRow').style.display = discount > 0 ? 'flex' : 'none';
-    document.getElementById('sDiscount').textContent = '-' + discount.toLocaleString() + ' IQD';
-    document.getElementById('sTotal').textContent = total.toLocaleString() + ' IQD';
+    const discRow = document.getElementById('discountSummaryRow');
+    if (discRow) discRow.style.display = discount > 0 ? 'flex' : 'none';
+    const sDisc = document.getElementById('sDiscount');
+    if (sDisc) sDisc.textContent = '-' + discount.toLocaleString() + ' IQD';
+    const sTot = document.getElementById('sTotal');
+    if (sTot) sTot.textContent = total.toLocaleString() + ' IQD';
   }
 
   function couponMessage(text, type) {
@@ -1425,23 +1555,36 @@ body.banner-mode {
   function closeModal() {
     document.getElementById('modal').classList.remove('open');
   }
-  // COUNTDOWN
+  // COUNTDOWN (gallery only — DOM removed in banner mode)
   let secs = 2 * 3600 + 47 * 60 + 30;
+  let countdownTimerId = null;
+  function clearCountdownTimer() {
+    if (countdownTimerId) {
+      clearInterval(countdownTimerId);
+      countdownTimerId = null;
+    }
+  }
   function resetCountdown() {
+    clearCountdownTimer();
+    const wrap = document.getElementById('countdownWrap');
+    const hEl = document.getElementById('cdH');
+    if (!wrap || !hEl) return;
     const hours = Number(PAGE_SETTINGS.countdown_hours ?? 2);
     const minutes = Number(PAGE_SETTINGS.countdown_minutes ?? 47);
     secs = Math.max(0, hours * 3600 + minutes * 60);
-    document.getElementById('cdH').textContent = String(Math.floor(secs/3600)).padStart(2,'0');
-    document.getElementById('cdM').textContent = String(Math.floor((secs%3600)/60)).padStart(2,'0');
-    document.getElementById('cdS').textContent = String(secs%60).padStart(2,'0');
+    hEl.textContent = String(Math.floor(secs / 3600)).padStart(2, '0');
+    document.getElementById('cdM').textContent = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+    document.getElementById('cdS').textContent = String(secs % 60).padStart(2, '0');
+    countdownTimerId = setInterval(() => {
+      if (secs <= 0) return;
+      secs--;
+      const h = document.getElementById('cdH');
+      if (!h) { clearCountdownTimer(); return; }
+      h.textContent = String(Math.floor(secs / 3600)).padStart(2, '0');
+      document.getElementById('cdM').textContent = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+      document.getElementById('cdS').textContent = String(secs % 60).padStart(2, '0');
+    }, 1000);
   }
-  setInterval(() => {
-    if (secs <= 0) return;
-    secs--;
-    document.getElementById('cdH').textContent = String(Math.floor(secs/3600)).padStart(2,'0');
-    document.getElementById('cdM').textContent = String(Math.floor((secs%3600)/60)).padStart(2,'0');
-    document.getElementById('cdS').textContent = String(secs%60).padStart(2,'0');
-  }, 1000);
 
   function normalizeProduct(p) {
     const imgs = parseProductImages(p);
