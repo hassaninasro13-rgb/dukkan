@@ -86,14 +86,35 @@ button{cursor:pointer}
 .meta{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--muted)}
 .status-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
 .status-active,.status-delivered{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
-.status-inactive,.status-returned,.status-cancelled{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
-.status-pending{background:rgba(240,165,0,.15);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+.status-inactive,.status-cancelled{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.status-returned{background:rgba(125,133,144,.18);color:var(--muted);border:1px solid rgba(125,133,144,.34)}
+.status-pending{background:rgba(245,166,35,.16);color:#f5a623;border:1px solid rgba(245,166,35,.34)}
 .status-confirmed{background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.3)}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .order-date{font-size:11px;color:var(--muted);margin-top:2px}
 .order-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
 .info-label{color:var(--muted);font-size:11px;margin-bottom:2px}
 .info-val{font-size:13px;font-weight:600;word-break:break-word}
+.order-card{padding:9px 12px;min-height:76px;max-height:80px;display:grid;gap:3px;cursor:pointer;overflow:hidden}
+.order-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.order-card-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;font-size:12px;line-height:1.25}
+.order-card-row.first{direction:ltr}
+.order-card-row.first>*{direction:rtl}
+.order-card .order-id{font-size:13px;white-space:nowrap}
+.order-card .status-badge{padding:3px 9px;font-size:10px}
+.order-brief-main,.order-brief-meta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-brief-main{color:var(--text);font-weight:800}
+.order-brief-meta{color:var(--muted)}
+.order-total{color:var(--gold);font-weight:900;white-space:nowrap}
+.order-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:850;display:none;align-items:flex-end;justify-content:center;padding:18px}
+.order-sheet-bg.open{display:flex}
+.order-sheet{background:var(--card);border:1px solid var(--border);border-radius:22px 22px 0 0;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:0 -24px 80px rgba(0,0,0,.36)}
+.order-sheet-handle{width:46px;height:4px;background:var(--border);border-radius:999px;margin:10px auto 2px}
+.order-sheet-head{padding:12px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.order-sheet-title{font-family:'Tajawal',sans-serif;font-size:20px;font-weight:900;color:var(--gold);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.order-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px 20px}
+.order-detail-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+.order-sheet-actions{padding:0 20px 18px;display:flex;gap:8px;flex-wrap:wrap}
 .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -155,6 +176,7 @@ button{cursor:pointer}
   .section{border-radius:14px;margin-bottom:16px}
   .section-head,.section-body{padding:14px}
   .product-card,.order-card,.stat-card{width:100%;padding:14px}
+  .order-card{padding:9px 12px}
   .product-top,.order-top{display:grid;grid-template-columns:1fr;gap:10px}
   .product-main{width:100%;display:grid;grid-template-columns:76px minmax(0,1fr)}
   .product-main>div{min-width:0}
@@ -163,6 +185,9 @@ button{cursor:pointer}
   .actions .btn{flex:1 1 calc(50% - 8px);min-width:130px}
   .modal-bg{align-items:flex-start;padding:10px}
   .modal-box{width:100%;max-height:calc(100vh - 20px);border-radius:16px}
+  .order-sheet-bg{padding:0}
+  .order-sheet{max-height:88vh;border-radius:22px 22px 0 0}
+  .order-detail-grid{grid-template-columns:1fr}
 }
 @media(max-width:480px){
   .main{padding:12px}
@@ -312,6 +337,20 @@ button{cursor:pointer}
   </main>
 </div>
 
+<div class="order-sheet-bg" id="orderSheet" onclick="if(event.target===this)closeOrderSheet()">
+  <div class="order-sheet">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-head">
+      <div>
+        <div class="order-sheet-title" id="orderSheetTitle">#—</div>
+        <div class="order-date" id="orderSheetDate">—</div>
+      </div>
+      <button class="modal-close" onclick="closeOrderSheet()">×</button>
+    </div>
+    <div id="orderSheetBody"></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="productModal">
   <div class="modal-box">
     <div class="modal-head">
@@ -412,7 +451,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,trackingPixels=[],orderFilter='all',editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
+let merchant=null,products=[],orders=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -968,6 +1007,23 @@ function orderStatusLabel(status){
   return labels[status]||status||'انتظار';
 }
 
+function orderStatusBadge(status){
+  const safeStatus=escAttr(status||'pending');
+  return '<span class="status-badge status-'+safeStatus+'">'+esc(orderStatusLabel(status))+'</span>';
+}
+
+function orderDate(o,short=false){
+  if(!o.created_at)return '—';
+  const options=short
+    ? {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}
+    : {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'};
+  return new Date(o.created_at).toLocaleString('ar-IQ',options);
+}
+
+function orderCustomerName(o){
+  return ((o.first_name||'')+' '+(o.last_name||'')).trim()||'زبون';
+}
+
 function renderRecentOrders(){
   const recent=orders.slice(0,5);
   document.getElementById('recentCount').textContent=recent.length+' طلب';
@@ -977,12 +1033,53 @@ function renderRecentOrders(){
 }
 
 function orderCard(o){
-  const labels={pending:'⏳ انتظار',confirmed:'✅ مؤكد',delivered:'🚚 موصل',returned:'↩️ راجع',cancelled:'❌ ملغي'};
-  const d=o.created_at?new Date(o.created_at).toLocaleString('ar-IQ',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  const idArg=escAttr(JSON.stringify(String(o.id)));
+  const location=[orderCustomerName(o),o.governorate||''].filter(Boolean).join(' — ');
+  return '<div class="order-card" role="button" tabindex="0" onclick="openOrderSheet('+idArg+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openOrderSheet('+idArg+')}">'+
+    '<div class="order-card-row first"><div class="order-id">#'+esc(o.order_number||o.id)+'</div>'+orderStatusBadge(o.status)+'</div>'+
+    '<div class="order-card-row"><div class="order-brief-main">'+esc(location)+'</div></div>'+
+    '<div class="order-card-row"><div class="order-total">'+Number(o.total_price||0).toLocaleString()+' IQD</div><div class="order-brief-meta">'+esc(orderDate(o,true))+'</div></div>'+
+  '</div>';
+}
+
+function orderDetail(label,value,attrs=''){
+  return '<div class="order-detail-item"><div class="info-label">'+label+'</div><div class="info-val" '+attrs+'>'+esc(value||'—')+'</div></div>';
+}
+
+function openOrderSheet(id){
+  const o=orders.find(x=>String(x.id)===String(id));
+  if(!o)return;
+  currentOrderSheetId=String(id);
+  const orderNo=o.order_number||o.id;
   const wa='https://wa.me/'+normalizePhone(o.phone)+'?text='+encodeURIComponent('مرحباً '+(o.first_name||'')+'، بخصوص طلبك #'+(o.order_number||'')+' من دكّان');
-  return '<div class="order-card"><div class="order-top"><div><div class="order-id">#'+esc(o.order_number||o.id)+'</div><div class="order-date">'+d+'</div></div><span class="status-badge status-'+escAttr(o.status||'pending')+'">'+(labels[o.status]||o.status||'انتظار')+'</span></div>'+
-    '<div class="order-info"><div><div class="info-label">👤 الاسم</div><div class="info-val">'+esc((o.first_name||'')+' '+(o.last_name||''))+'</div></div><div><div class="info-label">📞 الهاتف</div><div class="info-val" dir="ltr" style="text-align:right">'+esc(o.phone||'')+'</div></div><div><div class="info-label">📍 المحافظة</div><div class="info-val">'+esc(o.governorate||'')+'</div></div><div><div class="info-label">🏠 العنوان</div><div class="info-val">'+esc(o.address||'')+'</div></div><div><div class="info-label">📏 مقاس/لون</div><div class="info-val">'+esc(o.size||'—')+' — '+esc(o.color||'—')+'</div></div><div><div class="info-label">🔢 الكمية</div><div class="info-val">'+(o.quantity||1)+'</div></div><div><div class="info-label">💰 الإجمالي</div><div class="info-val" style="color:var(--gold)">'+Number(o.total_price||0).toLocaleString()+' IQD</div></div></div>'+
-    '<div class="actions"><a class="btn btn-green" href="'+wa+'" target="_blank">💬 واتساب</a><button class="btn btn-card" onclick="setOrderStatus(\''+o.id+'\',\'pending\')">انتظار</button><button class="btn btn-blue" onclick="setOrderStatus(\''+o.id+'\',\'confirmed\')">مؤكد</button><button class="btn btn-green" onclick="setOrderStatus(\''+o.id+'\',\'delivered\')">موصل</button><button class="btn btn-red" onclick="setOrderStatus(\''+o.id+'\',\'returned\')">راجع</button></div></div>';
+  document.getElementById('orderSheetTitle').innerHTML='#'+esc(orderNo)+' '+orderStatusBadge(o.status);
+  document.getElementById('orderSheetDate').textContent=orderDate(o);
+  document.getElementById('orderSheetBody').innerHTML=
+    '<div class="order-detail-grid">'+
+      orderDetail('👤 الاسم',orderCustomerName(o))+
+      orderDetail('📞 الهاتف',o.phone,'dir="ltr" style="text-align:right"')+
+      orderDetail('📍 المحافظة',o.governorate)+
+      orderDetail('🏠 العنوان',o.address)+
+      orderDetail('📦 المنتج',o.product_name||o.product)+
+      orderDetail('📏 المقاس',o.size)+
+      orderDetail('🎨 اللون',o.color)+
+      orderDetail('🔢 الكمية',o.quantity||1)+
+      orderDetail('🚚 الشحن',Number(o.shipping_cost||0).toLocaleString()+' IQD')+
+      orderDetail('💰 الإجمالي',Number(o.total_price||0).toLocaleString()+' IQD')+
+    '</div>'+
+    '<div class="order-sheet-actions">'+
+      '<a class="btn btn-green" href="'+escAttr(wa)+'" target="_blank" rel="noopener">💬 واتساب</a>'+
+      '<button class="btn btn-card" onclick="setOrderStatus('+escAttr(JSON.stringify(String(o.id)))+',\'pending\')">انتظار</button>'+
+      '<button class="btn btn-blue" onclick="setOrderStatus('+escAttr(JSON.stringify(String(o.id)))+',\'confirmed\')">مؤكد</button>'+
+      '<button class="btn btn-green" onclick="setOrderStatus('+escAttr(JSON.stringify(String(o.id)))+',\'delivered\')">موصل</button>'+
+      '<button class="btn btn-card" onclick="setOrderStatus('+escAttr(JSON.stringify(String(o.id)))+',\'returned\')">راجع</button>'+
+    '</div>';
+  document.getElementById('orderSheet').classList.add('open');
+}
+
+function closeOrderSheet(){
+  currentOrderSheetId=null;
+  document.getElementById('orderSheet').classList.remove('open');
 }
 
 async function setOrderStatus(id,status){
@@ -993,7 +1090,9 @@ async function setOrderStatus(id,status){
   console.log('step 2: orders update response',res);
   if(res.error){console.error('setOrderStatus Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
   const o=orders.find(x=>String(x.id)===String(id));if(o)o.status=status;
-  renderOrders();renderRecentOrders();updateStats();showToast('تم تحديث الحالة ✅','success');
+  renderOrders();renderRecentOrders();updateStats();
+  if(currentOrderSheetId&&String(currentOrderSheetId)===String(id))openOrderSheet(id);
+  showToast('تم تحديث الحالة ✅','success');
   console.log('step 4: order status updated',res.data);
   console.groupEnd();
 }
