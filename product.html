@@ -874,24 +874,38 @@ body.banner-mode {
         return;
       }
 
-      const { data, error } = await sb
+      let { data, error } = await sb
         .from('merchant_products')
         .select('*')
         .eq('id', productId)
-        .maybeSingle();
-      console.log('[DEBUG] product:', data, 'error:', error);
+        .eq('is_active', true)
+        .limit(1);
+      let product = data?.[0] || null;
+      console.log('[DEBUG] product:', product, 'error:', error);
 
-      if (error || !data) {
+      if (!product) {
+        const r2 = await sb
+          .from('merchant_products')
+          .select('*')
+          .eq('id', productId)
+          .limit(1);
+        data = r2.data;
+        error = r2.error;
+        product = data?.[0] || null;
+        console.log('[DEBUG] product:', product, 'error:', error);
+      }
+
+      if (error || !product) {
         console.error('[DEBUG] merchant_products query failed', error);
         alert('تعذر تحميل المنتج');
         return;
       }
-      if (data.is_active === false) {
+      if (product.is_active === false) {
         alert('تعذر تحميل المنتج');
         return;
       }
 
-      PRODUCT = normalizeProduct(data);
+      PRODUCT = normalizeProduct(product);
       BASE = PRODUCT.price;
 
       const ctx = await fetchProductPageContext(PRODUCT);
