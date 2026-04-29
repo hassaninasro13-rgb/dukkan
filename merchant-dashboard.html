@@ -90,6 +90,7 @@ button{cursor:pointer}
 .status-returned{background:rgba(125,133,144,.18);color:var(--muted);border:1px solid rgba(125,133,144,.34)}
 .status-pending{background:rgba(245,166,35,.16);color:#f5a623;border:1px solid rgba(245,166,35,.34)}
 .status-confirmed{background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.3)}
+.stock-low,.stock-out{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.35)}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .order-date{font-size:11px;color:var(--muted);margin-top:2px}
 .order-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
@@ -124,6 +125,13 @@ button{cursor:pointer}
 .province-bar{height:9px;background:var(--bg);border:1px solid var(--border);border-radius:999px;overflow:hidden}
 .province-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ffd56a);border-radius:999px}
 .province-count{color:var(--muted);text-align:left;font-weight:800}
+.stock-warning{display:none;border-color:rgba(248,81,73,.36);background:rgba(248,81,73,.08)}
+.stock-warning.show{display:block}
+.stock-warning-title{font-size:16px;font-weight:900;color:var(--red)}
+.stock-warning-list{display:grid;gap:8px;margin-top:12px}
+.stock-warning-item{display:flex;justify-content:space-between;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px}
+.stock-warning-item strong{color:var(--text)}
+.stock-warning-item span{color:var(--red);font-weight:900;white-space:nowrap}
 .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -272,6 +280,12 @@ button{cursor:pointer}
         <div class="stat-card"><div class="stat-label">🛒 إجمالي الطلبات</div><div class="stat-value" style="color:var(--gold)" id="statTotalOrders">—</div><div class="stat-sub">كل الطلبات</div></div>
         <div class="stat-card"><div class="stat-label">💰 الإيرادات</div><div class="stat-value" style="color:var(--green)" id="statRevenue">—</div><div class="stat-sub">الموصلة فقط IQD</div></div>
         <div class="stat-card"><div class="stat-label">📊 معدل التحويل</div><div class="stat-value" style="color:var(--blue)" id="statConversion">—</div><div class="stat-sub">الطلبات ÷ زيارات الشهر</div></div>
+      </div>
+      <div class="section stock-warning" id="stockWarning">
+        <div class="section-body">
+          <div class="stock-warning-title" id="stockWarningTitle">⚠️ تحذير: 0 منتج مخزونه منخفض</div>
+          <div class="stock-warning-list" id="stockWarningList"></div>
+        </div>
       </div>
       <div class="section">
         <div class="section-head"><h3>طلبات آخر 7 أيام</h3></div>
@@ -717,12 +731,15 @@ function renderProducts(){
     const old=p.old_price?'<span class="meta">قديم: '+Number(p.old_price).toLocaleString()+' IQD</span>':'';
     const sizes=Array.isArray(p.sizes)?p.sizes.join('، '):'';
     const colors=Array.isArray(p.colors)?p.colors.join('، '):'';
+    const stockBadge=p.stock===0
+      ? '<span class="status-badge stock-out">نفد المخزون 🚫</span>'
+      : (p.stock<=5?'<span class="status-badge stock-low">مخزون منخفض ⚠️</span>':'');
     return '<div class="product-card"><div class="product-top"><div class="product-main">'+
       '<img class="product-img" src="'+escAttr(img||'https://via.placeholder.com/144/161b22/f0a500?text=Dukkan')+'" alt="">'+
       '<div><div class="product-name">'+esc(p.name||'—')+'</div><div class="product-desc">'+esc(p.description||'—')+'</div>'+
       '<div class="meta-row"><span class="meta">السعر: '+price+' IQD</span>'+old+'<span class="meta">المخزون: '+(p.stock||0)+'</span><span class="meta">زيارات: '+(p.visits||0)+'</span></div>'+
       '<div class="meta-row">'+(sizes?'<span class="meta">المقاسات: '+esc(sizes)+'</span>':'')+(colors?'<span class="meta">الألوان: '+esc(colors)+'</span>':'')+'</div></div></div>'+
-      '<span class="status-badge '+(p.is_active===false?'status-inactive':'status-active')+'">'+(p.is_active===false?'متوقف':'مفعل')+'</span></div>'+
+      '<div class="actions">'+stockBadge+'<span class="status-badge '+(p.is_active===false?'status-inactive':'status-active')+'">'+(p.is_active===false?'متوقف':'مفعل')+'</span></div></div>'+
       '<div class="actions"><button class="btn btn-blue" onclick="openProductModal(\''+p.id+'\')">✏️ تعديل</button><button class="btn btn-gold" onclick="openPageSettingsModal(\''+p.id+'\')">⚙️ إعدادات الصفحة</button><button class="btn btn-card" onclick="toggleProduct(\''+p.id+'\','+(p.is_active!==false?'false':'true')+')">'+(p.is_active!==false?'⏸️ إيقاف':'▶️ تفعيل')+'</button><button class="btn btn-red" onclick="deleteProduct(\''+p.id+'\')">🗑️ حذف</button></div></div>';
   }).join('');
 }
@@ -1557,11 +1574,24 @@ function updateStats(){
   setText('statTotalOrders',(analytics.totalOrders||orders.length).toLocaleString());
   setText('statRevenue',Number(analytics.totalRevenue||fallbackRevenue).toLocaleString());
   setText('statConversion',(analytics.conversionRate||0)+'%');
+  renderLowStockWarning();
 }
 
 function setText(id,value){
   const el=document.getElementById(id);
   if(el)el.textContent=value;
+}
+
+function renderLowStockWarning(){
+  const box=document.getElementById('stockWarning');
+  const title=document.getElementById('stockWarningTitle');
+  const list=document.getElementById('stockWarningList');
+  if(!box||!title||!list)return;
+  const low=products.filter(p=>Number(p.stock||0)<=5);
+  if(!low.length){box.classList.remove('show');list.innerHTML='';return;}
+  box.classList.add('show');
+  title.textContent='⚠️ تحذير: '+low.length+' منتج مخزونه منخفض';
+  list.innerHTML=low.map(p=>'<div class="stock-warning-item"><strong>'+esc(p.name||'منتج بدون اسم')+'</strong><span>'+Number(p.stock||0)+' متبقي</span></div>').join('');
 }
 
 function normalizePhone(phone){
