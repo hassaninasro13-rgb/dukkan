@@ -75,8 +75,8 @@ button{cursor:pointer}
 .filter-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;min-height:44px;border-radius:20px;font-size:12px;font-weight:600;transition:all .2s}
 .filter-btn.active{background:rgba(240,165,0,.12);border-color:var(--gold);color:var(--gold)}
 .grid-list{display:grid;gap:12px}
-.product-card,.order-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;transition:background .15s}
-.product-card:hover,.order-card:hover{background:var(--card2)}
+.product-card,.order-card,.coupon-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;transition:background .15s}
+.product-card:hover,.order-card:hover,.coupon-card:hover{background:var(--card2)}
 .product-top,.order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
 .product-main{display:flex;gap:12px;align-items:flex-start}
 .product-img{width:72px;height:72px;border-radius:12px;background:var(--bg);border:1px solid var(--border);object-fit:cover;flex-shrink:0}
@@ -115,6 +115,8 @@ button{cursor:pointer}
 .order-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px 20px}
 .order-detail-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
 .order-sheet-actions{padding:0 20px 18px;display:flex;gap:8px;flex-wrap:wrap}
+.coupon-code{font-size:18px;font-weight:900;color:var(--gold);direction:ltr;text-align:left;letter-spacing:.08em}
+.coupon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
 .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -167,7 +169,7 @@ button{cursor:pointer}
   .layout{display:block!important;min-height:100vh}
   .sidebar{display:none}
   .main{margin-right:0;padding:14px 14px calc(80px + env(safe-area-inset-bottom));width:100%;max-width:100%;overflow:hidden}
-  .bottom-nav{position:fixed;right:0;left:0;bottom:0;min-height:65px;height:calc(65px + env(safe-area-inset-bottom));padding:6px 10px env(safe-area-inset-bottom);background:rgba(22,27,34,.96);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;z-index:700;backdrop-filter:blur(18px)}
+  .bottom-nav{position:fixed;right:0;left:0;bottom:0;min-height:65px;height:calc(65px + env(safe-area-inset-bottom));padding:6px 10px env(safe-area-inset-bottom);background:rgba(22,27,34,.96);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);gap:6px;z-index:700;backdrop-filter:blur(18px)}
   .page-title{font-size:21px}
   .topbar{align-items:flex-start;margin-bottom:16px}
   .top-actions,.filters{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}
@@ -175,7 +177,7 @@ button{cursor:pointer}
   .form-grid,.stats-grid,.order-info{grid-template-columns:1fr}
   .section{border-radius:14px;margin-bottom:16px}
   .section-head,.section-body{padding:14px}
-  .product-card,.order-card,.stat-card{width:100%;padding:14px}
+  .product-card,.order-card,.coupon-card,.stat-card{width:100%;padding:14px}
   .order-card{padding:9px 12px}
   .product-top,.order-top{display:grid;grid-template-columns:1fr;gap:10px}
   .product-main{width:100%;display:grid;grid-template-columns:76px minmax(0,1fr)}
@@ -229,6 +231,7 @@ button{cursor:pointer}
     <button class="nav-item active" data-page="home" onclick="showPage('home',this)"><span>📊</span> الرئيسية</button>
     <button class="nav-item" data-page="products" onclick="showPage('products',this)"><span>📦</span> المنتجات</button>
     <button class="nav-item" data-page="orders" onclick="showPage('orders',this)"><span>🛒</span> الطلبات</button>
+    <button class="nav-item" data-page="coupons" onclick="showPage('coupons',this)"><span>🎟️</span> الكوبونات</button>
     <button class="nav-item" data-page="settings" onclick="showPage('settings',this)"><span>⚙️</span> إعدادات المتجر</button>
     <div class="sidebar-footer">
       <a class="side-link" id="storePreview" href="/" target="_blank">👁️ معاينة المتجر</a>
@@ -240,6 +243,7 @@ button{cursor:pointer}
     <button class="bottom-nav-item active" data-page="home" onclick="showPage('home',this)"><span class="nav-icon">🏠</span><span>الرئيسية</span></button>
     <button class="bottom-nav-item" data-page="products" onclick="showPage('products',this)"><span class="nav-icon">📦</span><span>المنتجات</span></button>
     <button class="bottom-nav-item" data-page="orders" onclick="showPage('orders',this)"><span class="nav-icon">🛒</span><span>الطلبات</span></button>
+    <button class="bottom-nav-item" data-page="coupons" onclick="showPage('coupons',this)"><span class="nav-icon">🎟️</span><span>الكوبونات</span></button>
     <button class="bottom-nav-item" data-page="settings" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span><span>الإعدادات</span></button>
   </div>
 
@@ -297,6 +301,20 @@ button{cursor:pointer}
       <div class="section">
         <div class="section-head"><h3>قائمة طلبات هذا التاجر</h3><span class="count-pill" id="ordersCount">0 طلب</span></div>
         <div class="section-body"><div class="grid-list" id="ordersList"><div class="empty-state"><div class="spinner"></div>جاري التحميل...</div></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-coupons">
+      <div class="topbar">
+        <div class="page-title">🎟️ الكوبونات</div>
+        <div class="top-actions">
+          <button class="btn btn-card" onclick="loadCoupons()">🔄 تحديث</button>
+          <button class="btn btn-gold" onclick="openCouponModal()">+ إضافة كوبون</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h3>قائمة كوبونات التاجر</h3><span class="count-pill" id="couponsCount">0 كوبون</span></div>
+        <div class="section-body"><div class="grid-list" id="couponsList"><div class="empty-state"><div class="spinner"></div>جاري التحميل...</div></div></div>
       </div>
     </div>
 
@@ -362,6 +380,30 @@ button{cursor:pointer}
       <button class="modal-close" onclick="closeOrderSheet()">×</button>
     </div>
     <div id="orderSheetBody"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="couponModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">إضافة كوبون</div>
+      <button class="modal-close" onclick="closeCouponModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">كود الكوبون</label><input class="form-input" id="cCode" dir="ltr" style="text-align:right;text-transform:uppercase" placeholder="SUMMER20"></div>
+        <div class="form-group"><label class="form-label">نوع الخصم</label><select class="form-input" id="cType"><option value="percent">نسبة %</option><option value="fixed">مبلغ ثابت IQD</option></select></div>
+        <div class="form-group"><label class="form-label">قيمة الخصم</label><input class="form-input" id="cValue" type="number" min="0"></div>
+        <div class="form-group"><label class="form-label">الحد الأدنى للطلب</label><input class="form-input" id="cMinOrder" type="number" min="0" placeholder="اختياري"></div>
+        <div class="form-group"><label class="form-label">أقصى عدد استخدام</label><input class="form-input" id="cMaxUses" type="number" min="0" placeholder="اختياري"></div>
+        <div class="form-group"><label class="form-label">تاريخ الانتهاء</label><input class="form-input" id="cExpiresAt" type="date"></div>
+        <div class="form-group"><label class="form-label">الحالة</label><select class="form-input" id="cActive"><option value="true">مفعل</option><option value="false">متوقف</option></select></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-green" id="saveCouponBtn" onclick="saveCoupon()">💾 حفظ الكوبون</button>
+        <button class="btn btn-card" onclick="closeCouponModal()">إلغاء</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -465,7 +507,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
+let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('dukkan_merchant');
@@ -582,7 +624,7 @@ function showPage(name,el){
 }
 
 async function refreshAll(){
-  await Promise.all([loadProducts(),loadOrders(),loadSettings(),loadTrackingPixels()]);
+  await Promise.all([loadProducts(),loadOrders(),loadCoupons(),loadSettings(),loadTrackingPixels()]);
   updateStats();
 }
 
@@ -975,6 +1017,98 @@ async function loadOrders(){
   updateStats();
   console.log('step 4: orders loaded',{count:orders.length});
   console.groupEnd();
+}
+
+async function loadCoupons(){
+  const merchantId=getMerchantId();
+  console.log('[Dukkan] loadCoupons start',{table:'coupons',merchantId});
+  const box=document.getElementById('couponsList');
+  if(!merchantId){if(box)box.innerHTML='<div class="empty-state">لا يوجد معرّف تاجر صالح</div>';return;}
+  const{data,error}=await SB.from('coupons')
+    .select('id,merchant_id,code,discount_type,discount_value,min_order,max_uses,uses_count,expires_at,is_active,created_at')
+    .eq('merchant_id',merchantId)
+    .order('created_at',{ascending:false});
+  console.log('[Dukkan] loadCoupons response',{data,error});
+  if(error){console.error('loadCoupons Supabase error:',error);showToast(supabaseErrorText(error),'error');return;}
+  coupons=data||[];
+  renderCoupons();
+}
+
+function renderCoupons(){
+  const box=document.getElementById('couponsList');
+  const count=document.getElementById('couponsCount');
+  if(count)count.textContent=coupons.length+' كوبون';
+  if(!box)return;
+  if(!coupons.length){box.innerHTML='<div class="empty-state"><div style="font-size:40px">🎟️</div><div style="margin-top:10px">لا توجد كوبونات</div></div>';return;}
+  box.innerHTML=coupons.map(couponCard).join('');
+}
+
+function couponDiscountText(c){
+  return c.discount_type==='percent'
+    ? Number(c.discount_value||0).toLocaleString()+'%'
+    : Number(c.discount_value||0).toLocaleString()+' IQD';
+}
+
+function couponCard(c){
+  const active=c.is_active!==false;
+  const uses=Number(c.uses_count||0).toLocaleString()+' / '+(c.max_uses?Number(c.max_uses).toLocaleString():'∞');
+  const min=c.min_order?Number(c.min_order).toLocaleString()+' IQD':'بدون حد أدنى';
+  const expires=c.expires_at?new Date(c.expires_at).toLocaleDateString('ar-IQ'):'بدون انتهاء';
+  return '<div class="coupon-card"><div class="product-top"><div><div class="coupon-code">'+esc(c.code)+'</div><div class="product-desc">خصم '+couponDiscountText(c)+'</div></div><span class="status-badge '+(active?'status-active':'status-inactive')+'">'+(active?'مفعل':'متوقف')+'</span></div>'+
+    '<div class="coupon-grid"><span class="meta">الاستخدامات: '+uses+'</span><span class="meta">الحد الأدنى: '+min+'</span><span class="meta">الانتهاء: '+expires+'</span></div>'+
+    '<div class="actions" style="margin-top:12px"><button class="btn btn-red" onclick="deleteCoupon(\''+escAttr(c.id)+'\')">حذف</button></div></div>';
+}
+
+function openCouponModal(){
+  ['cCode','cValue','cMinOrder','cMaxUses','cExpiresAt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cType').value='percent';
+  document.getElementById('cActive').value='true';
+  document.getElementById('couponModal').classList.add('open');
+  setTimeout(()=>document.getElementById('cCode').focus(),0);
+}
+
+function closeCouponModal(){
+  document.getElementById('couponModal').classList.remove('open');
+}
+
+async function saveCoupon(){
+  const btn=document.getElementById('saveCouponBtn');
+  try{
+    const merchantId=getMerchantId();
+    if(!merchantId)throw new Error('لا يوجد معرّف تاجر صالح');
+    const code=document.getElementById('cCode').value.trim().toUpperCase().replace(/\s+/g,'');
+    const discountType=document.getElementById('cType').value;
+    const discountValue=num('cValue');
+    const minOrder=document.getElementById('cMinOrder').value?num('cMinOrder'):null;
+    const maxUses=document.getElementById('cMaxUses').value?num('cMaxUses'):null;
+    const expiresDate=document.getElementById('cExpiresAt').value;
+    const expiresAt=expiresDate?expiresDate+'T23:59:59+00:00':null;
+    if(!/^[A-Z0-9_-]{3,32}$/.test(code))throw new Error('أدخل كود كوبون إنجليزي صحيح مثل SUMMER20');
+    if(!discountValue||discountValue<=0)throw new Error('أدخل قيمة خصم صحيحة');
+    if(discountType==='percent'&&discountValue>100)throw new Error('نسبة الخصم لا يمكن أن تتجاوز 100%');
+    btn.disabled=true;btn.textContent='جاري الحفظ...';
+    const payload={merchant_id:merchantId,code,discount_type:discountType,discount_value:discountValue,min_order:minOrder,max_uses:maxUses,expires_at:expiresAt,is_active:document.getElementById('cActive').value==='true'};
+    const{error}=await SB.from('coupons').insert([payload]);
+    if(error)throw error;
+    closeCouponModal();
+    showToast('تم حفظ الكوبون ✅','success');
+    await loadCoupons();
+  }catch(error){
+    console.error('saveCoupon failed:',error);
+    showToast(supabaseErrorText(error),'error');
+  }finally{
+    btn.disabled=false;btn.textContent='💾 حفظ الكوبون';
+  }
+}
+
+async function deleteCoupon(id){
+  if(!confirm('حذف الكوبون؟'))return;
+  const merchantId=getMerchantId();
+  const{error}=await SB.from('coupons').delete().eq('id',id).eq('merchant_id',merchantId);
+  if(error){showToast(supabaseErrorText(error),'error');return;}
+  coupons=coupons.filter(c=>String(c.id)!==String(id));
+  renderCoupons();
+  showToast('تم حذف الكوبون','success');
 }
 
 function setOrderFilter(f,el){

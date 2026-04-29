@@ -363,6 +363,13 @@ body {
   margin-bottom: 8px;
 }
 .summary-divider { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
+.coupon-box { display: flex; gap: 8px; margin-bottom: 14px; }
+.coupon-box input { flex: 1; }
+.coupon-btn { border: none; background: #1a1a2e; color: #FFD700; border-radius: 12px; padding: 0 16px; font-weight: 900; cursor: pointer; }
+.coupon-msg { display: none; margin: -4px 0 14px; font-size: 13px; font-weight: 800; }
+.coupon-msg.ok { display: block; color: #27ae60; }
+.coupon-msg.err { display: block; color: #e74c3c; }
+.summary-discount { display: none; color: #27ae60; font-weight: 800; }
 .summary-total {
   display: flex;
   justify-content: space-between;
@@ -649,9 +656,15 @@ body {
     <!-- ملخص الطلب -->
     <div class="order-summary">
       <div class="summary-title">📋 ملخص الطلب</div>
+      <div class="coupon-box">
+        <input class="form-input" id="couponCode" type="text" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase">
+        <button class="coupon-btn" type="button" onclick="applyCoupon()">تطبيق</button>
+      </div>
+      <div class="coupon-msg" id="couponMsg"></div>
       <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">0 IQD</span></div>
       <div class="summary-row"><span>رسوم التوصيل</span><span id="sShip" style="color:#27ae60">اختر المحافظة</span></div>
       <div class="summary-row" id="upsellSummaryRow"><span>هدية إضافية</span><span style="color:#27ae60" id="upsellSummaryText">هدية مجانية ✓</span></div>
+      <div class="summary-row summary-discount" id="discountSummaryRow"><span>خصم الكوبون</span><span id="sDiscount">-0 IQD</span></div>
       <hr class="summary-divider">
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
     </div>
@@ -737,6 +750,7 @@ body {
   // STATE
   let SIZE = '', COLOR = '', QTY = 1, SHIP = 0, UPSELL = true;
   let PRODUCT = null, MERCHANT = null, SETTINGS = null, PAGE_SETTINGS = null;
+  let APPLIED_COUPON = null, COUPON_DISCOUNT = 0;
   let ACTIVE_PIXELS = [];
   let BASE = 0;
   let PIXELS_READY = false;
@@ -910,6 +924,7 @@ body {
   function changeQty(d) {
     QTY = Math.max(1, Math.min(10, QTY + d));
     document.getElementById('qtyShow').textContent = QTY;
+    clearCoupon();
     recalc();
   }
   // UPSELL
@@ -930,13 +945,20 @@ body {
     const gov = sel.value;
     if (!gov) SHIP = 0;
     else SHIP = gov === 'بغداد' ? Number(SETTINGS.shipping_baghdad || 5000) : Number(SETTINGS.shipping_other || 6000);
+    clearCoupon();
     recalc();
+  }
+
+  function orderTotals() {
+    const productTotal = BASE * QTY;
+    const shipping = QTY >= 2 ? 0 : SHIP;
+    const subtotal = productTotal + shipping;
+    const discount = Math.min(Number(COUPON_DISCOUNT || 0), subtotal);
+    return { productTotal, shipping, subtotal, discount, total: Math.max(0, subtotal - discount) };
   }
   // RECALC
   function recalc() {
-    const productTotal = BASE * QTY;
-    const shipping = QTY >= 2 ? 0 : SHIP;
-    const total = productTotal + shipping;
+    const { productTotal, total, discount } = orderTotals();
     document.getElementById('displayPrice').textContent = productTotal.toLocaleString();
     document.getElementById('sPrice').textContent = productTotal.toLocaleString() + ' IQD';
     const shipEl = document.getElementById('sShip');
@@ -950,7 +972,63 @@ body {
       shipEl.textContent = SHIP.toLocaleString() + ' IQD';
       shipEl.style.color = '#111';
     }
+    document.getElementById('discountSummaryRow').style.display = discount > 0 ? 'flex' : 'none';
+    document.getElementById('sDiscount').textContent = '-' + discount.toLocaleString() + ' IQD';
     document.getElementById('sTotal').textContent = total.toLocaleString() + ' IQD';
+  }
+
+  function couponMessage(text, type) {
+    const el = document.getElementById('couponMsg');
+    el.textContent = text;
+    el.className = 'coupon-msg ' + type;
+  }
+
+  function clearCoupon() {
+    if (!APPLIED_COUPON && !COUPON_DISCOUNT) return;
+    APPLIED_COUPON = null;
+    COUPON_DISCOUNT = 0;
+    couponMessage('تم إلغاء الكوبون بسبب تغيير الطلب، أعد تطبيقه', 'err');
+  }
+
+  function couponDiscount(coupon, subtotal) {
+    const value = Number(coupon.discount_value || 0);
+    return coupon.discount_type === 'percent'
+      ? Math.floor(subtotal * value / 100)
+      : value;
+  }
+
+  async function applyCoupon() {
+    const codeInput = document.getElementById('couponCode');
+    const code = codeInput.value.trim().toUpperCase().replace(/\s+/g, '');
+    codeInput.value = code;
+    APPLIED_COUPON = null;
+    COUPON_DISCOUNT = 0;
+    recalc();
+    if (!code) { couponMessage('أدخل كود الخصم أولاً', 'err'); return; }
+    try {
+      const { subtotal } = orderTotals();
+      const { data, error } = await db
+        .from('coupons')
+        .select('id,merchant_id,code,discount_type,discount_value,min_order,max_uses,uses_count,expires_at,is_active')
+        .eq('merchant_id', PRODUCT.merchant_id)
+        .eq('code', code)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data || data.is_active === false) throw new Error('كود الخصم غير صالح');
+      if (data.expires_at && new Date(data.expires_at) <= new Date()) throw new Error('انتهت صلاحية الكوبون');
+      if (data.max_uses !== null && data.max_uses !== undefined && Number(data.uses_count || 0) >= Number(data.max_uses)) throw new Error('تم استهلاك الكوبون بالكامل');
+      if (Number(data.min_order || 0) > subtotal) throw new Error('الحد الأدنى لهذا الكوبون هو ' + Number(data.min_order || 0).toLocaleString() + ' IQD');
+      const discount = Math.min(couponDiscount(data, subtotal), subtotal);
+      if (discount <= 0) throw new Error('قيمة الخصم غير صالحة');
+      APPLIED_COUPON = data;
+      COUPON_DISCOUNT = discount;
+      couponMessage('تم تطبيق الكوبون ✅ خصم ' + discount.toLocaleString() + ' IQD', 'ok');
+      recalc();
+    } catch (err) {
+      console.warn('[Dukkan] coupon apply failed', err);
+      couponMessage(err?.message || 'كود الخصم غير صالح', 'err');
+      recalc();
+    }
   }
 
   function pixelsFor(platform) {
@@ -1038,9 +1116,7 @@ body {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<span>⏳</span><span>جاري إرسال طلبك...</span>';
-    const productTotal = BASE * QTY;
-    const shipping = QTY >= 2 ? 0 : SHIP;
-    const total = productTotal + shipping;
+    const { productTotal, shipping, total, discount } = orderTotals();
     const orderNum = 'IQ-' + Date.now().toString().slice(-6) + Math.floor(Math.random()*100);
     const orderData = {
       merchant_id:    PRODUCT.merchant_id,
@@ -1059,6 +1135,8 @@ body {
       product_price: productTotal,
       shipping_cost: shipping,
       total_price:   total,
+      coupon_code:   APPLIED_COUPON?.code || null,
+      discount_amount: discount,
       status:        'pending'
     };
     try {
@@ -1082,6 +1160,7 @@ body {
         error = retry.error;
       }
       if (error) throw error;
+      await incrementCouponUse();
       trackPurchase(total);
       sendOrderToGoogleSheets(orderData);
       window.location.href = thankYouUrl(orderData);
@@ -1091,6 +1170,17 @@ body {
     }
     btn.disabled = false;
     btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
+  }
+
+  async function incrementCouponUse() {
+    if (!APPLIED_COUPON?.id) return;
+    const nextUses = Number(APPLIED_COUPON.uses_count || 0) + 1;
+    const { error } = await db
+      .from('coupons')
+      .update({ uses_count: nextUses })
+      .eq('id', APPLIED_COUPON.id)
+      .eq('merchant_id', PRODUCT.merchant_id);
+    if (error) console.warn('[Dukkan] coupon uses_count update failed', error);
   }
 
   function thankYouUrl(orderData) {
