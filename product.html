@@ -1160,6 +1160,7 @@ body {
         error = retry.error;
       }
       if (error) throw error;
+      notifyMerchantWhatsApp(orderData);
       await incrementCouponUse();
       trackPurchase(total);
       sendOrderToGoogleSheets(orderData);
@@ -1170,6 +1171,34 @@ body {
     }
     btn.disabled = false;
     btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
+  }
+
+  function merchantWhatsAppPhone() {
+    let phone = String(SETTINGS?.whatsapp || MERCHANT?.whatsapp || '').replace(/\D/g, '');
+    if (phone.startsWith('0')) phone = '964' + phone.slice(1);
+    if (phone && !phone.startsWith('964')) phone = '964' + phone;
+    return phone;
+  }
+
+  function notifyMerchantWhatsApp(orderData) {
+    const merchantPhone = merchantWhatsAppPhone();
+    if (!merchantPhone) return;
+    const msg = `🛍️ *طلب جديد على دكّان!*
+━━━━━━━━━━━━━
+📦 *رقم الطلب:* #${orderData.order_number}
+👤 *الاسم:* ${orderData.first_name} ${orderData.last_name}
+📞 *الهاتف:* ${orderData.phone}
+📍 *المحافظة:* ${orderData.governorate}
+🏠 *العنوان:* ${orderData.address}
+👕 *المنتج:* ${orderData.product_name}
+📐 *المقاس:* ${orderData.size || 'غير محدد'}
+🎨 *اللون:* ${orderData.color || 'غير محدد'}
+🔢 *الكمية:* ${orderData.quantity}
+💰 *الإجمالي:* ${Number(orderData.total_price).toLocaleString('ar-IQ')} IQD
+━━━━━━━━━━━━━
+⏰ ${new Date().toLocaleString('ar-IQ')}`;
+
+    window.open(`https://wa.me/${merchantPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   async function incrementCouponUse() {
@@ -1188,6 +1217,7 @@ body {
       order: orderData.order_number,
       name: orderData.product_name || PRODUCT.name || '',
       total: String(orderData.total_price || 0),
+      qty: String(orderData.quantity || 1),
       store: MERCHANT.store_slug || ''
     });
     return 'thank-you.html?' + params.toString();
