@@ -116,8 +116,36 @@ body {
   border-radius: 0;
   box-shadow: none;
 }
+.banner-mode .hero::after { display: none !important; }
 .banner-mode .hero {
   padding: 0;
+  background: transparent;
+}
+.banner-mode .header,
+.banner-mode .gallery-only {
+  display: none !important;
+}
+.banner-mode .banner-only {
+  display: block !important;
+}
+.banner-mode .form-row.banner-only {
+  display: grid !important;
+}
+.banner-only { display: none !important; }
+.banner-mode .form-section-header {
+  display: none !important;
+}
+.banner-mode .form-body {
+  padding-top: 18px;
+}
+.banner-mode .form-section {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-top: 1px solid #eee;
+}
+body.banner-mode {
+  background: #f5f5f5;
 }
 .banner-mode .hero-badge,
 .banner-mode #productTitle,
@@ -131,10 +159,6 @@ body {
 }
 .banner-mode .banner-image {
   display: block;
-}
-.banner-mode .form-section {
-  margin: 0;
-  border-radius: 0;
 }
 .badge-discount {
   position: absolute;
@@ -575,7 +599,7 @@ body {
 <!-- TOP BAR -->
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
 <!-- HEADER -->
-<div class="header">
+<div class="header gallery-only">
   <div class="logo">🏪 <span id="storeLogoText">دكّان</span></div>
 </div>
 <!-- HERO -->
@@ -593,20 +617,20 @@ body {
   <div class="thumbs" id="thumbs"></div>
 </section>
 <!-- BENEFITS -->
-<div class="benefits">
+<div class="benefits gallery-only">
   <div class="benefit-item"><div class="benefit-icon">✅</div><div class="benefit-text">دفع عند الاستلام</div></div>
   <div class="benefit-item"><div class="benefit-icon">🚚</div><div class="benefit-text">توصيل سريع</div></div>
   <div class="benefit-item"><div class="benefit-icon">↩️</div><div class="benefit-text">إرجاع مضمون</div></div>
   <div class="benefit-item"><div class="benefit-icon">⭐</div><div class="benefit-text">جودة عالية</div></div>
 </div>
 <!-- PRICE -->
-<div class="price-box">
+<div class="price-box gallery-only">
   <div class="price-was" id="oldPriceText">السعر الأصلي: 0 دينار</div>
   <div class="price-now"><span class="price-currency">IQD </span><span id="displayPrice">0</span></div>
   <div><span class="price-cod" id="codText">💰 الدفع عند الاستلام فقط</span></div>
 </div>
 <!-- COUNTDOWN -->
-<div class="countdown-wrap" id="countdownWrap">
+<div class="countdown-wrap gallery-only" id="countdownWrap">
   <div class="countdown-title">⏰ ينتهي العرض خلال:</div>
   <div class="countdown">
     <div class="cd-item"><span class="cd-num" id="cdH">02</span><span class="cd-label">ساعة</span></div>
@@ -618,11 +642,15 @@ body {
 <div class="form-section">
   <div class="form-section-header">
     <h2 id="orderFormTitle">📦 اطلب الآن — الدفع عند الاستلام</h2>
-    <p>أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>
+    <p id="formSectionSubtitle">أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>
   </div>
   <div class="form-body">
+    <div class="form-group banner-only" id="nameFullBanner">
+      <label class="form-label">الاسم <span class="req">*</span></label>
+      <input class="form-input" id="fFullName" type="text" placeholder="مثال: أحمد حسين العبيدي" autocomplete="name">
+    </div>
     <!-- الاسم واللقب -->
-    <div class="form-row">
+    <div class="form-row gallery-only" id="nameRowGallery">
       <div class="form-group half">
         <label class="form-label">الاسم <span class="req">*</span></label>
         <input class="form-input" id="fFirstName" type="text" placeholder="مثال: أحمد">
@@ -669,12 +697,12 @@ body {
       <input class="form-input" id="fAddress" type="text" placeholder="الحي، الشارع، رقم المنزل">
     </div>
     <!-- المقاس -->
-    <div class="form-group">
+    <div class="form-group gallery-only">
       <label class="form-label">المقاس <span class="req">*</span></label>
       <div class="size-grid" id="sizeGrid"></div>
     </div>
     <!-- اللون -->
-    <div class="form-group">
+    <div class="form-group gallery-only">
       <label class="form-label">اللون <span class="req">*</span></label>
       <div class="color-row" id="colorRow"></div>
     </div>
@@ -685,11 +713,11 @@ body {
         <button class="qty-btn" onclick="changeQty(-1)">−</button>
         <span class="qty-display" id="qtyShow">1</span>
         <button class="qty-btn" onclick="changeQty(1)">+</button>
-        <span class="qty-tip">🎁 قطعتان = توصيل مجاني</span>
+        <span class="qty-tip gallery-only">🎁 قطعتان = توصيل مجاني</span>
       </div>
     </div>
     <!-- Upsell -->
-    <div class="upsell" id="upsellBox" onclick="toggleUpsell()">
+    <div class="upsell gallery-only" id="upsellBox" onclick="toggleUpsell()">
       <div class="upsell-cb" id="upsellCb">✓</div>
       <div class="upsell-info">
         <div class="upsell-title" id="upsellTitle">🎁 أضف هدية مجانية مع طلبك</div>
@@ -724,7 +752,7 @@ body {
   </div>
 </div>
 <!-- REVIEWS -->
-<section class="reviews-section" id="reviewsSection">
+<section class="reviews-section gallery-only" id="reviewsSection">
   <div class="section-title">💬 آراء زبائننا</div>
   <div class="review-card">
     <div class="review-head">
@@ -764,7 +792,7 @@ body {
   </div>
 </section>
 <!-- FOOTER -->
-<footer class="footer">
+<footer class="footer gallery-only">
   <div class="footer-logo">🏪 دكّان</div>
   <div class="footer-text">
     التوصيل لجميع محافظات العراق • الدفع عند الاستلام<br>
@@ -934,11 +962,20 @@ body {
   function applyCodText() {
     const cod = PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام فقط';
     document.getElementById('codText').textContent = '💰 ' + cod;
-    document.getElementById('orderFormTitle').textContent = '📦 اطلب الآن — ' + cod.replace(/ فقط$/, '');
-    document.getElementById('submitText').textContent = 'تأكيد الطلب — ' + cod.replace(/ فقط$/, '');
+    const short = cod.replace(/ فقط$/, '');
+    const banner = document.body.classList.contains('banner-mode');
+    document.getElementById('orderFormTitle').textContent = banner ? '📦 اطلب الآن' : ('📦 اطلب الآن — ' + short);
+    const sub = document.getElementById('formSectionSubtitle');
+    if (sub) sub.textContent = banner ? '' : 'أكمل بياناتك وسنتواصل معك لتأكيد الطلب';
+    document.getElementById('submitText').textContent = 'تأكيد الطلب — ' + short;
   }
 
   function applyUpsellSettings() {
+    if (document.body.classList.contains('banner-mode')) {
+      UPSELL = false;
+      toggleUpsellVisual();
+      return;
+    }
     const active = PAGE_SETTINGS.upsell_active !== false;
     const box = document.getElementById('upsellBox');
     document.getElementById('upsellTitle').textContent = '🎁 ' + (PAGE_SETTINGS.upsell_title || 'أضف هدية مجانية مع طلبك');
@@ -1189,17 +1226,27 @@ body {
   }
   // VALIDATE
   function validate() {
-    const fn = document.getElementById('fFirstName').value.trim();
-    const ln = document.getElementById('fLastName').value.trim();
+    const banner = document.body.classList.contains('banner-mode');
+    let fn, ln;
+    if (banner) {
+      const full = document.getElementById('fFullName').value.trim();
+      if (!full) { alert('⚠️ أدخل اسمك'); return false; }
+      const parts = full.split(/\s+/).filter(Boolean);
+      fn = parts[0];
+      ln = parts.length > 1 ? parts.slice(1).join(' ') : '—';
+    } else {
+      fn = document.getElementById('fFirstName').value.trim();
+      ln = document.getElementById('fLastName').value.trim();
+      if (!fn) { alert('⚠️ أدخل اسمك'); return false; }
+      if (!ln) { alert('⚠️ أدخل لقبك'); return false; }
+    }
     const ph = document.getElementById('fPhone').value.trim();
     const gv = document.getElementById('fGov').value;
     const ad = document.getElementById('fAddress').value.trim();
-    if (!fn) { alert('⚠️ أدخل اسمك'); return false; }
-    if (!ln) { alert('⚠️ أدخل لقبك'); return false; }
     if (!ph || ph.length < 10) { alert('⚠️ أدخل رقم هاتف صحيح'); return false; }
     if (!gv) { alert('⚠️ اختر محافظتك'); return false; }
     if (!ad) { alert('⚠️ أدخل عنوانك التفصيلي'); return false; }
-    if (!SIZE) { alert('⚠️ اختر المقاس'); return false; }
+    if (!banner && !SIZE) { alert('⚠️ اختر المقاس'); return false; }
     return true;
   }
   // SUBMIT — حفظ في Supabase
@@ -1210,20 +1257,31 @@ body {
     btn.innerHTML = '<span>⏳</span><span>جاري إرسال طلبك...</span>';
     const { productTotal, shipping, total, discount } = orderTotals();
     const orderNum = 'IQ-' + Date.now().toString().slice(-6) + Math.floor(Math.random()*100);
+    const banner = document.body.classList.contains('banner-mode');
+    let first_name, last_name;
+    if (banner) {
+      const full = document.getElementById('fFullName').value.trim();
+      const parts = full.split(/\s+/).filter(Boolean);
+      first_name = parts[0] || '';
+      last_name = parts.length > 1 ? parts.slice(1).join(' ') : '—';
+    } else {
+      first_name = document.getElementById('fFirstName').value.trim();
+      last_name = document.getElementById('fLastName').value.trim();
+    }
     const orderData = {
       merchant_id:    PRODUCT.merchant_id,
       product_id:     PRODUCT.id,
       product_name:   PRODUCT.name,
       order_number:  orderNum,
-      first_name:    document.getElementById('fFirstName').value.trim(),
-      last_name:     document.getElementById('fLastName').value.trim(),
+      first_name,
+      last_name,
       phone:         document.getElementById('fPhone').value.trim(),
       governorate:   document.getElementById('fGov').value,
       address:       document.getElementById('fAddress').value.trim(),
-      size:          SIZE,
-      color:         COLOR,
+      size:          banner ? 'حسب الإنفوجرافيك' : SIZE,
+      color:         banner ? 'حسب الإنفوجرافيك' : COLOR,
       quantity:      QTY,
-      upsell:        UPSELL,
+      upsell:        banner ? false : UPSELL,
       product_price: productTotal,
       shipping_cost: shipping,
       total_price:   total,
