@@ -874,34 +874,16 @@ body.banner-mode {
         return;
       }
 
-      let { data, error } = await sb
+      const { data: products, error } = await sb
         .from('merchant_products')
         .select('*')
-        .eq('id', productId)
-        .eq('is_active', true)
-        .limit(1);
-      let product = data?.[0] || null;
+        .eq('id', productId);
+      const product = products?.[0] || null;
       console.log('[DEBUG] product:', product, 'error:', error);
-
       if (!product) {
-        const r2 = await sb
-          .from('merchant_products')
-          .select('*')
-          .eq('id', productId)
-          .limit(1);
-        data = r2.data;
-        error = r2.error;
-        product = data?.[0] || null;
-        console.log('[DEBUG] product:', product, 'error:', error);
-      }
-
-      if (error || !product) {
-        console.error('[DEBUG] merchant_products query failed', error);
-        alert('تعذر تحميل المنتج');
-        return;
-      }
-      if (product.is_active === false) {
-        alert('تعذر تحميل المنتج');
+        if (error) console.error('[DEBUG] merchant_products query failed', error);
+        const heroTitle = document.querySelector('.hero h1');
+        if (heroTitle) heroTitle.textContent = 'المنتج غير موجود';
         return;
       }
 
