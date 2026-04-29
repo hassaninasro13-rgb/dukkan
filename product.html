@@ -862,6 +862,20 @@ body.banner-mode {
 
   document.addEventListener('DOMContentLoaded', loadProduct);
 
+  async function loadProductWithRetry(productId, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      const { data: products, error } = await sb
+        .from('merchant_products')
+        .select('*')
+        .eq('id', productId);
+
+      const product = products?.[0] || null;
+      if (product) return product;
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 500));
+    }
+    return null;
+  }
+
   async function loadProduct() {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -874,12 +888,8 @@ body.banner-mode {
         return;
       }
 
-      const { data: products, error } = await sb
-        .from('merchant_products')
-        .select('*')
-        .eq('id', productId);
-      const product = products?.[0] || null;
-      console.log('[DEBUG] product:', product, 'error:', error);
+      const product = await loadProductWithRetry(productId);
+      console.log('[DEBUG] product:', product);
       if (!product) {
         document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
         return;
