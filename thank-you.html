@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تم استلام طلبك — دكّان</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f5a623;--green:#3fb950;--text:#f0f6fc;--muted:#9aa4b2}
+body{font-family:'Cairo',sans-serif;background:radial-gradient(circle at top,rgba(245,166,35,.16),transparent 34%),linear-gradient(160deg,#0e1117 0%,#101827 58%,#0b1020 100%);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px}
+.card{width:100%;max-width:520px;background:rgba(22,27,34,.92);border:1px solid rgba(245,166,35,.18);border-radius:28px;padding:30px 22px;box-shadow:0 28px 90px rgba(0,0,0,.42);text-align:center;overflow:hidden;position:relative}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.04),transparent);pointer-events:none}
+.check{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;background:rgba(63,185,80,.14);border:2px solid rgba(63,185,80,.35);display:flex;align-items:center;justify-content:center;font-size:52px;animation:pop .75s ease both,pulse 1.8s ease-in-out infinite}
+@keyframes pop{0%{transform:scale(.35);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,.28)}50%{box-shadow:0 0 0 18px rgba(63,185,80,0)}}
+h1{font-family:'Tajawal',sans-serif;font-size:clamp(26px,7vw,36px);line-height:1.25;margin-bottom:10px}
+.order-no{display:inline-flex;align-items:center;justify-content:center;margin:8px 0 12px;padding:8px 16px;border-radius:999px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);color:var(--gold);font-size:22px;font-weight:900;direction:ltr}
+.subtitle{color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:20px}
+.details{display:grid;gap:10px;margin:20px 0;text-align:right}
+.detail{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.label{font-size:12px;color:var(--muted);white-space:nowrap}
+.value{font-weight:900;text-align:left;word-break:break-word}
+.total{color:var(--gold);direction:ltr}
+.actions{display:grid;gap:10px;margin-top:22px}
+.btn{border:none;border-radius:16px;min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:900;font-size:15px;transition:transform .2s,opacity .2s}
+.btn:hover{transform:translateY(-1px);opacity:.9}
+.btn-wa{background:var(--green);color:#03120a}
+.btn-store{background:rgba(245,166,35,.14);border:1px solid rgba(245,166,35,.35);color:var(--gold)}
+@media(max-width:480px){body{padding:14px}.card{padding:26px 16px;border-radius:24px}.detail{align-items:flex-start;flex-direction:column}.value{text-align:right}}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="check">✅</div>
+  <h1>تم استلام طلبك بنجاح! 🎉</h1>
+  <div class="order-no" id="orderNo">#IQ-XXXXXXXX</div>
+  <p class="subtitle">سيتواصل معك فريقنا خلال 24 ساعة لتأكيد الطلب</p>
+
+  <section class="details" aria-label="معلومات الطلب">
+    <div class="detail"><span class="label">اسم المنتج</span><span class="value" id="productName">—</span></div>
+    <div class="detail"><span class="label">الكمية</span><span class="value" id="quantity">—</span></div>
+    <div class="detail"><span class="label">الإجمالي</span><span class="value total" id="total">—</span></div>
+    <div class="detail"><span class="label">المحافظة</span><span class="value" id="governorate">—</span></div>
+  </section>
+
+  <div class="actions">
+    <a class="btn btn-wa" id="whatsappBtn" href="#" target="_blank" rel="noopener">💬 تواصل عبر واتساب</a>
+    <a class="btn btn-store" id="storeBtn" href="/store">تصفح منتجات أخرى</a>
+  </div>
+</main>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const get = key => (params.get(key) || '').trim();
+const escText = value => value || '—';
+const order = get('order') || 'IQ-XXXXXXXX';
+const total = Number(get('total') || 0);
+const store = get('store');
+const phone = get('phone');
+
+document.getElementById('orderNo').textContent = '#' + order.replace(/^#/, '');
+document.getElementById('productName').textContent = escText(get('name'));
+document.getElementById('quantity').textContent = escText(get('qty') || get('quantity'));
+document.getElementById('total').textContent = total ? total.toLocaleString() + ' IQD' : escText(get('total'));
+document.getElementById('governorate').textContent = escText(get('gov') || get('governorate'));
+
+let cleanPhone = phone.replace(/\D/g, '');
+if (cleanPhone.startsWith('0')) cleanPhone = '964' + cleanPhone.slice(1);
+if (cleanPhone && !cleanPhone.startsWith('964')) cleanPhone = '964' + cleanPhone;
+const whatsappBtn = document.getElementById('whatsappBtn');
+if (cleanPhone) {
+  whatsappBtn.href = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent('مرحباً، أريد الاستفسار عن طلبي #' + order);
+} else {
+  whatsappBtn.style.display = 'none';
+}
+
+document.getElementById('storeBtn').href = store ? '/store?store=' + encodeURIComponent(store) : '/store';
+</script>
+</body>
+</html>

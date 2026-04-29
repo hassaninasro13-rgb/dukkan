@@ -10,6 +10,7 @@
     { "src": "/register", "dest": "/register.html" },
     { "src": "/store", "dest": "/store.html" },
     { "src": "/product", "dest": "/product.html" },
+    { "src": "/thank-you", "dest": "/thank-you.html" },
     { "src": "/merchant-dashboard", "dest": "/merchant-dashboard.html" }
   ]
 }

@@ -1084,14 +1084,26 @@ body {
       if (error) throw error;
       trackPurchase(total);
       sendOrderToGoogleSheets(orderData);
-      document.getElementById('orderCode').textContent = '#' + orderNum;
-      document.getElementById('modal').classList.add('open');
+      window.location.href = thankYouUrl(orderData);
     } catch (err) {
       console.error(err);
       alert('حدث خطأ، يرجى المحاولة مرة أخرى أو التواصل معنا على واتساب');
     }
     btn.disabled = false;
     btn.innerHTML = '<span>✅</span><span id="submitText">تأكيد الطلب — ' + esc(PAGE_SETTINGS.cod_text || 'الدفع عند الاستلام') + '</span>';
+  }
+
+  function thankYouUrl(orderData) {
+    const params = new URLSearchParams({
+      order: orderData.order_number,
+      name: orderData.product_name || PRODUCT.name || '',
+      total: String(orderData.total_price || 0),
+      phone: rawWhatsappPhone(),
+      store: MERCHANT.store_slug || '',
+      qty: String(orderData.quantity || 1),
+      gov: orderData.governorate || ''
+    });
+    return 'thank-you.html?' + params.toString();
   }
 
   function sendOrderToGoogleSheets(orderData) {
@@ -1200,6 +1212,9 @@ body {
     if (p.startsWith('0')) p = '964' + p.slice(1);
     if (p && !p.startsWith('964')) p = '964' + p;
     return p ? 'https://wa.me/' + p : '#';
+  }
+  function rawWhatsappPhone() {
+    return String(PAGE_SETTINGS.whatsapp || SETTINGS.whatsapp || MERCHANT.whatsapp || '').trim();
   }
   function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
