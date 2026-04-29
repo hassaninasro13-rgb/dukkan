@@ -1098,10 +1098,7 @@ body {
       order: orderData.order_number,
       name: orderData.product_name || PRODUCT.name || '',
       total: String(orderData.total_price || 0),
-      phone: rawWhatsappPhone(),
-      store: MERCHANT.store_slug || '',
-      qty: String(orderData.quantity || 1),
-      gov: orderData.governorate || ''
+      store: MERCHANT.store_slug || ''
     });
     return 'thank-you.html?' + params.toString();
   }
@@ -1212,9 +1209,6 @@ body {
     if (p.startsWith('0')) p = '964' + p.slice(1);
     if (p && !p.startsWith('964')) p = '964' + p;
     return p ? 'https://wa.me/' + p : '#';
-  }
-  function rawWhatsappPhone() {
-    return String(PAGE_SETTINGS.whatsapp || SETTINGS.whatsapp || MERCHANT.whatsapp || '').trim();
   }
   function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
