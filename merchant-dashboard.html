@@ -146,6 +146,7 @@ button{cursor:pointer}
 .image-upload{background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;display:grid;gap:12px}
 .file-input-hidden{display:none}
 .upload-btn{width:max-content;max-width:100%}
+.upload-hint{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
 .image-preview{display:none;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px}
 .image-preview.show{display:flex}
 .image-preview img{width:90px;height:90px;border-radius:10px;object-fit:cover;border:1px solid var(--border);background:var(--bg)}
@@ -504,6 +505,7 @@ button{cursor:pointer}
             <input type="hidden" id="pBannerImageHidden">
             <input class="file-input-hidden" id="pBannerFile" type="file" accept="image/*" onchange="handleProductBannerFileChange(event)">
             <button type="button" class="btn btn-gold upload-btn" onclick="document.getElementById('pBannerFile').click()">📤 رفع صورة طويلة واحدة</button>
+            <p class="upload-hint">يُنصح برفع الصورة بصيغة WebP وحجم أقل من 500KB</p>
             <div class="image-preview banner-preview" id="pProductBannerPreview">
               <img id="pProductBannerPreviewImg" src="" alt="معاينة البانر">
               <span id="pProductBannerPreviewText"></span>

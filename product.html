@@ -133,6 +133,20 @@ body {
   min-height: 140px;
   transition: opacity 0.2s;
 }
+#bannerSpinner {
+  background: linear-gradient(90deg, #1e1e2e 25%, #2a2a3e 50%, #1e1e2e 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  min-height: 400px;
+  width: 100%;
+}
+#bannerSpinner .banner-spinner-dot {
+  display: none;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 .banner-spinner.is-hidden {
   opacity: 0;
   pointer-events: none;
@@ -633,7 +647,7 @@ body.banner-mode {
 <section id="bannerSection" class="banner-section" aria-hidden="true">
   <div id="bannerLoadWrap" class="banner-load-wrap">
     <div id="bannerSpinner" class="banner-spinner" role="status" aria-live="polite"><div class="banner-spinner-dot"></div></div>
-    <img id="bannerImg" class="banner-image" src="" alt="إنفوجرافيك المنتج" width="1200" loading="eager" decoding="async" style="width:100%;max-width:100%;height:auto;display:block;">
+    <img id="bannerImg" class="banner-image" src="" alt="إنفوجرافيك المنتج" width="1200" loading="eager" decoding="async" fetchpriority="high" style="width:100%;max-width:100%;height:auto;display:none;">
   </div>
 </section>
 <!-- HERO — معرض المنتج (معطّل في وضع البانر) -->
@@ -1018,22 +1032,32 @@ body.banner-mode {
         bannerImg.onload = null;
         bannerImg.onerror = null;
         bannerImg.removeAttribute('src');
+        bannerImg.style.display = '';
       }
-      if (spin) spin.classList.remove('is-hidden');
+      if (spin) {
+        spin.style.display = '';
+        spin.classList.remove('is-hidden');
+      }
       return;
     }
     if (section) section.removeAttribute('aria-hidden');
-    if (spin) spin.classList.remove('is-hidden');
+    if (spin) {
+      spin.style.display = 'flex';
+      spin.classList.remove('is-hidden');
+    }
     if (bannerImg && bannerSrc) {
+      bannerImg.style.display = 'none';
       bannerImg.onload = function () {
-        if (spin) spin.classList.add('is-hidden');
+        if (spin) spin.style.display = 'none';
+        bannerImg.style.display = 'block';
       };
       bannerImg.onerror = function () {
-        if (spin) spin.classList.add('is-hidden');
+        if (spin) spin.style.display = 'none';
       };
       bannerImg.src = bannerSrc;
       if (bannerImg.complete && bannerImg.naturalHeight > 0) {
-        if (spin) spin.classList.add('is-hidden');
+        if (spin) spin.style.display = 'none';
+        bannerImg.style.display = 'block';
       }
     }
   }
