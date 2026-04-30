@@ -122,6 +122,13 @@ body { font-family:'Cairo',sans-serif; background:var(--bg); color:var(--text); 
 </style>
 </head>
 <body>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (reg) { reg.unregister(); });
+  });
+}
+</script>
 
 <!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">

@@ -673,6 +673,13 @@ body.banner-mode {
 </style>
 </head>
 <body>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (reg) { reg.unregister(); });
+  });
+}
+</script>
 <div id="pageContent">
 <!-- TOP BAR -->
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>

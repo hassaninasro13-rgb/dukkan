@@ -232,6 +232,13 @@
   </style>
 </head>
 <body>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (reg) { reg.unregister(); });
+  });
+}
+</script>
 
   <!-- NAV -->
   <nav>
