@@ -201,7 +201,7 @@ button{cursor:pointer}
   .layout{display:block!important;min-height:100vh}
   .sidebar{display:none}
   .main{margin-right:0;padding:14px 14px calc(80px + env(safe-area-inset-bottom));width:100%;max-width:100%;overflow:hidden}
-  .bottom-nav{position:fixed;right:0;left:0;bottom:0;min-height:65px;height:calc(65px + env(safe-area-inset-bottom));padding:6px 10px env(safe-area-inset-bottom);background:rgba(22,27,34,.96);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);gap:6px;z-index:700;backdrop-filter:blur(18px)}
+  .bottom-nav{position:fixed;right:0;left:0;bottom:0;min-height:65px;height:calc(65px + env(safe-area-inset-bottom));padding:6px 10px env(safe-area-inset-bottom);background:rgba(22,27,34,.96);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);gap:6px;z-index:700;backdrop-filter:blur(18px)}
   .page-title{font-size:21px}
   .topbar{align-items:flex-start;margin-bottom:16px}
   .top-actions,.filters{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}
@@ -266,6 +266,7 @@ button{cursor:pointer}
     <button class="nav-item" data-page="orders" onclick="showPage('orders',this)"><span>🛒</span> الطلبات</button>
     <button class="nav-item" data-page="coupons" onclick="showPage('coupons',this)"><span>🎟️</span> الكوبونات</button>
     <button class="nav-item" data-page="settings" onclick="showPage('settings',this)"><span>⚙️</span> إعدادات المتجر</button>
+    <button class="nav-item" data-page="product-settings" onclick="showPage('product-settings',this)"><span>🎨</span> إعدادات المنتج</button>
     <div class="sidebar-footer">
       <a class="side-link" id="storePreview" href="/" target="_blank">👁️ معاينة المتجر</a>
       <button class="side-link" onclick="logout()">🚪 تسجيل الخروج</button>
@@ -278,6 +279,7 @@ button{cursor:pointer}
     <button class="bottom-nav-item" data-page="orders" onclick="showPage('orders',this)"><span class="nav-icon">🛒</span><span>الطلبات</span></button>
     <button class="bottom-nav-item" data-page="coupons" onclick="showPage('coupons',this)"><span class="nav-icon">🎟️</span><span>الكوبونات</span></button>
     <button class="bottom-nav-item" data-page="settings" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span><span>الإعدادات</span></button>
+    <button class="bottom-nav-item" data-page="product-settings" onclick="showPage('product-settings',this)"><span class="nav-icon">🎨</span><span>إعدادات المنتج</span></button>
   </div>
 
   <main class="main">
@@ -626,6 +628,43 @@ function bootMerchantFromStorage(){
   return true;
 }
 
+const TAB_TO_PAGE={home:'home',orders:'orders',products:'products',coupons:'coupons',settings:'settings','product-settings':'products'};
+const VALID_TABS=new Set(Object.keys(TAB_TO_PAGE));
+
+function normalizeTabHash(h){
+  const key=String(h||'').replace(/^#/,'').trim();
+  if(VALID_TABS.has(key))return key;
+  return 'home';
+}
+
+function activateTab(name){
+  name=normalizeTabHash(name);
+  const pageId=TAB_TO_PAGE[name];
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.bottom-nav-item').forEach(x=>x.classList.remove('active'));
+  const pageEl=document.getElementById('page-'+pageId);
+  if(pageEl)pageEl.classList.add('active');
+  document.querySelectorAll('[data-page="'+name+'"]').forEach(x=>x.classList.add('active'));
+}
+
+function applyInitialHash(){
+  const tab=normalizeTabHash(window.location.hash.slice(1));
+  activateTab(tab);
+  const want='#'+tab;
+  if(window.location.hash!==want)history.replaceState(null,'',want);
+}
+
+function showPage(name,el){
+  name=normalizeTabHash(name);
+  activateTab(name);
+  const want='#'+name;
+  if(window.location.hash!==want)window.location.hash=name;
+}
+
+window.addEventListener('hashchange',function(){
+  activateTab(normalizeTabHash(window.location.hash.slice(1)));
+});
+
 (function initSessionAndApp(){
   if(!bootMerchantFromStorage())return;
   function run(){
@@ -676,7 +715,6 @@ function showLoginError(msg){
 
 function startApp(){
   if(!merchant||!getMerchantId()){redirectToLogin();return;}
-  document.body.style.visibility='visible';
   if(merchant&&!merchant.id&&merchant.merchant_id)merchant.id=merchant.merchant_id;
   console.log('[Dukkan] startApp merchant session',{merchant,merchantId:getMerchantId()});
   document.getElementById('loginWrap').style.display='none';
@@ -685,6 +723,8 @@ function startApp(){
   document.getElementById('sideEmail').textContent=merchant.email||'';
   document.getElementById('welcomeName').textContent=merchant.full_name||merchant.store_name||'تاجر دكّان';
   document.getElementById('storePreview').href='/store?store='+encodeURIComponent(merchant.store_slug||'');
+  applyInitialHash();
+  document.body.style.visibility='visible';
   refreshAll();
 }
 
@@ -728,13 +768,6 @@ async function verifyStoreSettingsSchema(){
 function logout(){
   localStorage.removeItem('dukkan_merchant');
   location.reload();
-}
-
-function showPage(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item,.bottom-nav-item').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.querySelectorAll('[data-page="'+name+'"]').forEach(x=>x.classList.add('active'));
 }
 
 async function refreshAll(){
