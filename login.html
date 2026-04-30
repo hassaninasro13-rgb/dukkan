@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>دكّان | تسجيل الدخول</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy: #0B1D3A;
+      --navy-mid: #122347;
+      --navy-light: #1A3260;
+      --gold: #F0A500;
+      --gold-light: #FFD166;
+      --white: #FFFFFF;
+      --gray: #8A9BB5;
+      --error: #FF6B6B;
+      --success: #4ECDC4;
+      --border: rgba(240,165,0,0.2);
+      --input-bg: rgba(255,255,255,0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── LEFT PANEL (decorative) ─── */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy-mid) 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(240,165,0,0.1) 0%, transparent 70%);
+    }
+    .left-panel .logo {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 3rem; font-weight: 900;
+      color: var(--gold); margin-bottom: 1rem;
+      position: relative;
+    }
+    .left-panel h2 {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.8rem; font-weight: 900;
+      text-align: center; margin-bottom: 1rem;
+      position: relative;
+    }
+    .left-panel p {
+      color: var(--gray); text-align: center;
+      line-height: 1.8; max-width: 360px;
+      position: relative;
+    }
+    .features-list {
+      margin-top: 2.5rem; list-style: none;
+      display: flex; flex-direction: column; gap: .9rem;
+      position: relative;
+    }
+    .features-list li {
+      display: flex; align-items: center; gap: .8rem;
+      color: var(--gray); font-size: .95rem;
+    }
+    .features-list li span.icon {
+      width: 36px; height: 36px;
+      background: rgba(240,165,0,0.1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+
+    /* ─── RIGHT PANEL (form) ─── */
+    .right-panel {
+      width: 460px; flex-shrink: 0;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 3rem 2.5rem;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+    .back-link {
+      align-self: flex-start;
+      color: var(--gray); text-decoration: none;
+      font-size: .85rem; margin-bottom: 2rem;
+      display: flex; align-items: center; gap: .4rem;
+      transition: color .2s;
+    }
+    .back-link:hover { color: var(--gold); }
+
+    /* ─── TABS ─── */
+    .tabs {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: .3rem;
+      margin-bottom: 2rem; width: 100%;
+    }
+    .tab-btn {
+      flex: 1; padding: .7rem;
+      border: none; background: transparent;
+      color: var(--gray); font-family: 'Cairo', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      border-radius: 9px; cursor: pointer;
+      transition: all .2s;
+    }
+    .tab-btn.active {
+      background: var(--gold); color: var(--navy);
+      font-weight: 800;
+    }
+
+    /* ─── FORM ─── */
+    .form-title {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.6rem; font-weight: 900;
+      margin-bottom: .4rem; width: 100%;
+    }
+    .form-sub {
+      color: var(--gray); font-size: .9rem;
+      margin-bottom: 1.8rem; width: 100%;
+    }
+
+    .field { margin-bottom: 1.2rem; width: 100%; }
+    .field label {
+      display: block; font-size: .85rem;
+      font-weight: 600; color: var(--gray);
+      margin-bottom: .4rem;
+    }
+    .field input {
+      width: 100%; padding: .85rem 1rem;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; color: var(--white);
+      font-family: 'Cairo', sans-serif; font-size: .95rem;
+      outline: none; transition: border-color .2s;
+      text-align: right;
+    }
+    .field input:focus { border-color: var(--gold); }
+    .field input::placeholder { color: rgba(138,155,181,0.5); }
+
+    .btn-submit {
+      width: 100%; padding: .95rem;
+      background: var(--gold); color: var(--navy);
+      border: none; border-radius: 10px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: all .2s;
+      margin-top: .5rem;
+      box-shadow: 0 6px 24px rgba(240,165,0,0.3);
+    }
+    .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .divider {
+      width: 100%; text-align: center;
+      color: var(--gray); font-size: .8rem;
+      margin: 1.2rem 0; position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute; top: 50%;
+      width: 40%; height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .divider::before { right: 0; }
+    .divider::after { left: 0; }
+
+    /* ─── ALERT ─── */
+    .alert {
+      width: 100%; padding: .8rem 1rem;
+      border-radius: 10px; font-size: .9rem;
+      margin-bottom: 1rem; display: none;
+    }
+    .alert.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--error); }
+    .alert.success { background: rgba(78,205,196,0.1); border: 1px solid rgba(78,205,196,0.3); color: var(--success); }
+    .alert.show { display: block; }
+
+    /* ─── LOADER ─── */
+    .loader {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(11,29,58,0.3);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle; margin-left: .5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; border-right: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="logo">🛍️ دكّان</div>
+    <h2>منصة التجار العراقيين</h2>
+    <p>أنشئ متجرك الإلكتروني وابدأ البيع لجميع محافظات العراق اليوم.</p>
+    <ul class="features-list">
+      <li>
+        <span class="icon">🏪</span>
+        متجر احترافي جاهز في دقائق
+      </li>
+      <li>
+        <span class="icon">📦</span>
+        إدارة سهلة للمنتجات والطلبات
+      </li>
+      <li>
+        <span class="icon">🛵</span>
+        شحن لجميع محافظات العراق
+      </li>
+      <li>
+        <span class="icon">💰</span>
+        الدفع عند الاستلام
+      </li>
+      <li>
+        <span class="icon">📊</span>
+        لوحة تحكم وإحصائيات مفصّلة
+      </li>
+    </ul>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <a href="index.html" class="back-link">← العودة للرئيسية</a>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')">إنشاء حساب</button>
+    </div>
+
+    <!-- ALERT -->
+    <div class="alert" id="alert"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login" style="width:100%">
+      <div class="form-title">أهلاً بعودتك 👋</div>
+      <div class="form-sub">سجّل دخولك لإدارة متجرك</div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="login-email" placeholder="example@mail.com" />
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+      <button class="btn-submit" id="login-btn" onclick="handleLogin()">
+        تسجيل الدخول
+      </button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="width:100%; display:none;">
+      <div class="form-title">افتح متجرك 🚀</div>
+      <div class="form-sub">أنشئ حسابك مجاناً الآن</div>
+      <div class="field">
+        <label>اسم المتجر</label>
+        <input type="text" id="reg-store" placeholder="مثال: متجر أبو علي" />
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="reg-email" placeholder="example@mail.com" />
+      </div>
+      <div class="field">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="reg-phone" placeholder="07XXXXXXXXX" />
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input type="password" id="reg-pass" placeholder="8 أحرف على الأقل" />
+      </div>
+      <button class="btn-submit" id="register-btn" onclick="handleRegister()">
+        إنشاء الحساب مجاناً
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ─── SUPABASE CONFIG ───
+    const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM'
+    const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    // ─── TAB SWITCH ───
+    function switchTab(tab) {
+      document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none'
+      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none'
+      document.getElementById('tab-login').classList.toggle('active',    tab === 'login')
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register')
+      clearAlert()
+    }
+
+    // ─── AUTO-SWITCH FROM URL PARAM ───
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('tab') === 'register') switchTab('register')
+
+    // ─── CHECK SESSION ───
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) window.location.href = 'dashboard.html'
+    })()
+
+    // ─── ALERT HELPERS ───
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('alert')
+      el.textContent = msg
+      el.className = `alert ${type} show`
+    }
+    function clearAlert() {
+      document.getElementById('alert').className = 'alert'
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId)
+      if (loading) {
+        btn.disabled = true
+        btn.innerHTML = 'جاري التحميل... <span class="loader"></span>'
+      } else {
+        btn.disabled = false
+        btn.innerHTML = btnId === 'login-btn' ? 'تسجيل الدخول' : 'إنشاء الحساب مجاناً'
+      }
+    }
+
+    // ─── LOGIN ───
+    async function handleLogin() {
+      clearAlert()
+      const email = document.getElementById('login-email').value.trim()
+      const pass  = document.getElementById('login-pass').value
+
+      if (!email || !pass) return showAlert('⚠️ يرجى ملء جميع الحقول')
+
+      setLoading('login-btn', true)
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
+      setLoading('login-btn', false)
+
+      if (error) {
+        showAlert('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة')
+      } else {
+        showAlert('✅ تم تسجيل الدخول بنجاح! جاري التحويل...', 'success')
+        setTimeout(() => window.location.href = 'dashboard.html', 1200)
+      }
+    }
+
+    // ─── REGISTER ───
+    async function handleRegister() {
+      clearAlert()
+      const storeName = document.getElementById('reg-store').value.trim()
+      const email     = document.getElementById('reg-email').value.trim()
+      const phone     = document.getElementById('reg-phone').value.trim()
+      const pass      = document.getElementById('reg-pass').value
+
+      if (!storeName || !email || !phone || !pass)
+        return showAlert('⚠️ يرجى ملء جميع الحقول')
+      if (pass.length < 8)
+        return showAlert('⚠️ كلمة المرور يجب أن تكون 8 أحرف على الأقل')
+
+      setLoading('register-btn', true)
+
+      // 1. Create auth user
+      const { data, error } = await supabase.auth.signUp({
+        email, password: pass,
+        options: { data: { store_name: storeName, phone } }
+      })
+
+      if (error) {
+        setLoading('register-btn', false)
+        return showAlert('❌ ' + (error.message === 'User already registered'
+          ? 'هذا البريد الإلكتروني مسجّل مسبقاً' : error.message))
+      }
+
+      // 2. Insert merchant record
+      if (data.user) {
+        await supabase.from('merchants').insert({
+          id: data.user.id,
+          store_name: storeName,
+          email,
+          phone,
+          created_at: new Date().toISOString()
+        })
+      }
+
+      setLoading('register-btn', false)
+      showAlert('🎉 تم إنشاء حسابك! تحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success')
+    }
+
+    // ─── ENTER KEY ───
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const isLogin = document.getElementById('form-login').style.display !== 'none'
+        isLogin ? handleLogin() : handleRegister()
+      }
+    })
+  </script>
+</body>
+</html>
