@@ -338,15 +338,17 @@ button{cursor:pointer}
     <div class="page" id="page-orders">
       <div class="topbar">
         <div class="page-title">🛒 الطلبات</div>
-        <button class="btn btn-card" onclick="loadOrders()">🔄 تحديث</button>
+        <div class="top-actions">
+          <button type="button" class="btn btn-card" onclick="event.preventDefault();loadOrders();">🔄 تحديث</button>
+        </div>
       </div>
       <div class="filters">
-        <button class="filter-btn active" onclick="setOrderFilter('all',this)">الكل</button>
-        <button class="filter-btn" onclick="setOrderFilter('pending',this)">انتظار</button>
-        <button class="filter-btn" onclick="setOrderFilter('confirmed',this)">مؤكد</button>
-        <button class="filter-btn" onclick="setOrderFilter('delivered',this)">موصل</button>
-        <button class="filter-btn" onclick="setOrderFilter('returned',this)">راجع</button>
-        <button class="btn btn-green" onclick="exportOrdersExcel()">تصدير Excel 📥</button>
+        <button type="button" class="filter-btn active" onclick="event.preventDefault();setOrderFilter('all',this)">الكل</button>
+        <button type="button" class="filter-btn" onclick="event.preventDefault();setOrderFilter('pending',this)">انتظار</button>
+        <button type="button" class="filter-btn" onclick="event.preventDefault();setOrderFilter('confirmed',this)">مؤكد</button>
+        <button type="button" class="filter-btn" onclick="event.preventDefault();setOrderFilter('delivered',this)">موصل</button>
+        <button type="button" class="filter-btn" onclick="event.preventDefault();setOrderFilter('returned',this)">راجع</button>
+        <button type="button" class="btn btn-green" onclick="event.preventDefault();exportOrdersExcel()">تصدير Excel 📥</button>
       </div>
       <div class="section">
         <div class="section-head"><h3>قائمة طلبات هذا التاجر</h3><span class="count-pill" id="ordersCount">0 طلب</span></div>
@@ -650,20 +652,31 @@ function activateTab(name){
 function applyInitialHash(){
   const tab=normalizeTabHash(window.location.hash.slice(1));
   activateTab(tab);
-  const want='#'+tab;
-  if(window.location.hash!==want)history.replaceState(null,'',want);
+  const wantHash='#'+tab;
+  if((window.location.hash||'')!==wantHash){
+    const u=window.location.pathname+window.location.search+wantHash;
+    if(history.replaceState)history.replaceState(null,'',u);
+    else window.location.hash=tab;
+  }
 }
 
 function showPage(name,el){
-  name=normalizeTabHash(name);
-  activateTab(name);
-  const want='#'+name;
-  if(window.location.hash!==want)window.location.hash=name;
+  const tab=normalizeTabHash(name);
+  activateTab(tab);
+  const wantHash='#'+tab;
+  if((window.location.hash||'')!==wantHash){
+    const u=window.location.pathname+window.location.search+wantHash;
+    if(history.pushState)history.pushState({dukkanTab:tab},'',u);
+    else window.location.hash=tab;
+  }
 }
 
-window.addEventListener('hashchange',function(){
-  activateTab(normalizeTabHash(window.location.hash.slice(1)));
-});
+function syncTabFromUrl(){
+  activateTab(normalizeTabHash((window.location.hash||'').slice(1)));
+}
+
+window.addEventListener('hashchange',syncTabFromUrl);
+window.addEventListener('popstate',syncTabFromUrl);
 
 (function initSessionAndApp(){
   if(!bootMerchantFromStorage())return;
@@ -1262,19 +1275,25 @@ async function deleteProduct(id){
 }
 
 async function loadOrders(){
-  const merchantId=getMerchantId();
   console.group('[Dukkan] loadOrders');
-  console.log('step 1: loading orders',{merchantId,table:'orders'});
-  if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');console.groupEnd();return;}
-  const res=await SB.from('orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
-  console.log('step 2: orders response',res);
-  if(res.error){console.error('loadOrders Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');console.groupEnd();return;}
-  orders=res.data||[];
-  renderOrders();
-  renderRecentOrders();
-  updateStats();
-  console.log('step 4: orders loaded',{count:orders.length});
-  console.groupEnd();
+  try{
+    const merchantId=getMerchantId();
+    console.log('step 1: loading orders',{merchantId,table:'orders'});
+    if(!merchantId){showToast('لا يوجد معرّف تاجر صالح','error');return;}
+    const res=await SB.from('orders').select('*').eq('merchant_id',merchantId).order('created_at',{ascending:false});
+    console.log('step 2: orders response',res);
+    if(res.error){console.error('loadOrders Supabase error:',res.error);showToast(supabaseErrorText(res.error),'error');return;}
+    orders=res.data||[];
+    renderOrders();
+    renderRecentOrders();
+    updateStats();
+    console.log('step 4: orders loaded',{count:orders.length});
+  }catch(e){
+    console.error('[Dukkan] loadOrders failed',e);
+    showToast('تعذر تحديث الطلبات','error');
+  }finally{
+    console.groupEnd();
+  }
 }
 
 async function loadAnalytics(){
@@ -1464,7 +1483,7 @@ async function deleteCoupon(id){
 function setOrderFilter(f,el){
   orderFilter=f;
   document.querySelectorAll('#page-orders .filter-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el&&el.classList)el.classList.add('active');
   renderOrders();
 }
 
