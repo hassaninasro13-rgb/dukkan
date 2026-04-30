@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<style>
-  html, body {
-    background: #0f0f1a !important;
-    visibility: hidden;
-  }
-</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -643,8 +637,9 @@ body.banner-mode {
   .form-row { grid-template-columns: 1fr; }
   .size-grid { grid-template-columns: repeat(4,1fr); }
 }
-#pageContent { opacity: 0; transition: opacity 0.3s ease; }
-#pageContent.loaded { opacity: 1; }
+/* إخفاء كل المحتوى حتى اكتمال تحميل بيانات المنتج من Supabase — بدون وميض */
+#pageContent { visibility: hidden; }
+#pageContent.product-ready { visibility: visible; }
 </style>
 </head>
 <body>
@@ -890,10 +885,13 @@ body.banner-mode {
   document.addEventListener('DOMContentLoaded', loadProduct);
 
   function revealProductPage() {
-    const el = document.getElementById('pageContent');
-    if (el) el.classList.add('loaded');
-    document.documentElement.style.visibility = 'visible';
-    document.body.style.visibility = 'visible';
+    document.getElementById('pageContent')?.classList.add('product-ready');
+  }
+
+  function scheduleRevealAfterPaint() {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(revealProductPage);
+    });
   }
 
   async function loadProductWithRetry(productId, retries = 3) {
@@ -944,15 +942,11 @@ body.banner-mode {
       console.log('[DEBUG] banner_image:', settings?.banner_image);
 
       applyLayoutMode();
-      document.documentElement.style.visibility = 'visible';
-      document.body.style.visibility = 'visible';
-      const pageContentEl = document.getElementById('pageContent');
-      if (pageContentEl) pageContentEl.classList.add('loaded');
-
       await recordPageView(productId);
       initAdPixels();
       renderProduct();
       recalc();
+      scheduleRevealAfterPaint();
     } catch (err) {
       console.error('[DEBUG] loadProduct uncaught', err);
       alert('تعذر تحميل المنتج');
