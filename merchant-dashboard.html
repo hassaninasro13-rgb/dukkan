@@ -17,7 +17,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
 :root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
 html,body{max-width:100%;overflow-x:hidden}
-body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-top:env(safe-area-inset-top)}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-top:env(safe-area-inset-top);visibility:hidden}
 button,input,textarea,select{font-family:'Cairo',sans-serif}
 input,textarea{-webkit-user-select:text;user-select:text}
 button{cursor:pointer}
@@ -676,6 +676,7 @@ function showLoginError(msg){
 
 function startApp(){
   if(!merchant||!getMerchantId()){redirectToLogin();return;}
+  document.body.style.visibility='visible';
   if(merchant&&!merchant.id&&merchant.merchant_id)merchant.id=merchant.merchant_id;
   console.log('[Dukkan] startApp merchant session',{merchant,merchantId:getMerchantId()});
   document.getElementById('loginWrap').style.display='none';
