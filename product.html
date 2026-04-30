@@ -111,16 +111,24 @@ body {
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   display: block;
 }
-/* حاسوب: صورة رأسية لا تمتد بعرض الشاشة */
+/* حاسوب: عمود 800px، عنوان أصغر، صورة حتى 500px */
 @media (min-width: 769px) {
+  #pageContent {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+  }
   .product-showcase {
-    max-width: 450px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
   }
   .product-showcase img {
     width: auto;
-    max-width: 450px;
+    max-width: 500px;
     height: auto;
     object-fit: contain;
     object-position: center;
@@ -128,7 +136,7 @@ body {
     margin-right: auto;
   }
   .main-img-placeholder {
-    max-width: 450px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
   }
