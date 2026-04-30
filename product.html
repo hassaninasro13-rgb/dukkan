@@ -637,9 +637,12 @@ body.banner-mode {
   .form-row { grid-template-columns: 1fr; }
   .size-grid { grid-template-columns: repeat(4,1fr); }
 }
+#pageContent { opacity: 0; transition: opacity 0.3s ease; }
+#pageContent.loaded { opacity: 1; }
 </style>
 </head>
-<body>
+<body style="visibility:hidden">
+<div id="pageContent">
 <!-- TOP BAR -->
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
 <!-- HEADER -->
@@ -862,6 +865,7 @@ body.banner-mode {
     <button class="modal-close" onclick="closeModal()">حسناً، شكراً! 👍</button>
   </div>
 </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ===== SUPABASE CONFIG =====
@@ -878,6 +882,12 @@ body.banner-mode {
   let PIXELS_READY = false;
 
   document.addEventListener('DOMContentLoaded', loadProduct);
+
+  function revealProductPage() {
+    const el = document.getElementById('pageContent');
+    if (el) el.classList.add('loaded');
+    document.body.style.visibility = 'visible';
+  }
 
   async function loadProductWithRetry(productId, retries = 3) {
     for (let i = 0; i < retries; i++) {
@@ -902,6 +912,7 @@ body.banner-mode {
       console.log('[DEBUG] storeSlug:', storeSlug);
       if (!productId) {
         alert('رابط المنتج غير صحيح');
+        revealProductPage();
         return;
       }
 
@@ -909,6 +920,7 @@ body.banner-mode {
       console.log('[DEBUG] product:', product);
       if (!product) {
         document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
+        revealProductPage();
         return;
       }
 
@@ -925,14 +937,18 @@ body.banner-mode {
       console.log('[DEBUG] banner_image:', settings?.banner_image);
 
       applyLayoutMode();
+      const pageContentEl = document.getElementById('pageContent');
+      if (pageContentEl) pageContentEl.classList.add('loaded');
 
       await recordPageView(productId);
       initAdPixels();
       renderProduct();
       recalc();
+      document.body.style.visibility = 'visible';
     } catch (err) {
       console.error('[DEBUG] loadProduct uncaught', err);
       alert('تعذر تحميل المنتج');
+      revealProductPage();
     }
   }
 
