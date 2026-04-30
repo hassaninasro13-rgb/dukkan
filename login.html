@@ -314,7 +314,8 @@
     // ─── SUPABASE CONFIG ───
     const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM'
-    const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    const { createClient } = window.supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     // ─── TAB SWITCH ───
     function switchTab(tab) {
@@ -444,7 +445,12 @@
       }
 
       setLoading('register-btn', false)
-      showAlert('🎉 تم إنشاء حسابك! تحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success')
+      if (data.session) {
+        showAlert('🎉 تم إنشاء حسابك بنجاح! جاري التحويل...', 'success')
+        setTimeout(() => window.location.href = 'dashboard.html', 1200)
+      } else {
+        showAlert('🎉 تم إنشاء حسابك! تحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success')
+      }
     }
 
     // ─── ENTER KEY ───
