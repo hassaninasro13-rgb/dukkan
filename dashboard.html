@@ -245,39 +245,26 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 if(!window.supabase||typeof window.supabase.createClient!=='function'){
-  window.location.replace('login.html');
-  return;
-}
-const SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  window.location.href='login.html';
+}else{
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let orders=[],filter='all',images=[],sizes=[],colors=[],sid=null;
 
 async function boot(){
-  const gate=document.getElementById('authCheck');
-  const app=document.getElementById('app');
-  const AUTH_WAIT_MS=3000;
-  try{
-    const outcome=await Promise.race([
-      SB.auth.getSession().then(function(r){return{kind:'session',r};}),
-      new Promise(function(res){setTimeout(function(){res({kind:'timeout'});},AUTH_WAIT_MS);})
-    ]);
-    if(outcome.kind==='timeout'){
-      window.location.replace('login.html');
-      return;
-    }
-    const session=outcome.r&&outcome.r.data?outcome.r.data.session:null;
-    if(!session){
-      window.location.replace('login.html');
-      return;
-    }
-    if(gate) gate.style.display='none';
-    app.style.display='flex';
-    loadOrders();loadSettings();setInterval(loadOrders,30000);
-    SB.auth.onAuthStateChange(function(_evt,session){
-      if(!session) window.location.replace('login.html');
-    });
-  }catch(_e){
-    window.location.replace('login.html');
+  const { data: { session } } = await supabase.auth.getSession();
+  if(!session){
+    window.location.href='login.html';
+    return;
   }
+  document.getElementById('authCheck').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadOrders();
+  loadSettings();
+  setInterval(loadOrders,30000);
+  supabase.auth.onAuthStateChange(function(_evt,session){
+    if(!session) window.location.href='login.html';
+  });
 }
 boot();
 
@@ -288,7 +275,7 @@ function showPage(n,el){
 }
 
 async function loadOrders(){
-  const{data,error}=await SB.from('iraq_orders').select('*').order('created_at',{ascending:false});
+  const{data,error}=await supabase.from('iraq_orders').select('*').order('created_at',{ascending:false});
   if(error){showToast('خطأ في التحميل','error');return;}
   orders=data||[];updateStats();renderOrders();
 }
@@ -325,7 +312,7 @@ function card(o){
 }
 
 async function setStatus(id,s){
-  await SB.from('iraq_orders').update({status:s}).eq('id',id);
+  await supabase.from('iraq_orders').update({status:s}).eq('id',id);
   const i=orders.findIndex(o=>o.id===id);if(i!==-1)orders[i].status=s;
   updateStats();renderOrders();
   const lb={confirmed:'تم التأكيد ✅',delivered:'تم التسليم 🚚',returned:'تم الترجيع ↩️',cancelled:'تم الإلغاء ❌'};
@@ -333,7 +320,7 @@ async function setStatus(id,s){
 }
 
 async function loadSettings(){
-  const{data}=await SB.from('product_settings').select('*').limit(1).single();
+  const{data}=await supabase.from('product_settings').select('*').limit(1).single();
   if(!data)return;sid=data.id;images=data.images||[];sizes=data.sizes||[];colors=data.colors||[];
   document.getElementById('fName').value=data.product_name||'';
   document.getElementById('fSub').value=data.product_subtitle||'';
@@ -370,7 +357,7 @@ function delColor(i){colors.splice(i,1);renderColors();}
 
 async function saveSettings(){
   const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='⏳ جاري الحفظ...';
-  const{error}=await SB.from('product_settings').update({
+  const{error}=await supabase.from('product_settings').update({
     product_name:document.getElementById('fName').value,product_subtitle:document.getElementById('fSub').value,
     product_description:document.getElementById('fDesc').value,topbar_text:document.getElementById('fTopbar').value,
     badge_text:document.getElementById('fBadge').value,price:+document.getElementById('fPrice').value,
@@ -388,6 +375,7 @@ async function saveSettings(){
 function showToast(msg,type='success'){
   const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';
   setTimeout(()=>t.classList.remove('show'),3000);
+}
 }
 </script>
 </body>
