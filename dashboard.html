@@ -9,10 +9,14 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-body:not(.dukkan-authed) #app{display:none!important}
-body.dukkan-authed #authCheck{display:none!important}
-body.dukkan-authed #app{display:flex!important}
-.auth-check{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:14px;color:var(--muted);font-size:14px}
+.login-wrap{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center}
+.login-logo{font-family:'Tajawal',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.login-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px;color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;outline:none;margin-bottom:12px;text-align:center;letter-spacing:4px}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:#000;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;padding:14px;border:none;border-radius:10px;cursor:pointer}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none}
 .layout{display:flex;min-height:100vh}
 .sidebar{width:220px;background:var(--card);border-left:1px solid var(--border);padding:20px 0;position:fixed;top:0;right:0;height:100vh;display:flex;flex-direction:column}
 .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px;font-family:'Tajawal',sans-serif;font-size:22px;font-weight:900;color:var(--gold)}
@@ -122,12 +126,17 @@ body.dukkan-authed #app{display:flex!important}
 </head>
 <body>
 
-<div class="auth-check" id="authCheck">
-  <div class="spinner"></div>
-  <span>جاري التحقق من الجلسة…</span>
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">🏪 دكّان</div>
+    <div class="login-sub">لوحة التحكم الكاملة</div>
+    <input class="login-input" id="loginPass" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">دخول</button>
+    <div class="login-err" id="loginErr">كلمة المرور غير صحيحة</div>
+  </div>
 </div>
 
-<div class="layout" id="app">
+<div class="layout" id="app" style="display:none">
   <aside class="sidebar">
     <div class="sidebar-logo">🏪 دكّان<span>لوحة التحكم</span></div>
     <div class="nav-item active" onclick="showPage('orders',this)"><span>📦</span> الطلبات</div>
@@ -243,67 +252,28 @@ body.dukkan-authed #app{display:flex!important}
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
-var supabase=null;
-if(window.supabase && typeof window.supabase.createClient==='function'){
-  supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-}else{
-  window.location.replace('login.html');
-}
+const SB=supabase.createClient('https://tdipbduxnxsdcdrwuksz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkaXBiZHV4bnhzZGNkcnd1a3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MjM0MTcsImV4cCI6MjA1OTI5OTQxN30.YMmFV0143s9qBB7hJfprFgxsYWJGHdAyAOzELpRKe-4');
+const PASS='dukkan2025';
 let orders=[],filter='all',images=[],sizes=[],colors=[],sid=null;
 
-function goLogin(){
-  window.location.replace('login.html');
+function doLogin(){
+  if(document.getElementById('loginPass').value===PASS){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('app').style.display='flex';
+    loadOrders();loadSettings();setInterval(loadOrders,30000);
+  }else document.getElementById('loginErr').style.display='block';
 }
-
-function showOrdersDashboard(){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-  var ordersPage=document.getElementById('page-orders');
-  var firstNav=document.querySelector('.sidebar .nav-item');
-  if(ordersPage) ordersPage.classList.add('active');
-  if(firstNav) firstNav.classList.add('active');
-}
-
-function readMerchantSession(){
-  try{
-    var raw=localStorage.getItem('dukkan_merchant');
-    if(raw){
-      var o=JSON.parse(raw);
-      if(o&&o.id)return o;
-    }
-  }catch(_e){}
-  var id=localStorage.getItem('merchant_id');
-  return id?{id:id}:null;
-}
-
-async function boot(){
-  if(!supabase){goLogin();return;}
-  var merchant=readMerchantSession();
-  if(!merchant||!merchant.id){goLogin();return;}
-  var gate=document.getElementById('authCheck');
-  var app=document.getElementById('app');
-  if(gate) gate.style.display='none';
-  if(app) app.style.display='flex';
-  document.body.classList.add('dukkan-authed');
-  showOrdersDashboard();
-  loadOrders();
-  loadSettings();
-  setInterval(loadOrders,30000);
-}
-boot();
 
 function showPage(n,el){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.nav-item').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+n).classList.add('active');el.classList.add('active');
 }
 
 async function loadOrders(){
-  const{data,error}=await supabase.from('iraq_orders').select('*').order('created_at',{ascending:false});
+  const{data,error}=await SB.from('iraq_orders').select('*').order('created_at',{ascending:false});
   if(error){showToast('خطأ في التحميل','error');return;}
   orders=data||[];updateStats();renderOrders();
 }
@@ -340,7 +310,7 @@ function card(o){
 }
 
 async function setStatus(id,s){
-  await supabase.from('iraq_orders').update({status:s}).eq('id',id);
+  await SB.from('iraq_orders').update({status:s}).eq('id',id);
   const i=orders.findIndex(o=>o.id===id);if(i!==-1)orders[i].status=s;
   updateStats();renderOrders();
   const lb={confirmed:'تم التأكيد ✅',delivered:'تم التسليم 🚚',returned:'تم الترجيع ↩️',cancelled:'تم الإلغاء ❌'};
@@ -348,7 +318,7 @@ async function setStatus(id,s){
 }
 
 async function loadSettings(){
-  const{data}=await supabase.from('product_settings').select('*').limit(1).single();
+  const{data}=await SB.from('product_settings').select('*').limit(1).single();
   if(!data)return;sid=data.id;images=data.images||[];sizes=data.sizes||[];colors=data.colors||[];
   document.getElementById('fName').value=data.product_name||'';
   document.getElementById('fSub').value=data.product_subtitle||'';
@@ -385,7 +355,7 @@ function delColor(i){colors.splice(i,1);renderColors();}
 
 async function saveSettings(){
   const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='⏳ جاري الحفظ...';
-  const{error}=await supabase.from('product_settings').update({
+  const{error}=await SB.from('product_settings').update({
     product_name:document.getElementById('fName').value,product_subtitle:document.getElementById('fSub').value,
     product_description:document.getElementById('fDesc').value,topbar_text:document.getElementById('fTopbar').value,
     badge_text:document.getElementById('fBadge').value,price:+document.getElementById('fPrice').value,

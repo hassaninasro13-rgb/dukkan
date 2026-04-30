@@ -5,381 +5,409 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>دكّان | تسجيل الدخول</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg: #0b1530;
-      --bg-card: #111d3d;
-      --border: rgba(240, 165, 0, 0.25);
-      --gold: #f0a500;
-      --gold-hover: #ffc233;
-      --text: #f0f4ff;
-      --muted: #9cb0d0;
-      --error: #ff6b6b;
-      --ok: #4ecdc4;
+      --navy: #0B1D3A;
+      --navy-mid: #122347;
+      --navy-light: #1A3260;
+      --gold: #F0A500;
+      --gold-light: #FFD166;
+      --white: #FFFFFF;
+      --gray: #8A9BB5;
+      --error: #FF6B6B;
+      --success: #4ECDC4;
+      --border: rgba(240,165,0,0.2);
+      --input-bg: rgba(255,255,255,0.05);
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Cairo', sans-serif;
-      background: linear-gradient(160deg, var(--bg) 0%, #060d1f 100%);
-      color: var(--text);
+      background: var(--navy);
+      color: var(--white);
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
+      overflow: hidden;
     }
-    .shell {
-      width: 100%;
-      max-width: 420px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px 24px 32px;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+
+    /* ─── LEFT PANEL (decorative) ─── */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy-mid) 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 3rem;
+      position: relative; overflow: hidden;
     }
-    .brand {
+    .left-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(240,165,0,0.1) 0%, transparent 70%);
+    }
+    .left-panel .logo {
       font-family: 'Tajawal', sans-serif;
-      font-size: 1.75rem;
-      font-weight: 900;
-      color: var(--gold);
-      text-align: center;
-      margin-bottom: 6px;
+      font-size: 3rem; font-weight: 900;
+      color: var(--gold); margin-bottom: 1rem;
+      position: relative;
     }
-    .subtitle {
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-bottom: 22px;
+    .left-panel h2 {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.8rem; font-weight: 900;
+      text-align: center; margin-bottom: 1rem;
+      position: relative;
     }
+    .left-panel p {
+      color: var(--gray); text-align: center;
+      line-height: 1.8; max-width: 360px;
+      position: relative;
+    }
+    .features-list {
+      margin-top: 2.5rem; list-style: none;
+      display: flex; flex-direction: column; gap: .9rem;
+      position: relative;
+    }
+    .features-list li {
+      display: flex; align-items: center; gap: .8rem;
+      color: var(--gray); font-size: .95rem;
+    }
+    .features-list li span.icon {
+      width: 36px; height: 36px;
+      background: rgba(240,165,0,0.1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+
+    /* ─── RIGHT PANEL (form) ─── */
+    .right-panel {
+      width: 460px; flex-shrink: 0;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 3rem 2.5rem;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+    .back-link {
+      align-self: flex-start;
+      color: var(--gray); text-decoration: none;
+      font-size: .85rem; margin-bottom: 2rem;
+      display: flex; align-items: center; gap: .4rem;
+      transition: color .2s;
+    }
+    .back-link:hover { color: var(--gold); }
+
+    /* ─── TABS ─── */
     .tabs {
       display: flex;
-      gap: 8px;
-      padding: 4px;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      margin-bottom: 20px;
+      border-radius: 12px; padding: .3rem;
+      margin-bottom: 2rem; width: 100%;
     }
     .tab-btn {
-      flex: 1;
-      padding: 12px 10px;
-      border: none;
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: transparent;
-      color: var(--muted);
-      transition: background 0.2s, color 0.2s;
+      flex: 1; padding: .7rem;
+      border: none; background: transparent;
+      color: var(--gray); font-family: 'Cairo', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      border-radius: 9px; cursor: pointer;
+      transition: all .2s;
     }
-    .tab-btn.active { background: var(--gold); color: #0b1530; }
-    .tab-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-    .alert {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 0.88rem;
-      margin-bottom: 16px;
-      line-height: 1.5;
+    .tab-btn.active {
+      background: var(--gold); color: var(--navy);
+      font-weight: 800;
     }
-    .alert.show { display: block; }
-    .alert.err {
-      background: rgba(255, 107, 107, 0.12);
-      border: 1px solid rgba(255, 107, 107, 0.35);
-      color: var(--error);
+
+    /* ─── FORM ─── */
+    .form-title {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.6rem; font-weight: 900;
+      margin-bottom: .4rem; width: 100%;
     }
-    .alert.ok {
-      background: rgba(78, 205, 196, 0.12);
-      border: 1px solid rgba(78, 205, 196, 0.35);
-      color: var(--ok);
+    .form-sub {
+      color: var(--gray); font-size: .9rem;
+      margin-bottom: 1.8rem; width: 100%;
     }
-    .panel { display: none; width: 100%; }
-    .panel.active { display: block; }
-    .field { margin-bottom: 14px; }
+
+    .field { margin-bottom: 1.2rem; width: 100%; }
     .field label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 6px;
+      display: block; font-size: .85rem;
+      font-weight: 600; color: var(--gray);
+      margin-bottom: .4rem;
     }
     .field input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      font-family: inherit;
-      font-size: 0.95rem;
+      width: 100%; padding: .85rem 1rem;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; color: var(--white);
+      font-family: 'Cairo', sans-serif; font-size: .95rem;
+      outline: none; transition: border-color .2s;
       text-align: right;
-      outline: none;
     }
     .field input:focus { border-color: var(--gold); }
-    .field input::placeholder { color: rgba(156, 176, 208, 0.45); }
-    .btn-gold {
-      width: 100%;
-      margin-top: 8px;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      background: var(--gold);
-      color: #0b1530;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 8px 28px rgba(240, 165, 0, 0.35);
+    .field input::placeholder { color: rgba(138,155,181,0.5); }
+
+    .btn-submit {
+      width: 100%; padding: .95rem;
+      background: var(--gold); color: var(--navy);
+      border: none; border-radius: 10px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: all .2s;
+      margin-top: .5rem;
+      box-shadow: 0 6px 24px rgba(240,165,0,0.3);
     }
-    .btn-gold:hover { background: var(--gold-hover); transform: translateY(-1px); }
-    .btn-gold:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
-    .back {
-      display: inline-block;
-      margin-top: 18px;
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-decoration: none;
+    .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .divider {
+      width: 100%; text-align: center;
+      color: var(--gray); font-size: .8rem;
+      margin: 1.2rem 0; position: relative;
     }
-    .back:hover { color: var(--gold); }
-    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute; top: 50%;
+      width: 40%; height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .divider::before { right: 0; }
+    .divider::after { left: 0; }
+
+    /* ─── ALERT ─── */
+    .alert {
+      width: 100%; padding: .8rem 1rem;
+      border-radius: 10px; font-size: .9rem;
+      margin-bottom: 1rem; display: none;
+    }
+    .alert.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--error); }
+    .alert.success { background: rgba(78,205,196,0.1); border: 1px solid rgba(78,205,196,0.3); color: var(--success); }
+    .alert.show { display: block; }
+
+    /* ─── LOADER ─── */
+    .loader {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(11,29,58,0.3);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle; margin-left: .5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; border-right: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="brand">🛍️ دكّان</div>
-    <p class="subtitle">تسجيل الدخول بحساب التاجر (جدول merchants)</p>
 
-    <div class="tabs" role="tablist">
-      <button type="button" class="tab-btn active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
-      <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">إنشاء حساب</button>
-    </div>
-
-    <div class="alert" id="alert" role="alert"></div>
-
-    <div class="panel active" id="panel-login">
-      <div class="field">
-        <label for="login-email">البريد الإلكتروني</label>
-        <input id="login-email" type="email" autocomplete="email" placeholder="example@mail.com" />
-      </div>
-      <div class="field">
-        <label for="login-pass">كلمة المرور</label>
-        <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
-      </div>
-      <button type="button" class="btn-gold" id="btn-login" onclick="doLogin()">دخول</button>
-    </div>
-
-    <div class="panel" id="panel-register">
-      <div class="field">
-        <label for="reg-store">اسم المتجر</label>
-        <input id="reg-store" type="text" placeholder="مثال: متجر النور" />
-      </div>
-      <div class="field">
-        <label for="reg-email">البريد الإلكتروني</label>
-        <input id="reg-email" type="email" autocomplete="email" placeholder="example@mail.com" />
-      </div>
-      <div class="field">
-        <label for="reg-phone">رقم الهاتف</label>
-        <input id="reg-phone" type="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right" />
-      </div>
-      <div class="field">
-        <label for="reg-pass">كلمة المرور</label>
-        <input id="reg-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل" />
-      </div>
-      <button type="button" class="btn-gold" id="btn-register" onclick="doRegister()">إنشاء حساب</button>
-      <p class="hint">للتسجيل الكامل مع بيانات إضافية يمكنك استخدام <a href="register.html" style="color:var(--gold)">صفحة التسجيل</a>.</p>
-    </div>
-
-    <a href="index.html" class="back">← العودة للرئيسية</a>
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="logo">🛍️ دكّان</div>
+    <h2>منصة التجار العراقيين</h2>
+    <p>أنشئ متجرك الإلكتروني وابدأ البيع لجميع محافظات العراق اليوم.</p>
+    <ul class="features-list">
+      <li>
+        <span class="icon">🏪</span>
+        متجر احترافي جاهز في دقائق
+      </li>
+      <li>
+        <span class="icon">📦</span>
+        إدارة سهلة للمنتجات والطلبات
+      </li>
+      <li>
+        <span class="icon">🛵</span>
+        شحن لجميع محافظات العراق
+      </li>
+      <li>
+        <span class="icon">💰</span>
+        الدفع عند الاستلام
+      </li>
+      <li>
+        <span class="icon">📊</span>
+        لوحة تحكم وإحصائيات مفصّلة
+      </li>
+    </ul>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <a href="index.html" class="back-link">← العودة للرئيسية</a>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')">إنشاء حساب</button>
+    </div>
+
+    <!-- ALERT -->
+    <div class="alert" id="alert"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login" style="width:100%">
+      <div class="form-title">أهلاً بعودتك 👋</div>
+      <div class="form-sub">سجّل دخولك لإدارة متجرك</div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="login-email" placeholder="example@mail.com" />
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+      <button class="btn-submit" id="login-btn" onclick="handleLogin()">
+        تسجيل الدخول
+      </button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="width:100%; display:none;">
+      <div class="form-title">افتح متجرك 🚀</div>
+      <div class="form-sub">أنشئ حسابك مجاناً الآن</div>
+      <div class="field">
+        <label>اسم المتجر</label>
+        <input type="text" id="reg-store" placeholder="مثال: متجر أبو علي" />
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="reg-email" placeholder="example@mail.com" />
+      </div>
+      <div class="field">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="reg-phone" placeholder="07XXXXXXXXX" />
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input type="password" id="reg-pass" placeholder="8 أحرف على الأقل" />
+      </div>
+      <button class="btn-submit" id="register-btn" onclick="handleRegister()">
+        إنشاء الحساب مجاناً
+      </button>
+    </div>
+  </div>
+
   <script>
-    var SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
+    // ─── SUPABASE CONFIG ───
+    const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM'
+    const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      document.getElementById('alert').className = 'alert err show';
-      document.getElementById('alert').textContent = 'تعذّر تحميل مكتبة الاتصال.';
+    // ─── TAB SWITCH ───
+    function switchTab(tab) {
+      document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none'
+      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none'
+      document.getElementById('tab-login').classList.toggle('active',    tab === 'login')
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register')
+      clearAlert()
     }
 
-    var sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    // ─── AUTO-SWITCH FROM URL PARAM ───
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('tab') === 'register') switchTab('register')
 
-    function showAlert(msg, kind) {
-      var el = document.getElementById('alert');
-      el.textContent = msg;
-      el.className = 'alert show ' + (kind === 'ok' ? 'ok' : 'err');
+    // ─── CHECK SESSION ───
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) window.location.href = 'dashboard.html'
+    })()
+
+    // ─── ALERT HELPERS ───
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('alert')
+      el.textContent = msg
+      el.className = `alert ${type} show`
     }
-    function hideAlert() {
-      var el = document.getElementById('alert');
-      el.className = 'alert';
-      el.textContent = '';
+    function clearAlert() {
+      document.getElementById('alert').className = 'alert'
     }
 
-    function switchTab(name) {
-      hideAlert();
-      var loginP = document.getElementById('panel-login');
-      var regP = document.getElementById('panel-register');
-      var tL = document.getElementById('tab-login');
-      var tR = document.getElementById('tab-register');
-      if (name === 'register') {
-        loginP.classList.remove('active');
-        regP.classList.add('active');
-        tL.classList.remove('active');
-        tR.classList.add('active');
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId)
+      if (loading) {
+        btn.disabled = true
+        btn.innerHTML = 'جاري التحميل... <span class="loader"></span>'
       } else {
-        regP.classList.remove('active');
-        loginP.classList.add('active');
-        tR.classList.remove('active');
-        tL.classList.add('active');
+        btn.disabled = false
+        btn.innerHTML = btnId === 'login-btn' ? 'تسجيل الدخول' : 'إنشاء الحساب مجاناً'
       }
     }
 
-    /** مطابقة المشروع: password_hash = btoa(كلمة المرور) كما في merchant-dashboard */
-    function hashPassword(plain) {
-      return btoa(plain);
-    }
+    // ─── LOGIN ───
+    async function handleLogin() {
+      clearAlert()
+      const email = document.getElementById('login-email').value.trim()
+      const pass  = document.getElementById('login-pass').value
 
-    function saveMerchantSession(row) {
-      if (!row || !row.id) return;
-      localStorage.setItem('merchant_id', row.id);
-      localStorage.setItem('dukkan_merchant', JSON.stringify(row));
-    }
+      if (!email || !pass) return showAlert('⚠️ يرجى ملء جميع الحقول')
 
-    function goDashboard() {
-      window.location.href = 'dashboard.html';
-    }
+      setLoading('login-btn', true)
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
+      setLoading('login-btn', false)
 
-    async function doLogin() {
-      hideAlert();
-      if (!sb) {
-        showAlert('الاتصال غير جاهز');
-        return;
-      }
-      var email = document.getElementById('login-email').value.trim().toLowerCase();
-      var pass = document.getElementById('login-pass').value;
-      if (!email || !pass) {
-        showAlert('يرجى إدخال البريد وكلمة المرور');
-        return;
-      }
-      var btn = document.getElementById('btn-login');
-      btn.disabled = true;
-      btn.textContent = 'جاري الدخول…';
-      try {
-        var res = await sb
-          .from('merchants')
-          .select('*')
-          .eq('email', email)
-          .eq('password_hash', hashPassword(pass))
-          .maybeSingle();
-        if (res.error) throw res.error;
-        var data = res.data;
-        if (!data) {
-          showAlert('البريد أو كلمة المرور غير صحيحة');
-          return;
-        }
-        if (data.is_active === false) {
-          showAlert('حسابك غير مفعّل حالياً');
-          return;
-        }
-        saveMerchantSession(data);
-        showAlert('تم الدخول، جاري التحويل…', 'ok');
-        goDashboard();
-      } catch (e) {
-        showAlert((e && e.message) ? e.message : 'تعذّر تسجيل الدخول');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'دخول';
+      if (error) {
+        showAlert('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة')
+      } else {
+        showAlert('✅ تم تسجيل الدخول بنجاح! جاري التحويل...', 'success')
+        setTimeout(() => window.location.href = 'dashboard.html', 1200)
       }
     }
 
-    function slugifyStoreName(name) {
-      var s = (name || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\u0600-\u06FF-]/g, '').replace(/-+/g, '-');
-      if (!s) s = 'store-' + Date.now();
-      return s.slice(0, 48);
+    // ─── REGISTER ───
+    async function handleRegister() {
+      clearAlert()
+      const storeName = document.getElementById('reg-store').value.trim()
+      const email     = document.getElementById('reg-email').value.trim()
+      const phone     = document.getElementById('reg-phone').value.trim()
+      const pass      = document.getElementById('reg-pass').value
+
+      if (!storeName || !email || !phone || !pass)
+        return showAlert('⚠️ يرجى ملء جميع الحقول')
+      if (pass.length < 8)
+        return showAlert('⚠️ كلمة المرور يجب أن تكون 8 أحرف على الأقل')
+
+      setLoading('register-btn', true)
+
+      // 1. Create auth user
+      const { data, error } = await supabase.auth.signUp({
+        email, password: pass,
+        options: { data: { store_name: storeName, phone } }
+      })
+
+      if (error) {
+        setLoading('register-btn', false)
+        return showAlert('❌ ' + (error.message === 'User already registered'
+          ? 'هذا البريد الإلكتروني مسجّل مسبقاً' : error.message))
+      }
+
+      // 2. Insert merchant record
+      if (data.user) {
+        await supabase.from('merchants').insert({
+          id: data.user.id,
+          store_name: storeName,
+          email,
+          phone,
+          created_at: new Date().toISOString()
+        })
+      }
+
+      setLoading('register-btn', false)
+      showAlert('🎉 تم إنشاء حسابك! تحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success')
     }
 
-    async function doRegister() {
-      hideAlert();
-      if (!sb) {
-        showAlert('الاتصال غير جاهز');
-        return;
+    // ─── ENTER KEY ───
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const isLogin = document.getElementById('form-login').style.display !== 'none'
+        isLogin ? handleLogin() : handleRegister()
       }
-      var store = document.getElementById('reg-store').value.trim();
-      var email = document.getElementById('reg-email').value.trim().toLowerCase();
-      var phone = document.getElementById('reg-phone').value.trim();
-      var pass = document.getElementById('reg-pass').value;
-      if (!store || !email || !phone || !pass) {
-        showAlert('يرجى تعبئة جميع الحقول');
-        return;
-      }
-      if (pass.length < 8) {
-        showAlert('كلمة المرور 8 أحرف على الأقل');
-        return;
-      }
-      var btn = document.getElementById('btn-register');
-      btn.disabled = true;
-      btn.textContent = 'جاري الإنشاء…';
-      try {
-        var store_slug = slugifyStoreName(store);
-        var dup = await sb
-          .from('merchants')
-          .select('id,email,store_slug')
-          .or('email.eq.' + email + ',store_slug.eq.' + store_slug)
-          .limit(2);
-        if (dup.error) throw dup.error;
-        var rows = dup.data || [];
-        if (rows.some(function (r) { return r.email === email; })) {
-          showAlert('هذا البريد مسجّل مسبقاً');
-          return;
-        }
-        if (rows.some(function (r) { return r.store_slug === store_slug; })) {
-          store_slug = store_slug + '-' + String(Date.now()).slice(-4);
-        }
-        var payload = {
-          full_name: store,
-          email: email,
-          phone: phone,
-          password_hash: hashPassword(pass),
-          store_name: store,
-          store_slug: store_slug,
-          slug: store_slug,
-          store_description: '',
-          governorate: 'بغداد',
-          whatsapp: phone,
-          plan: 'free',
-          is_active: true
-        };
-        var ins = await sb.from('merchants').insert([payload]).select('*').single();
-        if (ins.error) throw ins.error;
-        var merchant = ins.data;
-        var settingsPayload = {
-          merchant_id: merchant.id,
-          shipping_baghdad: 5000,
-          shipping_other: 6000,
-          topbar_text: 'شحن مجاني - الدفع عند الاستلام',
-          whatsapp: phone
-        };
-        var st = await sb.from('store_settings').insert([settingsPayload]).select('*').single();
-        if (st.error) {
-          console.warn('store_settings insert', st.error);
-        }
-        saveMerchantSession(merchant);
-        showAlert('تم إنشاء الحساب، جاري التحويل…', 'ok');
-        goDashboard();
-      } catch (e) {
-        showAlert((e && e.message) ? e.message : 'تعذّر إنشاء الحساب');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'إنشاء حساب';
-      }
-    }
-
-    if (new URLSearchParams(location.search).get('tab') === 'register') {
-      switchTab('register');
-    }
+    })
   </script>
 </body>
 </html>
