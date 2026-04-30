@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>دكّان — صفحة المنتج</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -913,10 +916,13 @@ body.banner-mode {
       BASE = PRODUCT.price;
 
       const ctx = await fetchProductPageContext(PRODUCT);
-      PAGE_SETTINGS = ctx.pageSettings;
+      const settings = ctx.pageSettings || {};
+      PAGE_SETTINGS = settings;
       MERCHANT = ctx.merchant;
       SETTINGS = ctx.settings;
       ACTIVE_PIXELS = ctx.pixels;
+      console.log('[DEBUG] layout_mode:', settings?.layout_mode);
+      console.log('[DEBUG] banner_image:', settings?.banner_image);
 
       applyLayoutMode();
 
