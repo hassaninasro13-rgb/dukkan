@@ -9,6 +9,9 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0e1117;--card:#161b22;--card2:#1c2333;--border:#30363d;--gold:#f0a500;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--text:#e6edf3;--muted:#7d8590}
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body:not(.dukkan-authed) #app{display:none!important}
+body.dukkan-authed #authCheck{display:none!important}
+body.dukkan-authed #app{display:flex!important}
 .auth-check{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:14px;color:var(--muted);font-size:14px}
 .layout{display:flex;min-height:100vh}
 .sidebar{width:220px;background:var(--card);border-left:1px solid var(--border);padding:20px 0;position:fixed;top:0;right:0;height:100vh;display:flex;flex-direction:column}
@@ -124,7 +127,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
   <span>جاري التحقق من الجلسة…</span>
 </div>
 
-<div class="layout" id="app" style="display:none">
+<div class="layout" id="app">
   <aside class="sidebar">
     <div class="sidebar-logo">🏪 دكّان<span>لوحة التحكم</span></div>
     <div class="nav-item active" onclick="showPage('orders',this)"><span>📦</span> الطلبات</div>
@@ -244,33 +247,56 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 <script>
 const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
-if(!window.supabase||typeof window.supabase.createClient!=='function'){
-  window.location.href='login.html';
+var supabase=null;
+if(window.supabase && typeof window.supabase.createClient==='function'){
+  supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 }else{
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  window.location.replace('login.html');
+}
 let orders=[],filter='all',images=[],sizes=[],colors=[],sid=null;
 
+function goLogin(){
+  window.location.replace('login.html');
+}
+
+function showOrdersDashboard(){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  var ordersPage=document.getElementById('page-orders');
+  var firstNav=document.querySelector('.sidebar .nav-item');
+  if(ordersPage) ordersPage.classList.add('active');
+  if(firstNav) firstNav.classList.add('active');
+}
+
 async function boot(){
-  const { data: { session } } = await supabase.auth.getSession();
-  if(!session){
-    window.location.href='login.html';
-    return;
+  if(!supabase){goLogin();return;}
+  var session=null;
+  try{
+    var res=await supabase.auth.getSession();
+    if(res.error){goLogin();return;}
+    session=res.data&&res.data.session ? res.data.session : null;
+  }catch(_e){
+    goLogin();return;
   }
-  document.getElementById('authCheck').style.display='none';
-  document.getElementById('app').style.display='flex';
+  if(!session){goLogin();return;}
+  var gate=document.getElementById('authCheck');
+  var app=document.getElementById('app');
+  if(gate) gate.style.display='none';
+  if(app) app.style.display='flex';
+  document.body.classList.add('dukkan-authed');
+  showOrdersDashboard();
   loadOrders();
   loadSettings();
   setInterval(loadOrders,30000);
-  supabase.auth.onAuthStateChange(function(_evt,session){
-    if(!session) window.location.href='login.html';
+  supabase.auth.onAuthStateChange(function(_evt,s){
+    if(!s) goLogin();
   });
 }
 boot();
 
 function showPage(n,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(x){x.classList.remove('active');});
   document.getElementById('page-'+n).classList.add('active');el.classList.add('active');
 }
 
@@ -375,7 +401,6 @@ async function saveSettings(){
 function showToast(msg,type='success'){
   const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';
   setTimeout(()=>t.classList.remove('show'),3000);
-}
 }
 </script>
 </body>
