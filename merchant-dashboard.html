@@ -592,7 +592,7 @@ const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],productModalBannerUrl='';
 let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
-const LOGIN_URL='login.html';
+const LOGIN_URL='/login.html';
 
 function parseStoredMerchant(raw){
   if(raw==null||raw==='')return null;
@@ -650,7 +650,7 @@ function showLoginChoice(){
 }
 
 function goRegister(){
-  window.location.href='/register';
+  window.location.href='/register.html';
 }
 
 async function doLogin(){
