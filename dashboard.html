@@ -254,17 +254,30 @@ let orders=[],filter='all',images=[],sizes=[],colors=[],sid=null;
 async function boot(){
   const gate=document.getElementById('authCheck');
   const app=document.getElementById('app');
-  const { data:{ session } } = await SB.auth.getSession();
-  if(!session){
+  const AUTH_WAIT_MS=3000;
+  try{
+    const outcome=await Promise.race([
+      SB.auth.getSession().then(function(r){return{kind:'session',r};}),
+      new Promise(function(res){setTimeout(function(){res({kind:'timeout'});},AUTH_WAIT_MS);})
+    ]);
+    if(outcome.kind==='timeout'){
+      window.location.replace('login.html');
+      return;
+    }
+    const session=outcome.r&&outcome.r.data?outcome.r.data.session:null;
+    if(!session){
+      window.location.replace('login.html');
+      return;
+    }
+    if(gate) gate.style.display='none';
+    app.style.display='flex';
+    loadOrders();loadSettings();setInterval(loadOrders,30000);
+    SB.auth.onAuthStateChange(function(_evt,session){
+      if(!session) window.location.replace('login.html');
+    });
+  }catch(_e){
     window.location.replace('login.html');
-    return;
   }
-  if(gate) gate.style.display='none';
-  app.style.display='flex';
-  loadOrders();loadSettings();setInterval(loadOrders,30000);
-  SB.auth.onAuthStateChange(function(_evt,session){
-    if(!session) window.location.replace('login.html');
-  });
 }
 boot();
 
