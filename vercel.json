@@ -16,7 +16,6 @@
     { "src": "/icon-192.png", "dest": "/icon-192.png" },
     { "src": "/icon-512.png", "dest": "/icon-512.png" },
     { "src": "/", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/register", "dest": "/register.html" },
     { "src": "/store", "dest": "/store.html" },
     { "src": "/product", "dest": "/product.html" },
