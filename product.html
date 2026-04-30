@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<style>
+  html, body {
+    background: #0f0f1a !important;
+    visibility: hidden;
+  }
+</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -641,7 +647,7 @@ body.banner-mode {
 #pageContent.loaded { opacity: 1; }
 </style>
 </head>
-<body style="visibility:hidden">
+<body>
 <div id="pageContent">
 <!-- TOP BAR -->
 <div class="topbar" id="topbar">🚚 شحن مجاني لجميع محافظات العراق — الدفع عند الاستلام</div>
@@ -886,6 +892,7 @@ body.banner-mode {
   function revealProductPage() {
     const el = document.getElementById('pageContent');
     if (el) el.classList.add('loaded');
+    document.documentElement.style.visibility = 'visible';
     document.body.style.visibility = 'visible';
   }
 
@@ -937,6 +944,8 @@ body.banner-mode {
       console.log('[DEBUG] banner_image:', settings?.banner_image);
 
       applyLayoutMode();
+      document.documentElement.style.visibility = 'visible';
+      document.body.style.visibility = 'visible';
       const pageContentEl = document.getElementById('pageContent');
       if (pageContentEl) pageContentEl.classList.add('loaded');
 
@@ -944,7 +953,6 @@ body.banner-mode {
       initAdPixels();
       renderProduct();
       recalc();
-      document.body.style.visibility = 'visible';
     } catch (err) {
       console.error('[DEBUG] loadProduct uncaught', err);
       alert('تعذر تحميل المنتج');
