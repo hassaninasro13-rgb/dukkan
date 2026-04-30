@@ -5,461 +5,347 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>دكّان | تسجيل الدخول</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --navy: #0B1D3A;
-      --navy-mid: #122347;
-      --navy-light: #1A3260;
-      --gold: #F0A500;
-      --gold-light: #FFD166;
-      --white: #FFFFFF;
-      --gray: #8A9BB5;
-      --error: #FF6B6B;
-      --success: #4ECDC4;
-      --border: rgba(240,165,0,0.2);
-      --input-bg: rgba(255,255,255,0.05);
+      --bg: #0b1530;
+      --bg-card: #111d3d;
+      --border: rgba(240, 165, 0, 0.25);
+      --gold: #f0a500;
+      --gold-hover: #ffc233;
+      --text: #f0f4ff;
+      --muted: #9cb0d0;
+      --error: #ff6b6b;
+      --ok: #4ecdc4;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: 'Cairo', sans-serif;
-      background: var(--navy);
-      color: var(--white);
+      background: linear-gradient(160deg, var(--bg) 0%, #060d1f 100%);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
     }
-
-    /* ─── LEFT PANEL (decorative) ─── */
-    .left-panel {
-      flex: 1;
-      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy-mid) 100%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 3rem;
-      position: relative; overflow: hidden;
-    }
-    .left-panel::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(240,165,0,0.1) 0%, transparent 70%);
-    }
-    .left-panel .logo {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 3rem; font-weight: 900;
-      color: var(--gold); margin-bottom: 1rem;
-      position: relative;
-    }
-    .left-panel h2 {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.8rem; font-weight: 900;
-      text-align: center; margin-bottom: 1rem;
-      position: relative;
-    }
-    .left-panel p {
-      color: var(--gray); text-align: center;
-      line-height: 1.8; max-width: 360px;
-      position: relative;
-    }
-    .features-list {
-      margin-top: 2.5rem; list-style: none;
-      display: flex; flex-direction: column; gap: .9rem;
-      position: relative;
-    }
-    .features-list li {
-      display: flex; align-items: center; gap: .8rem;
-      color: var(--gray); font-size: .95rem;
-    }
-    .features-list li span.icon {
-      width: 36px; height: 36px;
-      background: rgba(240,165,0,0.1);
+    .shell {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; flex-shrink: 0;
+      border-radius: 20px;
+      padding: 28px 24px 32px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
     }
-
-    /* ─── RIGHT PANEL (form) ─── */
-    .right-panel {
-      width: 460px; flex-shrink: 0;
-      background: var(--navy);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 3rem 2.5rem;
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
+    .brand {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 6px;
     }
-    .back-link {
-      align-self: flex-start;
-      color: var(--gray); text-decoration: none;
-      font-size: .85rem; margin-bottom: 2rem;
-      display: flex; align-items: center; gap: .4rem;
-      transition: color .2s;
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 22px;
     }
-    .back-link:hover { color: var(--gold); }
-
-    /* ─── TABS ─── */
     .tabs {
       display: flex;
-      background: rgba(255,255,255,0.04);
+      gap: 8px;
+      padding: 4px;
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
-      border-radius: 12px; padding: .3rem;
-      margin-bottom: 2rem; width: 100%;
+      border-radius: 14px;
+      margin-bottom: 20px;
     }
     .tab-btn {
-      flex: 1; padding: .7rem;
-      border: none; background: transparent;
-      color: var(--gray); font-family: 'Cairo', sans-serif;
-      font-size: .95rem; font-weight: 600;
-      border-radius: 9px; cursor: pointer;
-      transition: all .2s;
+      flex: 1;
+      padding: 12px 10px;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
     }
     .tab-btn.active {
-      background: var(--gold); color: var(--navy);
-      font-weight: 800;
+      background: var(--gold);
+      color: #0b1530;
     }
-
-    /* ─── FORM ─── */
-    .form-title {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.6rem; font-weight: 900;
-      margin-bottom: .4rem; width: 100%;
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
     }
-    .form-sub {
-      color: var(--gray); font-size: .9rem;
-      margin-bottom: 1.8rem; width: 100%;
+    .alert {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+      line-height: 1.5;
     }
-
-    .field { margin-bottom: 1.2rem; width: 100%; }
+    .alert.show { display: block; }
+    .alert.err {
+      background: rgba(255, 107, 107, 0.12);
+      border: 1px solid rgba(255, 107, 107, 0.35);
+      color: var(--error);
+    }
+    .alert.ok {
+      background: rgba(78, 205, 196, 0.12);
+      border: 1px solid rgba(78, 205, 196, 0.35);
+      color: var(--ok);
+    }
+    .panel { display: none; width: 100%; }
+    .panel.active { display: block; }
+    .field { margin-bottom: 14px; }
     .field label {
-      display: block; font-size: .85rem;
-      font-weight: 600; color: var(--gray);
-      margin-bottom: .4rem;
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
     }
     .field input {
-      width: 100%; padding: .85rem 1rem;
-      background: var(--input-bg);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px; color: var(--white);
-      font-family: 'Cairo', sans-serif; font-size: .95rem;
-      outline: none; transition: border-color .2s;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
       text-align: right;
+      outline: none;
     }
-    .field input:focus { border-color: var(--gold); }
-    .field input::placeholder { color: rgba(138,155,181,0.5); }
-
-    .btn-submit {
-      width: 100%; padding: .95rem;
-      background: var(--gold); color: var(--navy);
-      border: none; border-radius: 10px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 1rem; font-weight: 800;
-      cursor: pointer; transition: all .2s;
-      margin-top: .5rem;
-      box-shadow: 0 6px 24px rgba(240,165,0,0.3);
+    .field input:focus {
+      border-color: var(--gold);
     }
-    .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-
-    .btn-resend {
-      width: 100%; padding: .75rem;
-      background: transparent;
-      border: 1.5px solid var(--gold);
-      color: var(--gold); border-radius: 10px;
-      font-family: 'Cairo', sans-serif;
-      font-size: .9rem; font-weight: 700;
-      cursor: pointer; margin-top: .8rem;
-      display: none; transition: all .2s;
+    .field input::placeholder { color: rgba(156, 176, 208, 0.45); }
+    .btn-gold {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--gold);
+      color: #0b1530;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 8px 28px rgba(240, 165, 0, 0.35);
     }
-    .btn-resend:hover { background: rgba(240,165,0,0.1); }
-    .btn-resend:disabled { opacity: .5; cursor: not-allowed; }
-
-    .divider {
-      width: 100%; text-align: center;
-      color: var(--gray); font-size: .8rem;
-      margin: 1.2rem 0; position: relative;
+    .btn-gold:hover { background: var(--gold-hover); transform: translateY(-1px); }
+    .btn-gold:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
     }
-    .divider::before, .divider::after {
-      content: '';
-      position: absolute; top: 50%;
-      width: 40%; height: 1px;
-      background: rgba(255,255,255,0.1);
+    .back {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
     }
-    .divider::before { right: 0; }
-    .divider::after { left: 0; }
-
-    /* ─── ALERT ─── */
-    .alert {
-      width: 100%; padding: .8rem 1rem;
-      border-radius: 10px; font-size: .9rem;
-      margin-bottom: 1rem; display: none;
-    }
-    .alert.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--error); }
-    .alert.success { background: rgba(78,205,196,0.1); border: 1px solid rgba(78,205,196,0.3); color: var(--success); }
-    .alert.show { display: block; }
-
-    /* ─── LOADER ─── */
+    .back:hover { color: var(--gold); }
     .loader {
-      display: inline-block; width: 18px; height: 18px;
-      border: 2px solid rgba(11,29,58,0.3);
-      border-top-color: var(--navy);
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(11, 21, 48, 0.3);
+      border-top-color: #0b1530;
       border-radius: 50%;
-      animation: spin .7s linear infinite;
-      vertical-align: middle; margin-left: .5rem;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 900px) {
-      .left-panel { display: none; }
-      .right-panel { width: 100%; border-right: none; }
-    }
   </style>
 </head>
 <body>
+  <div class="shell">
+    <div class="brand">🛍️ دكّان</div>
+    <p class="subtitle">منصة التجار — تسجيل الدخول أو إنشاء حساب</p>
 
-  <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <div class="logo">🛍️ دكّان</div>
-    <h2>منصة التجار العراقيين</h2>
-    <p>أنشئ متجرك الإلكتروني وابدأ البيع لجميع محافظات العراق اليوم.</p>
-    <ul class="features-list">
-      <li>
-        <span class="icon">🏪</span>
-        متجر احترافي جاهز في دقائق
-      </li>
-      <li>
-        <span class="icon">📦</span>
-        إدارة سهلة للمنتجات والطلبات
-      </li>
-      <li>
-        <span class="icon">🛵</span>
-        شحن لجميع محافظات العراق
-      </li>
-      <li>
-        <span class="icon">💰</span>
-        الدفع عند الاستلام
-      </li>
-      <li>
-        <span class="icon">📊</span>
-        لوحة تحكم وإحصائيات مفصّلة
-      </li>
-    </ul>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-    <a href="index.html" class="back-link">← العودة للرئيسية</a>
-
-    <!-- TABS -->
-    <div class="tabs">
-      <button type="button" class="tab-btn active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
-      <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">إنشاء حساب</button>
-    </div>
-
-    <!-- ALERT -->
-    <div class="alert" id="alert"></div>
-
-    <!-- LOGIN FORM -->
-    <div id="form-login" style="width:100%">
-      <div class="form-title">أهلاً بعودتك 👋</div>
-      <div class="form-sub">سجّل دخولك لإدارة متجرك</div>
-      <div class="field">
-        <label>البريد الإلكتروني</label>
-        <input type="email" id="login-email" placeholder="example@mail.com" />
-      </div>
-      <div class="field">
-        <label>كلمة المرور</label>
-        <input type="password" id="login-pass" placeholder="••••••••" />
-      </div>
-      <button type="button" class="btn-submit" id="login-btn" onclick="handleLogin()">
+    <div class="tabs" role="tablist" aria-label="نوع النموذج">
+      <button type="button" role="tab" class="tab-btn active" id="tab-login" aria-selected="true" onclick="switchTab('login')">
         تسجيل الدخول
       </button>
-      <input type="hidden" id="resend-email" />
-      <button type="button" class="btn-resend" id="resend-btn" onclick="handleResend()">
-        📧 إعادة إرسال إيميل التأكيد
+      <button type="button" role="tab" class="tab-btn" id="tab-register" aria-selected="false" onclick="switchTab('register')">
+        إنشاء حساب
       </button>
     </div>
 
-    <!-- REGISTER FORM -->
-    <div id="form-register" style="width:100%; display:none;">
-      <div class="form-title">افتح متجرك 🚀</div>
-      <div class="form-sub">أنشئ حسابك مجاناً الآن</div>
+    <div class="alert" id="alert" role="alert"></div>
+
+    <div class="panel active" id="panel-login" role="tabpanel">
       <div class="field">
-        <label>اسم المتجر</label>
-        <input type="text" id="reg-store" placeholder="مثال: متجر أبو علي" />
+        <label for="login-email">البريد الإلكتروني</label>
+        <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" />
       </div>
       <div class="field">
-        <label>البريد الإلكتروني</label>
-        <input type="email" id="reg-email" placeholder="example@mail.com" />
+        <label for="login-pass">كلمة المرور</label>
+        <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
       </div>
-      <div class="field">
-        <label>رقم الهاتف</label>
-        <input type="tel" id="reg-phone" placeholder="07XXXXXXXXX" />
-      </div>
-      <div class="field">
-        <label>كلمة المرور</label>
-        <input type="password" id="reg-pass" placeholder="8 أحرف على الأقل" />
-      </div>
-      <button type="button" class="btn-submit" id="register-btn" onclick="handleRegister()">
-        إنشاء الحساب مجاناً
-      </button>
+      <button type="button" class="btn-gold" id="btn-login" onclick="doLogin()">دخول</button>
     </div>
+
+    <div class="panel" id="panel-register" role="tabpanel">
+      <div class="field">
+        <label for="reg-store">اسم المتجر</label>
+        <input id="reg-store" type="text" autocomplete="organization" placeholder="مثال: متجر النور" />
+      </div>
+      <div class="field">
+        <label for="reg-email">البريد الإلكتروني</label>
+        <input id="reg-email" type="email" autocomplete="email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label for="reg-phone">رقم الهاتف</label>
+        <input id="reg-phone" type="tel" autocomplete="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right" />
+      </div>
+      <div class="field">
+        <label for="reg-pass">كلمة المرور</label>
+        <input id="reg-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل" />
+      </div>
+      <button type="button" class="btn-gold" id="btn-register" onclick="doRegister()">تسجيل</button>
+    </div>
+
+    <a href="index.html" class="back">← العودة للرئيسية</a>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    // ─── SUPABASE CONFIG ───
-    const SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM'
-    const { createClient } = window.supabase
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    (function () {
+      var SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 
-    // ─── TAB SWITCH ───
-    function switchTab(tab) {
-      document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none'
-      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none'
-      document.getElementById('tab-login').classList.toggle('active',    tab === 'login')
-      document.getElementById('tab-register').classList.toggle('active', tab === 'register')
-      clearAlert()
-    }
-
-    // ─── AUTO-SWITCH FROM URL PARAM ───
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('tab') === 'register') switchTab('register')
-
-    // ─── CHECK SESSION ───
-    ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) window.location.href = 'dashboard.html'
-    })()
-
-    // ─── ALERT HELPERS ───
-    function showAlert(msg, type = 'error') {
-      const el = document.getElementById('alert')
-      el.textContent = msg
-      el.className = `alert ${type} show`
-    }
-    function clearAlert() {
-      document.getElementById('alert').className = 'alert'
-      document.getElementById('resend-btn').style.display = 'none'
-    }
-
-    function setLoading(btnId, loading) {
-      const btn = document.getElementById(btnId)
-      if (loading) {
-        btn.disabled = true
-        btn.innerHTML = 'جاري التحميل... <span class="loader"></span>'
-      } else {
-        btn.disabled = false
-        btn.innerHTML = btnId === 'login-btn' ? 'تسجيل الدخول' : 'إنشاء الحساب مجاناً'
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        document.getElementById('alert').className = 'alert err show';
+        document.getElementById('alert').textContent = 'تعذّر تحميل مكتبة الاتصال. حدّث الصفحة أو تحقق من الشبكة.';
+        return;
       }
-    }
 
-    // ─── LOGIN ───
-    async function handleLogin() {
-      clearAlert()
-      const email = document.getElementById('login-email').value.trim()
-      const pass  = document.getElementById('login-pass').value
+      var createClient = window.supabase.createClient;
+      var supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      if (!email || !pass) return showAlert('⚠️ يرجى ملء جميع الحقول')
+      function showAlert(msg, kind) {
+        var el = document.getElementById('alert');
+        el.textContent = msg;
+        el.className = 'alert show ' + (kind === 'ok' ? 'ok' : 'err');
+      }
+      function hideAlert() {
+        var el = document.getElementById('alert');
+        el.className = 'alert';
+        el.textContent = '';
+      }
 
-      setLoading('login-btn', true)
-      const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
-      setLoading('login-btn', false)
+      window.switchTab = function (name) {
+        var loginPanel = document.getElementById('panel-login');
+        var regPanel = document.getElementById('panel-register');
+        var tabL = document.getElementById('tab-login');
+        var tabR = document.getElementById('tab-register');
 
-      if (error) {
-        const msg = error.message || ''
-        if (msg.includes('Email not confirmed') || msg.includes('email_not_confirmed')) {
-          showAlert('📧 حسابك غير مفعّل — يرجى تفعيل حسابك من بريدك الإلكتروني أو أعد إرسال رسالة التأكيد')
-          document.getElementById('resend-email').value = email
-          document.getElementById('resend-btn').style.display = 'block'
-        } else if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
-          showAlert('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة')
-        } else if (msg.includes('Too many requests')) {
-          showAlert('⏳ محاولات كثيرة — انتظر قليلاً ثم حاول مجدداً')
+        hideAlert();
+        if (name === 'register') {
+          loginPanel.classList.remove('active');
+          regPanel.classList.add('active');
+          tabL.classList.remove('active');
+          tabR.classList.add('active');
+          tabL.setAttribute('aria-selected', 'false');
+          tabR.setAttribute('aria-selected', 'true');
         } else {
-          showAlert('❌ حدث خطأ: ' + msg)
+          regPanel.classList.remove('active');
+          loginPanel.classList.add('active');
+          tabR.classList.remove('active');
+          tabL.classList.add('active');
+          tabR.setAttribute('aria-selected', 'false');
+          tabL.setAttribute('aria-selected', 'true');
         }
-      } else {
-        showAlert('✅ تم تسجيل الدخول بنجاح! جاري التحويل...', 'success')
-        setTimeout(() => window.location.href = 'dashboard.html', 1200)
-      }
-    }
+      };
 
-    // ─── RESEND CONFIRMATION ───
-    async function handleResend() {
-      const email = document.getElementById('resend-email').value
-      if (!email) return
-      const btn = document.getElementById('resend-btn')
-      btn.disabled = true
-      btn.textContent = 'جاري الإرسال...'
-      const { error } = await supabase.auth.resend({ type: 'signup', email })
-      btn.disabled = false
-      btn.textContent = '📧 إعادة إرسال إيميل التأكيد'
-      if (error) {
-        showAlert('❌ فشل الإرسال: ' + error.message)
-      } else {
-        showAlert('📬 تم إرسال رسالة التأكيد — تحقق من بريدك الإلكتروني', 'success')
-      }
-    }
-
-    // ─── REGISTER ───
-    async function handleRegister() {
-      clearAlert()
-      const storeName = document.getElementById('reg-store').value.trim()
-      const email     = document.getElementById('reg-email').value.trim()
-      const phone     = document.getElementById('reg-phone').value.trim()
-      const pass      = document.getElementById('reg-pass').value
-
-      if (!storeName || !email || !phone || !pass)
-        return showAlert('⚠️ يرجى ملء جميع الحقول')
-      if (pass.length < 8)
-        return showAlert('⚠️ كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-
-      setLoading('register-btn', true)
-
-      // 1. Create auth user
-      const { data, error } = await supabase.auth.signUp({
-        email, password: pass,
-        options: { data: { store_name: storeName, phone } }
-      })
-
-      if (error) {
-        setLoading('register-btn', false)
-        return showAlert('❌ ' + (error.message === 'User already registered'
-          ? 'هذا البريد الإلكتروني مسجّل مسبقاً' : error.message))
+      function setBtnLoading(id, loading, labelIdle) {
+        var b = document.getElementById(id);
+        if (!b) return;
+        b.disabled = loading;
+        b.textContent = loading ? '… جاري المعالجة' : labelIdle;
       }
 
-      // 2. Insert merchant record
-      if (data.user) {
-        await supabase.from('merchants').insert({
-          id: data.user.id,
-          store_name: storeName,
-          email,
-          phone,
-          created_at: new Date().toISOString()
-        })
+      window.doLogin = async function () {
+        hideAlert();
+        var email = document.getElementById('login-email').value.trim();
+        var pass = document.getElementById('login-pass').value;
+        if (!email || !pass) {
+          showAlert('يرجى إدخال البريد وكلمة المرور');
+          return;
+        }
+        setBtnLoading('btn-login', true, 'دخول');
+        var out = await supabase.auth.signInWithPassword({ email: email, password: pass });
+        setBtnLoading('btn-login', false, 'دخول');
+        if (out.error) {
+          showAlert(out.error.message || 'فشل تسجيل الدخول');
+          return;
+        }
+        showAlert('تم الدخول بنجاح، جاري التحويل…', 'ok');
+        window.location.href = 'dashboard.html';
+      };
+
+      window.doRegister = async function () {
+        hideAlert();
+        var store = document.getElementById('reg-store').value.trim();
+        var email = document.getElementById('reg-email').value.trim();
+        var phone = document.getElementById('reg-phone').value.trim();
+        var pass = document.getElementById('reg-pass').value;
+        if (!store || !email || !phone || !pass) {
+          showAlert('يرجى تعبئة جميع الحقول');
+          return;
+        }
+        if (pass.length < 8) {
+          showAlert('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+          return;
+        }
+        setBtnLoading('btn-register', true, 'تسجيل');
+        var sign = await supabase.auth.signUp({
+          email: email,
+          password: pass,
+          options: { data: { store_name: store, phone: phone } }
+        });
+        if (sign.error) {
+          setBtnLoading('btn-register', false, 'تسجيل');
+          showAlert(sign.error.message || 'فشل إنشاء الحساب');
+          return;
+        }
+        if (sign.data && sign.data.user) {
+          await supabase.from('merchants').insert({
+            id: sign.data.user.id,
+            store_name: store,
+            email: email,
+            phone: phone,
+            created_at: new Date().toISOString()
+          });
+        }
+        setBtnLoading('btn-register', false, 'تسجيل');
+        showAlert('تم إنشاء الحساب، جاري التحويل…', 'ok');
+        window.location.href = 'dashboard.html';
+      };
+
+      if (new URLSearchParams(location.search).get('tab') === 'register') {
+        window.switchTab('register');
       }
 
-      setLoading('register-btn', false)
-      if (data.session) {
-        showAlert('🎉 تم إنشاء حسابك بنجاح! جاري التحويل...', 'success')
-        setTimeout(() => window.location.href = 'dashboard.html', 1200)
-      } else {
-        showAlert('🎉 تم إنشاء حسابك! تحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success')
-      }
-    }
-
-    // ─── ENTER KEY ───
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        const isLogin = document.getElementById('form-login').style.display !== 'none'
-        isLogin ? handleLogin() : handleRegister()
-      }
-    })
+      supabase.auth.getSession().then(function (res) {
+        if (res.data && res.data.session) {
+          window.location.href = 'dashboard.html';
+        }
+      });
+    })();
   </script>
 </body>
 </html>
