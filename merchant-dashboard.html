@@ -592,12 +592,49 @@ const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],productModalBannerUrl='';
 let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
-document.addEventListener('DOMContentLoaded',()=>{
-  const saved=localStorage.getItem('dukkan_merchant');
-  if(saved){
-    try{merchant=JSON.parse(saved);startApp();}catch(e){localStorage.removeItem('dukkan_merchant');}
+const LOGIN_URL='login.html';
+
+function parseStoredMerchant(raw){
+  if(raw==null||raw==='')return null;
+  const str=String(raw).trim();
+  if(!str)return null;
+  let m;
+  try{m=JSON.parse(str);}catch(e){
+    console.warn('[Dukkan] invalid dukkan_merchant JSON',e);
+    localStorage.removeItem('dukkan_merchant');
+    return null;
   }
-});
+  if(!m||typeof m!=='object'||Array.isArray(m))return null;
+  const id=m.id||m.merchant_id||m.merchantId;
+  if(!id)return null;
+  if(!m.id)m.id=id;
+  return m;
+}
+
+function redirectToLogin(){
+  window.location.replace(LOGIN_URL);
+}
+
+/** يجب استدعاؤها قبل أي تهيئة للوحة — جلسة غير صالحة = توجيه فوري لصفحة الدخول */
+function bootMerchantFromStorage(){
+  const m=parseStoredMerchant(localStorage.getItem('dukkan_merchant'));
+  if(!m){
+    redirectToLogin();
+    return false;
+  }
+  merchant=m;
+  return true;
+}
+
+(function initSessionAndApp(){
+  if(!bootMerchantFromStorage())return;
+  function run(){
+    if(!merchant||!getMerchantId()){redirectToLogin();return;}
+    startApp();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+  else run();
+})();
 
 function showLoginForm(){
   document.getElementById('loginChoice').style.display='none';
@@ -638,6 +675,7 @@ function showLoginError(msg){
 }
 
 function startApp(){
+  if(!merchant||!getMerchantId()){redirectToLogin();return;}
   if(merchant&&!merchant.id&&merchant.merchant_id)merchant.id=merchant.merchant_id;
   console.log('[Dukkan] startApp merchant session',{merchant,merchantId:getMerchantId()});
   document.getElementById('loginWrap').style.display='none';
@@ -656,16 +694,8 @@ function getMerchantId(){
 
 function readMerchantSession(){
   if(merchant)return merchant;
-  try{
-    const saved=JSON.parse(localStorage.getItem('dukkan_merchant')||'null');
-    if(saved&&typeof saved==='object'){
-      merchant=saved;
-      if(!merchant.id&&(merchant.merchant_id||merchant.merchantId))merchant.id=merchant.merchant_id||merchant.merchantId;
-      return merchant;
-    }
-  }catch(e){
-    console.warn('[Dukkan] invalid dukkan_merchant localStorage value',e);
-  }
+  const m=parseStoredMerchant(localStorage.getItem('dukkan_merchant'));
+  if(m){merchant=m;return merchant;}
   return null;
 }
 
