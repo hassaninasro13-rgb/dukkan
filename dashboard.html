@@ -268,17 +268,22 @@ function showOrdersDashboard(){
   if(firstNav) firstNav.classList.add('active');
 }
 
+function readMerchantSession(){
+  try{
+    var raw=localStorage.getItem('dukkan_merchant');
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o&&o.id)return o;
+    }
+  }catch(_e){}
+  var id=localStorage.getItem('merchant_id');
+  return id?{id:id}:null;
+}
+
 async function boot(){
   if(!supabase){goLogin();return;}
-  var session=null;
-  try{
-    var res=await supabase.auth.getSession();
-    if(res.error){goLogin();return;}
-    session=res.data&&res.data.session ? res.data.session : null;
-  }catch(_e){
-    goLogin();return;
-  }
-  if(!session){goLogin();return;}
+  var merchant=readMerchantSession();
+  if(!merchant||!merchant.id){goLogin();return;}
   var gate=document.getElementById('authCheck');
   var app=document.getElementById('app');
   if(gate) gate.style.display='none';
@@ -288,9 +293,6 @@ async function boot(){
   loadOrders();
   loadSettings();
   setInterval(loadOrders,30000);
-  supabase.auth.onAuthStateChange(function(_evt,s){
-    if(!s) goLogin();
-  });
 }
 boot();
 
