@@ -119,13 +119,6 @@
   </style>
 </head>
 <body>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function (regs) {
-    regs.forEach(function (reg) { reg.unregister(); });
-  });
-}
-</script>
   <div class="box">
     <div class="logo">🏪 دكّان</div>
     <p class="sub">تسجيل دخول التاجر — نفس حساب التسجيل في الصفحة الرسمية</p>

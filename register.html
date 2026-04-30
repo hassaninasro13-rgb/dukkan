@@ -51,13 +51,6 @@ button,input,select{font-family:'Cairo',sans-serif}
 </style>
 </head>
 <body>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function (regs) {
-    regs.forEach(function (reg) { reg.unregister(); });
-  });
-}
-</script>
 <main class="wrap">
   <header class="header">
     <div class="logo">🏪 دكّان</div>

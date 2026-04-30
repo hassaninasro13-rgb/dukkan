@@ -52,13 +52,6 @@ a{text-decoration:none}
 </style>
 </head>
 <body>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function (regs) {
-    regs.forEach(function (reg) { reg.unregister(); });
-  });
-}
-</script>
 <div class="topbar" id="topbar">🏪 دكّان — متاجر عراقية جاهزة للطلب</div>
 <main class="wrap">
   <header class="header">
