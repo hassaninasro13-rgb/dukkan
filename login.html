@@ -74,8 +74,14 @@
       color: var(--muted);
       transition: background 0.2s, color 0.2s;
     }
-    .tab-btn.active { background: var(--gold); color: #0b1530; }
-    .tab-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .tab-btn.active {
+      background: var(--gold);
+      color: #0b1530;
+    }
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
     .alert {
       display: none;
       padding: 12px 14px;
@@ -117,7 +123,9 @@
       text-align: right;
       outline: none;
     }
-    .field input:focus { border-color: var(--gold); }
+    .field input:focus {
+      border-color: var(--gold);
+    }
     .field input::placeholder { color: rgba(156, 176, 208, 0.45); }
     .btn-gold {
       width: 100%;
@@ -135,7 +143,11 @@
       box-shadow: 0 8px 28px rgba(240, 165, 0, 0.35);
     }
     .btn-gold:hover { background: var(--gold-hover); transform: translateY(-1px); }
-    .btn-gold:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .btn-gold:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
     .back {
       display: inline-block;
       margin-top: 18px;
@@ -144,25 +156,40 @@
       text-decoration: none;
     }
     .back:hover { color: var(--gold); }
-    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+    .loader {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(11, 21, 48, 0.3);
+      border-top-color: #0b1530;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="brand">🛍️ دكّان</div>
-    <p class="subtitle">تسجيل الدخول بحساب التاجر (جدول merchants)</p>
+    <p class="subtitle">منصة التجار — تسجيل الدخول أو إنشاء حساب</p>
 
-    <div class="tabs" role="tablist">
-      <button type="button" class="tab-btn active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
-      <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">إنشاء حساب</button>
+    <div class="tabs" role="tablist" aria-label="نوع النموذج">
+      <button type="button" role="tab" class="tab-btn active" id="tab-login" aria-selected="true" onclick="switchTab('login')">
+        تسجيل الدخول
+      </button>
+      <button type="button" role="tab" class="tab-btn" id="tab-register" aria-selected="false" onclick="switchTab('register')">
+        إنشاء حساب
+      </button>
     </div>
 
     <div class="alert" id="alert" role="alert"></div>
 
-    <div class="panel active" id="panel-login">
+    <div class="panel active" id="panel-login" role="tabpanel">
       <div class="field">
         <label for="login-email">البريد الإلكتروني</label>
-        <input id="login-email" type="email" autocomplete="email" placeholder="example@mail.com" />
+        <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" />
       </div>
       <div class="field">
         <label for="login-pass">كلمة المرور</label>
@@ -171,25 +198,24 @@
       <button type="button" class="btn-gold" id="btn-login" onclick="doLogin()">دخول</button>
     </div>
 
-    <div class="panel" id="panel-register">
+    <div class="panel" id="panel-register" role="tabpanel">
       <div class="field">
         <label for="reg-store">اسم المتجر</label>
-        <input id="reg-store" type="text" placeholder="مثال: متجر النور" />
+        <input id="reg-store" type="text" autocomplete="organization" placeholder="مثال: متجر النور" />
       </div>
       <div class="field">
         <label for="reg-email">البريد الإلكتروني</label>
-        <input id="reg-email" type="email" autocomplete="email" placeholder="example@mail.com" />
+        <input id="reg-email" type="email" autocomplete="email" placeholder="you@example.com" />
       </div>
       <div class="field">
         <label for="reg-phone">رقم الهاتف</label>
-        <input id="reg-phone" type="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right" />
+        <input id="reg-phone" type="tel" autocomplete="tel" placeholder="07XXXXXXXXX" dir="ltr" style="text-align:right" />
       </div>
       <div class="field">
         <label for="reg-pass">كلمة المرور</label>
         <input id="reg-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل" />
       </div>
-      <button type="button" class="btn-gold" id="btn-register" onclick="doRegister()">إنشاء حساب</button>
-      <p class="hint">للتسجيل الكامل مع بيانات إضافية يمكنك استخدام <a href="register.html" style="color:var(--gold)">صفحة التسجيل</a>.</p>
+      <button type="button" class="btn-gold" id="btn-register" onclick="doRegister()">تسجيل</button>
     </div>
 
     <a href="index.html" class="back">← العودة للرئيسية</a>
@@ -197,189 +223,129 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    var SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
+    (function () {
+      var SUPABASE_URL = 'https://aukdrcusgnfjkaprgnuf.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      document.getElementById('alert').className = 'alert err show';
-      document.getElementById('alert').textContent = 'تعذّر تحميل مكتبة الاتصال.';
-    }
-
-    var sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    function showAlert(msg, kind) {
-      var el = document.getElementById('alert');
-      el.textContent = msg;
-      el.className = 'alert show ' + (kind === 'ok' ? 'ok' : 'err');
-    }
-    function hideAlert() {
-      var el = document.getElementById('alert');
-      el.className = 'alert';
-      el.textContent = '';
-    }
-
-    function switchTab(name) {
-      hideAlert();
-      var loginP = document.getElementById('panel-login');
-      var regP = document.getElementById('panel-register');
-      var tL = document.getElementById('tab-login');
-      var tR = document.getElementById('tab-register');
-      if (name === 'register') {
-        loginP.classList.remove('active');
-        regP.classList.add('active');
-        tL.classList.remove('active');
-        tR.classList.add('active');
-      } else {
-        regP.classList.remove('active');
-        loginP.classList.add('active');
-        tR.classList.remove('active');
-        tL.classList.add('active');
-      }
-    }
-
-    /** مطابقة المشروع: password_hash = btoa(كلمة المرور) كما في merchant-dashboard */
-    function hashPassword(plain) {
-      return btoa(plain);
-    }
-
-    function saveMerchantSession(row) {
-      if (!row || !row.id) return;
-      localStorage.setItem('merchant_id', row.id);
-      localStorage.setItem('dukkan_merchant', JSON.stringify(row));
-    }
-
-    function goDashboard() {
-      window.location.href = 'dashboard.html';
-    }
-
-    async function doLogin() {
-      hideAlert();
-      if (!sb) {
-        showAlert('الاتصال غير جاهز');
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        document.getElementById('alert').className = 'alert err show';
+        document.getElementById('alert').textContent = 'تعذّر تحميل مكتبة الاتصال. حدّث الصفحة أو تحقق من الشبكة.';
         return;
       }
-      var email = document.getElementById('login-email').value.trim().toLowerCase();
-      var pass = document.getElementById('login-pass').value;
-      if (!email || !pass) {
-        showAlert('يرجى إدخال البريد وكلمة المرور');
-        return;
+
+      var createClient = window.supabase.createClient;
+      var supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      function showAlert(msg, kind) {
+        var el = document.getElementById('alert');
+        el.textContent = msg;
+        el.className = 'alert show ' + (kind === 'ok' ? 'ok' : 'err');
       }
-      var btn = document.getElementById('btn-login');
-      btn.disabled = true;
-      btn.textContent = 'جاري الدخول…';
-      try {
-        var res = await sb
-          .from('merchants')
-          .select('*')
-          .eq('email', email)
-          .eq('password_hash', hashPassword(pass))
-          .maybeSingle();
-        if (res.error) throw res.error;
-        var data = res.data;
-        if (!data) {
-          showAlert('البريد أو كلمة المرور غير صحيحة');
+      function hideAlert() {
+        var el = document.getElementById('alert');
+        el.className = 'alert';
+        el.textContent = '';
+      }
+
+      window.switchTab = function (name) {
+        var loginPanel = document.getElementById('panel-login');
+        var regPanel = document.getElementById('panel-register');
+        var tabL = document.getElementById('tab-login');
+        var tabR = document.getElementById('tab-register');
+
+        hideAlert();
+        if (name === 'register') {
+          loginPanel.classList.remove('active');
+          regPanel.classList.add('active');
+          tabL.classList.remove('active');
+          tabR.classList.add('active');
+          tabL.setAttribute('aria-selected', 'false');
+          tabR.setAttribute('aria-selected', 'true');
+        } else {
+          regPanel.classList.remove('active');
+          loginPanel.classList.add('active');
+          tabR.classList.remove('active');
+          tabL.classList.add('active');
+          tabR.setAttribute('aria-selected', 'false');
+          tabL.setAttribute('aria-selected', 'true');
+        }
+      };
+
+      function setBtnLoading(id, loading, labelIdle) {
+        var b = document.getElementById(id);
+        if (!b) return;
+        b.disabled = loading;
+        b.textContent = loading ? '… جاري المعالجة' : labelIdle;
+      }
+
+      window.doLogin = async function () {
+        hideAlert();
+        var email = document.getElementById('login-email').value.trim();
+        var pass = document.getElementById('login-pass').value;
+        if (!email || !pass) {
+          showAlert('يرجى إدخال البريد وكلمة المرور');
           return;
         }
-        if (data.is_active === false) {
-          showAlert('حسابك غير مفعّل حالياً');
+        setBtnLoading('btn-login', true, 'دخول');
+        var out = await supabase.auth.signInWithPassword({ email: email, password: pass });
+        setBtnLoading('btn-login', false, 'دخول');
+        if (out.error) {
+          showAlert(out.error.message || 'فشل تسجيل الدخول');
           return;
         }
-        saveMerchantSession(data);
-        showAlert('تم الدخول، جاري التحويل…', 'ok');
-        goDashboard();
-      } catch (e) {
-        showAlert((e && e.message) ? e.message : 'تعذّر تسجيل الدخول');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'دخول';
-      }
-    }
+        showAlert('تم الدخول بنجاح، جاري التحويل…', 'ok');
+        window.location.href = 'dashboard.html';
+      };
 
-    function slugifyStoreName(name) {
-      var s = (name || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\u0600-\u06FF-]/g, '').replace(/-+/g, '-');
-      if (!s) s = 'store-' + Date.now();
-      return s.slice(0, 48);
-    }
-
-    async function doRegister() {
-      hideAlert();
-      if (!sb) {
-        showAlert('الاتصال غير جاهز');
-        return;
-      }
-      var store = document.getElementById('reg-store').value.trim();
-      var email = document.getElementById('reg-email').value.trim().toLowerCase();
-      var phone = document.getElementById('reg-phone').value.trim();
-      var pass = document.getElementById('reg-pass').value;
-      if (!store || !email || !phone || !pass) {
-        showAlert('يرجى تعبئة جميع الحقول');
-        return;
-      }
-      if (pass.length < 8) {
-        showAlert('كلمة المرور 8 أحرف على الأقل');
-        return;
-      }
-      var btn = document.getElementById('btn-register');
-      btn.disabled = true;
-      btn.textContent = 'جاري الإنشاء…';
-      try {
-        var store_slug = slugifyStoreName(store);
-        var dup = await sb
-          .from('merchants')
-          .select('id,email,store_slug')
-          .or('email.eq.' + email + ',store_slug.eq.' + store_slug)
-          .limit(2);
-        if (dup.error) throw dup.error;
-        var rows = dup.data || [];
-        if (rows.some(function (r) { return r.email === email; })) {
-          showAlert('هذا البريد مسجّل مسبقاً');
+      window.doRegister = async function () {
+        hideAlert();
+        var store = document.getElementById('reg-store').value.trim();
+        var email = document.getElementById('reg-email').value.trim();
+        var phone = document.getElementById('reg-phone').value.trim();
+        var pass = document.getElementById('reg-pass').value;
+        if (!store || !email || !phone || !pass) {
+          showAlert('يرجى تعبئة جميع الحقول');
           return;
         }
-        if (rows.some(function (r) { return r.store_slug === store_slug; })) {
-          store_slug = store_slug + '-' + String(Date.now()).slice(-4);
+        if (pass.length < 8) {
+          showAlert('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+          return;
         }
-        var payload = {
-          full_name: store,
+        setBtnLoading('btn-register', true, 'تسجيل');
+        var sign = await supabase.auth.signUp({
           email: email,
-          phone: phone,
-          password_hash: hashPassword(pass),
-          store_name: store,
-          store_slug: store_slug,
-          slug: store_slug,
-          store_description: '',
-          governorate: 'بغداد',
-          whatsapp: phone,
-          plan: 'free',
-          is_active: true
-        };
-        var ins = await sb.from('merchants').insert([payload]).select('*').single();
-        if (ins.error) throw ins.error;
-        var merchant = ins.data;
-        var settingsPayload = {
-          merchant_id: merchant.id,
-          shipping_baghdad: 5000,
-          shipping_other: 6000,
-          topbar_text: 'شحن مجاني - الدفع عند الاستلام',
-          whatsapp: phone
-        };
-        var st = await sb.from('store_settings').insert([settingsPayload]).select('*').single();
-        if (st.error) {
-          console.warn('store_settings insert', st.error);
+          password: pass,
+          options: { data: { store_name: store, phone: phone } }
+        });
+        if (sign.error) {
+          setBtnLoading('btn-register', false, 'تسجيل');
+          showAlert(sign.error.message || 'فشل إنشاء الحساب');
+          return;
         }
-        saveMerchantSession(merchant);
+        if (sign.data && sign.data.user) {
+          await supabase.from('merchants').insert({
+            id: sign.data.user.id,
+            store_name: store,
+            email: email,
+            phone: phone,
+            created_at: new Date().toISOString()
+          });
+        }
+        setBtnLoading('btn-register', false, 'تسجيل');
         showAlert('تم إنشاء الحساب، جاري التحويل…', 'ok');
-        goDashboard();
-      } catch (e) {
-        showAlert((e && e.message) ? e.message : 'تعذّر إنشاء الحساب');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'إنشاء حساب';
-      }
-    }
+        window.location.href = 'dashboard.html';
+      };
 
-    if (new URLSearchParams(location.search).get('tab') === 'register') {
-      switchTab('register');
-    }
+      if (new URLSearchParams(location.search).get('tab') === 'register') {
+        window.switchTab('register');
+      }
+
+      supabase.auth.getSession().then(function (res) {
+        if (res.data && res.data.session) {
+          window.location.href = 'dashboard.html';
+        }
+      });
+    })();
   </script>
 </body>
 </html>
