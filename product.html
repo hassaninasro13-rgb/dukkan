@@ -904,8 +904,8 @@ body.banner-mode {
   </div>
   <div class="footer-govs">وجميع المحافظات العراقية الـ 19</div>
 </footer>
-<!-- WHATSAPP -->
-<a class="wa-btn" id="waBtn" href="#" target="_blank">💬</a>
+<!-- WHATSAPP (hidden until product_settings/store_settings include whatsapp) -->
+<a class="wa-btn" id="waBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none" aria-hidden="true">💬</a>
 <!-- SUCCESS MODAL -->
 <div class="modal-bg" id="modal">
   <div class="modal-box">
@@ -1054,8 +1054,7 @@ body.banner-mode {
       document.getElementById('oldPriceText').textContent = PRODUCT.old_price ? 'السعر الأصلي: ' + PRODUCT.old_price.toLocaleString() + ' دينار' : '';
       const cw = document.getElementById('countdownWrap');
       if (cw) cw.style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
-      document.getElementById('waBtn').href = whatsappUrl();
-      applyCodText();
+      syncFloatingWhatsAppButton();
       applyUpsellSettings();
       resetCountdown();
       return;
@@ -1083,7 +1082,7 @@ body.banner-mode {
       imgEl.style.display = 'none';
       phEl.style.display = 'flex';
     }
-    document.getElementById('waBtn').href = whatsappUrl();
+    syncFloatingWhatsAppButton();
     const cw = document.getElementById('countdownWrap');
     if (cw) cw.style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
     applyCodText();
@@ -1740,8 +1739,34 @@ body.banner-mode {
     if (/^#([0-9a-f]{3}){1,2}$/i.test(name)) return name;
     return '#888888';
   }
+  function rawWhatsAppFromProductOrStore() {
+    const a = PAGE_SETTINGS?.whatsapp;
+    const b = SETTINGS?.whatsapp;
+    const pick = (a != null && String(a).trim() !== '') ? a : b;
+    return String(pick != null ? pick : '').trim();
+  }
+
+  function hasFloatingWhatsApp() {
+    return rawWhatsAppFromProductOrStore().length > 0;
+  }
+
+  function syncFloatingWhatsAppButton() {
+    const wa = document.getElementById('waBtn');
+    if (!wa) return;
+    const url = whatsappUrl();
+    if (!hasFloatingWhatsApp() || url === '#') {
+      wa.style.display = 'none';
+      wa.setAttribute('href', '#');
+      wa.setAttribute('aria-hidden', 'true');
+      return;
+    }
+    wa.style.display = 'flex';
+    wa.href = url;
+    wa.setAttribute('aria-hidden', 'false');
+  }
+
   function whatsappUrl() {
-    let p = String(PAGE_SETTINGS.whatsapp || SETTINGS.whatsapp || MERCHANT.whatsapp || '').replace(/\D/g,'');
+    let p = rawWhatsAppFromProductOrStore().replace(/\D/g,'');
     if (p.startsWith('0')) p = '964' + p.slice(1);
     if (p && !p.startsWith('964')) p = '964' + p;
     return p ? 'https://wa.me/' + p : '#';
