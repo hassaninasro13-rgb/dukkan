@@ -504,9 +504,27 @@ body.banner-mode {
   margin-bottom: 8px;
 }
 .summary-divider { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
-.coupon-box { display: flex; gap: 8px; margin-bottom: 14px; }
-.coupon-box input { flex: 1; }
-.coupon-btn { border: none; background: #1a1a2e; color: #FFD700; border-radius: 12px; padding: 0 16px; font-weight: 900; cursor: pointer; }
+.coupon-row-wrap .form-input { flex: 1; min-width: 0; }
+.coupon-apply-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #FFD700, #e8b923);
+  color: #1a1a2e;
+  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.coupon-apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 215, 0, 0.45);
+}
+.coupon-apply-btn:active { transform: translateY(0); }
 .coupon-msg { display: none; margin: -4px 0 14px; font-size: 13px; font-weight: 800; }
 .coupon-msg.ok { display: block; color: #27ae60; }
 .coupon-msg.err { display: block; color: #e74c3c; }
@@ -813,9 +831,9 @@ body.banner-mode {
     <!-- ملخص الطلب -->
     <div class="order-summary">
       <div class="summary-title">📋 ملخص الطلب</div>
-      <div class="coupon-box">
-        <input class="form-input" id="couponCode" type="text" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase">
-        <button class="coupon-btn" type="button" id="couponApplyBtn">تطبيق</button>
+      <div class="coupon-row-wrap" style="display:flex; gap:8px; margin-bottom:14px;">
+        <input class="form-input" type="text" id="couponCode" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase" />
+        <button type="button" class="coupon-apply-btn" id="couponApplyBtn" onclick="applyCoupon()">تطبيق</button>
       </div>
       <div class="coupon-msg" id="couponMsg"></div>
       <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">0 IQD</span></div>
