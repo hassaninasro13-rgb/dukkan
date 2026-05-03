@@ -873,7 +873,7 @@ body.banner-mode {
   <div class="footer-govs">وجميع المحافظات العراقية الـ 19</div>
 </footer>
 <!-- WHATSAPP (hidden until product_settings/store_settings include whatsapp) -->
-<a class="wa-btn" id="waBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none" aria-hidden="true">💬</a>
+<a class="wa-btn" id="whatsappBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none" aria-hidden="true">💬</a>
 <!-- SUCCESS MODAL -->
 <div class="modal-bg" id="modal">
   <div class="modal-box">
@@ -940,6 +940,8 @@ body.banner-mode {
       console.log('[DEBUG] productId:', productId);
       console.log('[DEBUG] storeSlug:', storeSlug);
       if (!productId) {
+        const waBad = document.getElementById('whatsappBtn');
+        if (waBad) waBad.style.display = 'none';
         alert('رابط المنتج غير صحيح');
         revealProductPage();
         return;
@@ -949,6 +951,8 @@ body.banner-mode {
       console.log('[DEBUG] product:', product);
       if (!product) {
         document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
+        const waMissing = document.getElementById('whatsappBtn');
+        if (waMissing) waMissing.style.display = 'none';
         revealProductPage();
         return;
       }
@@ -962,6 +966,7 @@ body.banner-mode {
       MERCHANT = ctx.merchant;
       SETTINGS = ctx.settings;
       ACTIVE_PIXELS = ctx.pixels;
+      syncFloatingWhatsAppButton();
       console.log('[DEBUG] layout_mode:', settings?.layout_mode);
       console.log('[DEBUG] banner_image:', settings?.banner_image);
 
@@ -973,6 +978,8 @@ body.banner-mode {
       scheduleRevealAfterPaint();
     } catch (err) {
       console.error('[DEBUG] loadProduct uncaught', err);
+      const waErr = document.getElementById('whatsappBtn');
+      if (waErr) waErr.style.display = 'none';
       alert('تعذر تحميل المنتج');
       revealProductPage();
     }
@@ -1728,11 +1735,18 @@ body.banner-mode {
     if (/^#([0-9a-f]{3}){1,2}$/i.test(name)) return name;
     return '#888888';
   }
+  function whatsappSettingValue(v) {
+    if (v === undefined || v === null) return '';
+    const s = String(v).trim();
+    if (!s || /^null$/i.test(s)) return '';
+    return s;
+  }
+
+  /** whatsapp من product_settings ثم store_settings فقط (للزر العائم) */
   function rawWhatsAppFromProductOrStore() {
-    const a = PAGE_SETTINGS?.whatsapp;
-    const b = SETTINGS?.whatsapp;
-    const pick = (a != null && String(a).trim() !== '') ? a : b;
-    return String(pick != null ? pick : '').trim();
+    const fromPage = whatsappSettingValue(PAGE_SETTINGS?.whatsapp);
+    if (fromPage) return fromPage;
+    return whatsappSettingValue(SETTINGS?.whatsapp);
   }
 
   function hasFloatingWhatsApp() {
@@ -1740,7 +1754,7 @@ body.banner-mode {
   }
 
   function syncFloatingWhatsAppButton() {
-    const wa = document.getElementById('waBtn');
+    const wa = document.getElementById('whatsappBtn');
     if (!wa) return;
     const url = whatsappUrl();
     if (!hasFloatingWhatsApp() || url === '#') {
