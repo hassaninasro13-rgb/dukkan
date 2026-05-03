@@ -327,6 +327,8 @@ body.banner-mode {
 .countdown-title { color: #FFD700; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
 .countdown {
   display: flex;
+  flex-direction: row;
+  direction: rtl;
   justify-content: center;
   gap: 10px;
 }
@@ -813,12 +815,12 @@ body.banner-mode {
       <div class="summary-title">📋 ملخص الطلب</div>
       <div class="coupon-box">
         <input class="form-input" id="couponCode" type="text" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase">
-        <button class="coupon-btn" type="button" onclick="applyCoupon()">تطبيق</button>
+        <button class="coupon-btn" type="button" id="couponApplyBtn">تطبيق</button>
       </div>
       <div class="coupon-msg" id="couponMsg"></div>
       <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">0 IQD</span></div>
       <div class="summary-row"><span>رسوم التوصيل</span><span id="sShip" style="color:#27ae60">اختر المحافظة</span></div>
-      <div class="summary-row" id="upsellSummaryRow"><span>هدية إضافية</span><span style="color:#27ae60" id="upsellSummaryText">هدية مجانية ✓</span></div>
+      <div class="summary-row" id="upsellSummaryRow" style="display:none"><span>هدية إضافية</span><span style="color:#27ae60" id="upsellSummaryText">هدية مجانية ✓</span></div>
       <div class="summary-row summary-discount" id="discountSummaryRow"><span>خصم الكوبون</span><span id="sDiscount">-0 IQD</span></div>
       <hr class="summary-divider">
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
@@ -912,7 +914,13 @@ body.banner-mode {
   let BASE = 0;
   let PIXELS_READY = false;
 
-  document.addEventListener('DOMContentLoaded', loadProduct);
+  document.addEventListener('DOMContentLoaded', function () {
+    loadProduct();
+    document.getElementById('couponApplyBtn')?.addEventListener('click', applyCoupon);
+    document.getElementById('couponCode')?.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+    });
+  });
 
   function revealProductPage() {
     document.getElementById('pageContent')?.classList.add('product-ready');
@@ -1139,21 +1147,33 @@ body.banner-mode {
     if (st) st.textContent = 'تأكيد الطلب — ' + short;
   }
 
+  function upsellActiveFromSettings() {
+    const v = PAGE_SETTINGS && PAGE_SETTINGS.upsell_active;
+    return v === true || v === 'true';
+  }
+
   function applyUpsellSettings() {
     if (document.body.classList.contains('banner-mode')) {
       UPSELL = false;
+      const rowOff = document.getElementById('upsellSummaryRow');
+      if (rowOff) rowOff.style.display = 'none';
       toggleUpsellVisual();
       return;
     }
-    const active = PAGE_SETTINGS.upsell_active !== false;
+    const active = upsellActiveFromSettings();
     const box = document.getElementById('upsellBox');
     document.getElementById('upsellTitle').textContent = '🎁 ' + (PAGE_SETTINGS.upsell_title || 'أضف هدية مجانية مع طلبك');
     document.getElementById('upsellText').textContent = PAGE_SETTINGS.upsell_text || 'احصل على هدية مجانية مع طلبك اليوم فقط';
     const value = Number(PAGE_SETTINGS.upsell_value || 0);
     document.getElementById('upsellSummaryText').textContent = value ? 'هدية بقيمة ' + value.toLocaleString() + ' IQD ✓' : 'هدية مجانية ✓';
-    box.style.display = active ? 'flex' : 'none';
-    document.getElementById('upsellSummaryRow').style.display = active ? 'flex' : 'none';
-    UPSELL = active;
+    if (box) box.style.display = active ? 'flex' : 'none';
+    const row = document.getElementById('upsellSummaryRow');
+    if (!active) {
+      UPSELL = false;
+      if (row) row.style.display = 'none';
+    } else {
+      if (row) row.style.display = UPSELL ? 'flex' : 'none';
+    }
     toggleUpsellVisual();
   }
 
@@ -1227,8 +1247,11 @@ body.banner-mode {
   }
   // UPSELL
   function toggleUpsell() {
+    if (!upsellActiveFromSettings()) return;
     UPSELL = !UPSELL;
     toggleUpsellVisual();
+    const row = document.getElementById('upsellSummaryRow');
+    if (row) row.style.display = UPSELL ? 'flex' : 'none';
   }
 
   function toggleUpsellVisual() {
@@ -1298,13 +1321,18 @@ body.banner-mode {
 
   function couponDiscount(coupon, subtotal) {
     const value = Number(coupon.discount_value || 0);
-    return coupon.discount_type === 'percent'
-      ? Math.floor(subtotal * value / 100)
-      : value;
+    const t = String(coupon.discount_type || '').toLowerCase();
+    const isPercent = t === 'percent' || t === 'percentage' || t === '%';
+    return isPercent ? Math.floor(subtotal * value / 100) : value;
   }
 
   async function applyCoupon() {
+    if (!PRODUCT || !PRODUCT.merchant_id) {
+      couponMessage('انتظر حتى يكتمل تحميل المنتج ثم أعد المحاولة', 'err');
+      return;
+    }
     const codeInput = document.getElementById('couponCode');
+    if (!codeInput) return;
     const code = codeInput.value.trim().toUpperCase().replace(/\s+/g, '');
     codeInput.value = code;
     APPLIED_COUPON = null;
@@ -1313,14 +1341,17 @@ body.banner-mode {
     if (!code) { couponMessage('أدخل كود الخصم أولاً', 'err'); return; }
     try {
       const { subtotal } = orderTotals();
+      const mid = String(PRODUCT.merchant_id);
       const { data, error } = await db
         .from('coupons')
         .select('id,merchant_id,code,discount_type,discount_value,min_order,max_uses,uses_count,expires_at,is_active')
-        .eq('merchant_id', PRODUCT.merchant_id)
+        .eq('merchant_id', mid)
         .eq('code', code)
         .maybeSingle();
       if (error) throw error;
-      if (!data || data.is_active === false) throw new Error('كود الخصم غير صالح');
+      if (!data) throw new Error('كود الخصم غير صالح');
+      const inactive = data.is_active === false || data.is_active === 'false' || data.is_active === 0 || String(data.is_active).toLowerCase() === 'false';
+      if (inactive) throw new Error('كود الخصم غير صالح');
       if (data.expires_at && new Date(data.expires_at) <= new Date()) throw new Error('انتهت صلاحية الكوبون');
       if (data.max_uses !== null && data.max_uses !== undefined && Number(data.uses_count || 0) >= Number(data.max_uses)) throw new Error('تم استهلاك الكوبون بالكامل');
       if (Number(data.min_order || 0) > subtotal) throw new Error('الحد الأدنى لهذا الكوبون هو ' + Number(data.min_order || 0).toLocaleString() + ' IQD');
@@ -1332,7 +1363,8 @@ body.banner-mode {
       recalc();
     } catch (err) {
       console.warn('[Dukkan] coupon apply failed', err);
-      couponMessage(err?.message || 'كود الخصم غير صالح', 'err');
+      const msg = (err && err.message) ? String(err.message) : 'كود الخصم غير صالح';
+      couponMessage(msg, 'err');
       recalc();
     }
   }
