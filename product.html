@@ -504,6 +504,12 @@ body.banner-mode {
   margin-bottom: 8px;
 }
 .summary-divider { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
+.coupon-row-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  direction: rtl;
+}
 .coupon-row-wrap .form-input { flex: 1; min-width: 0; }
 .coupon-apply-btn {
   flex-shrink: 0;
@@ -575,7 +581,8 @@ body.banner-mode {
 }
 /* REVIEWS */
 .reviews-section {
-  padding: 24px 16px;
+  padding: 20px 0 8px;
+  margin-top: 8px;
 }
 .section-title {
   font-family: 'Tajawal', sans-serif;
@@ -831,9 +838,9 @@ body.banner-mode {
     <!-- ملخص الطلب -->
     <div class="order-summary">
       <div class="summary-title">📋 ملخص الطلب</div>
-      <div class="coupon-row-wrap" style="display:flex; gap:8px; margin-bottom:14px;">
-        <input class="form-input" type="text" id="couponCode" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase" />
+      <div class="coupon-row-wrap">
         <button type="button" class="coupon-apply-btn" id="couponApplyBtn" onclick="applyCoupon()">تطبيق</button>
+        <input class="form-input" type="text" id="couponCode" placeholder="كود الخصم" dir="ltr" style="text-align:right;text-transform:uppercase" />
       </div>
       <div class="coupon-msg" id="couponMsg"></div>
       <div class="summary-row"><span>سعر المنتج</span><span id="sPrice">0 IQD</span></div>
@@ -848,6 +855,7 @@ body.banner-mode {
       <span>✅</span>
       <span id="submitText">تأكيد الطلب — الدفع عند الاستلام</span>
     </button>
+    <section class="reviews-section" id="reviewsSection" style="display:none" aria-live="polite"></section>
     <div class="trust-row">
       <div class="trust-item">🔒 بياناتك آمنة</div>
       <div class="trust-item">💰 لا دفع مسبق</div>
@@ -855,46 +863,6 @@ body.banner-mode {
     </div>
   </div>
 </div>
-<!-- REVIEWS -->
-<section class="reviews-section gallery-only" id="reviewsSection">
-  <div class="section-title">💬 آراء زبائننا</div>
-  <div class="review-card">
-    <div class="review-head">
-      <div class="r-avatar">ز</div>
-      <div style="flex:1">
-        <div class="r-name">زينب الموسوي</div>
-        <div class="r-city">📍 بغداد — الكرادة</div>
-      </div>
-      <div class="r-stars">⭐⭐⭐⭐⭐</div>
-    </div>
-    <div class="r-text">منتج رائع جداً! التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل الناس!</div>
-    <span class="verified">✓ مشتري موثق</span>
-  </div>
-  <div class="review-card">
-    <div class="review-head">
-      <div class="r-avatar">س</div>
-      <div style="flex:1">
-        <div class="r-name">سمر العبيدي</div>
-        <div class="r-city">📍 البصرة — العشار</div>
-      </div>
-      <div class="r-stars">⭐⭐⭐⭐⭐</div>
-    </div>
-    <div class="r-text">الجودة ممتازة والسعر مناسب. الدفع عند الاستلام خلاني ما أخاف أطلب.</div>
-    <span class="verified">✓ مشتري موثق</span>
-  </div>
-  <div class="review-card">
-    <div class="review-head">
-      <div class="r-avatar">ن</div>
-      <div style="flex:1">
-        <div class="r-name">نور الهاشمي</div>
-        <div class="r-city">📍 أربيل</div>
-      </div>
-      <div class="r-stars">⭐⭐⭐⭐⭐</div>
-    </div>
-    <div class="r-text">طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.</div>
-    <span class="verified">✓ مشتري موثق</span>
-  </div>
-</section>
 <!-- FOOTER -->
 <footer class="footer gallery-only">
   <div class="footer-logo">🏪 دكّان</div>
@@ -1056,6 +1024,7 @@ body.banner-mode {
       if (cw) cw.style.display = PAGE_SETTINGS.countdown_active === false ? 'none' : 'block';
       syncFloatingWhatsAppButton();
       applyUpsellSettings();
+      renderReviews();
       resetCountdown();
       return;
     }
@@ -1088,8 +1057,6 @@ body.banner-mode {
     applyCodText();
     applyUpsellSettings();
     renderReviews();
-    const rs = document.getElementById('reviewsSection');
-    if (rs) rs.style.display = PAGE_SETTINGS.reviews_active === false ? 'none' : 'block';
     resetCountdown();
     renderThumbs();
     renderSizes();
@@ -1169,6 +1136,11 @@ body.banner-mode {
     return v === true || v === 'true';
   }
 
+  function reviewsActiveFromSettings() {
+    const v = PAGE_SETTINGS && PAGE_SETTINGS.reviews_active;
+    return v === true || v === 'true';
+  }
+
   function applyUpsellSettings() {
     if (document.body.classList.contains('banner-mode')) {
       UPSELL = false;
@@ -1195,19 +1167,36 @@ body.banner-mode {
   }
 
   function renderReviews() {
-    const defaults = [
-      ['زينب الموسوي','بغداد — الكرادة','منتج رائع جداً! التوصيل جاء في يومين بس والتغليف كان ممتاز. أنصح فيه كل الناس!'],
-      ['سمر العبيدي','البصرة — العشار','الجودة ممتازة والسعر مناسب. الدفع عند الاستلام خلاني ما أخاف أطلب.'],
-      ['نور الهاشمي','أربيل','طلبت مرة ثانية بعد ما شفت الجودة. ممتاز بكل الكلمة والتوصيل سريع.']
-    ];
-    const cards = defaults.map((d, i) => {
-      const n = i + 1;
-      const name = PAGE_SETTINGS['review' + n + '_name'] || d[0];
-      const city = PAGE_SETTINGS['review' + n + '_city'] || d[1];
-      const text = PAGE_SETTINGS['review' + n + '_text'] || d[2];
-      return '<div class="review-card"><div class="review-head"><div class="r-avatar">' + esc(name.charAt(0) || 'ز') + '</div><div style="flex:1"><div class="r-name">' + esc(name) + '</div><div class="r-city">📍 ' + esc(city) + '</div></div><div class="r-stars">⭐⭐⭐⭐⭐</div></div><div class="r-text">' + esc(text) + '</div><span class="verified">✓ مشتري موثق</span></div>';
-    }).join('');
-    document.getElementById('reviewsSection').innerHTML = '<div class="section-title">💬 آراء زبائننا</div>' + cards;
+    const rs = document.getElementById('reviewsSection');
+    if (!rs) return;
+    if (!reviewsActiveFromSettings()) {
+      rs.style.display = 'none';
+      rs.innerHTML = '';
+      return;
+    }
+    const parts = [];
+    for (let n = 1; n <= 3; n++) {
+      const name = String(PAGE_SETTINGS['review' + n + '_name'] || '').trim();
+      const city = String(PAGE_SETTINGS['review' + n + '_city'] || '').trim();
+      const text = String(PAGE_SETTINGS['review' + n + '_text'] || '').trim();
+      if (!name && !text) continue;
+      const initial = name.charAt(0) || text.charAt(0) || '?';
+      parts.push(
+        '<div class="review-card"><div class="review-head"><div class="r-avatar">' + esc(initial) + '</div><div style="flex:1">' +
+        '<div class="r-name">' + esc(name || '—') + '</div>' +
+        (city ? '<div class="r-city">📍 ' + esc(city) + '</div>' : '') +
+        '</div><div class="r-stars">⭐⭐⭐⭐⭐</div></div>' +
+        (text ? '<div class="r-text">' + esc(text) + '</div>' : '') +
+        '<span class="verified">✓ مشتري موثق</span></div>'
+      );
+    }
+    if (!parts.length) {
+      rs.style.display = 'none';
+      rs.innerHTML = '';
+      return;
+    }
+    rs.innerHTML = '<div class="section-title">💬 آراء زبائننا</div>' + parts.join('');
+    rs.style.display = 'block';
   }
 
   function renderThumbs() {
