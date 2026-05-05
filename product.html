@@ -15,6 +15,12 @@ body {
   background: #f5f5f5;
   color: #111;
   min-height: 100vh;
+  visibility: hidden;
+}
+/* لا نعرض نص التحميل الافتراضي قبل جلب البيانات */
+#pageContent:not(.product-ready) #productTitle,
+#pageContent:not(.product-ready) #productDesc {
+  display: none;
 }
 /* TOP BAR */
 .topbar {
@@ -714,8 +720,8 @@ body.banner-mode {
 <!-- HERO — معرض المنتج (معطّل في وضع البانر) -->
 <section class="hero">
   <div class="hero-badge" id="heroBadge">🔥 الأكثر مبيعاً في العراق 2025</div>
-  <h1 id="productTitle">جاري تحميل المنتج...</h1>
-  <p class="hero-sub" id="productDesc">يرجى الانتظار قليلاً</p>
+  <h1 id="productTitle"></h1>
+  <p class="hero-sub" id="productDesc"></p>
   <div class="product-showcase" id="productShowcase">
     <div class="badge-discount" id="discountBadge">خصم<br>0%</div>
     <img id="mainImg" src="" alt="منتج" style="display:none">
@@ -896,6 +902,7 @@ body.banner-mode {
   let ACTIVE_PIXELS = [];
   let BASE = 0;
   let PIXELS_READY = false;
+  let loadWatchdogId = null;
 
   document.addEventListener('DOMContentLoaded', function () {
     loadProduct();
@@ -907,6 +914,22 @@ body.banner-mode {
 
   function revealProductPage() {
     document.getElementById('pageContent')?.classList.add('product-ready');
+    document.body.style.visibility = 'visible';
+  }
+
+  function showLoadTimeoutError() {
+    const title = document.getElementById('productTitle');
+    if (title) title.textContent = 'تعذر تحميل المنتج';
+    const desc = document.getElementById('productDesc');
+    if (desc) desc.textContent = 'تجاوزت العملية الوقت المسموح (٨ ثوانٍ). تحقق من الاتصال وحاول تحديث الصفحة.';
+    const oft = document.getElementById('orderFormTitle');
+    if (oft) oft.textContent = '⚠️ تعذر تحميل المنتج';
+    const sub = document.getElementById('formSectionSubtitle');
+    if (sub) {
+      sub.textContent = 'انتهت مهلة التحميل. يرجى إعادة المحاولة.';
+      sub.style.display = '';
+    }
+    revealProductPage();
   }
 
   async function loadProductWithRetry(productId, retries = 3) {
@@ -924,6 +947,13 @@ body.banner-mode {
   }
 
   async function loadProduct() {
+    let timedOut = false;
+    if (loadWatchdogId) clearTimeout(loadWatchdogId);
+    loadWatchdogId = setTimeout(function () {
+      timedOut = true;
+      showLoadTimeoutError();
+    }, 8000);
+
     try {
       const params = new URLSearchParams(window.location.search);
       const productId = params.get('id') || params.get('product_id');
@@ -933,14 +963,18 @@ body.banner-mode {
       if (!productId) {
         const waBad = document.getElementById('whatsappBtn');
         if (waBad) waBad.style.display = 'none';
+        document.getElementById('productTitle').textContent = 'رابط المنتج غير صحيح';
+        document.getElementById('productDesc').textContent = 'تأكد من الرابط أو تواصل مع المتجر.';
         alert('رابط المنتج غير صحيح');
         return;
       }
 
       const product = await loadProductWithRetry(productId);
+      if (timedOut) return;
       console.log('[DEBUG] product:', product);
       if (!product) {
-        document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
+        document.getElementById('productTitle').textContent = 'المنتج غير موجود';
+        document.getElementById('productDesc').textContent = '';
         const waMissing = document.getElementById('whatsappBtn');
         if (waMissing) waMissing.style.display = 'none';
         return;
@@ -951,6 +985,7 @@ body.banner-mode {
 
       try {
         const ctx = await fetchProductPageContext(PRODUCT);
+        if (timedOut) return;
         const settings = ctx.pageSettings || {};
         PAGE_SETTINGS = settings;
         MERCHANT = ctx.merchant;
@@ -961,11 +996,14 @@ body.banner-mode {
         console.log('[DEBUG] banner_image:', settings?.banner_image);
 
         applyLayoutMode();
+        if (timedOut) return;
         await recordPageView(productId);
+        if (timedOut) return;
         initAdPixels();
         renderProduct();
         recalc();
       } catch (ctxErr) {
+        if (timedOut) return;
         console.error('[DEBUG] Supabase context or render failed', ctxErr);
         PAGE_SETTINGS = PAGE_SETTINGS || {};
         MERCHANT = MERCHANT || { store_name: 'دكّان' };
@@ -977,12 +1015,19 @@ body.banner-mode {
         try { recalc(); } catch (e) {}
       }
     } catch (err) {
+      if (timedOut) return;
       console.error('[DEBUG] loadProduct uncaught', err);
       const waErr = document.getElementById('whatsappBtn');
       if (waErr) waErr.style.display = 'none';
+      document.getElementById('productTitle').textContent = 'تعذر تحميل المنتج';
+      document.getElementById('productDesc').textContent = 'حدث خطأ أثناء التحميل. حاول مرة أخرى.';
       alert('تعذر تحميل المنتج');
     } finally {
-      revealProductPage();
+      if (loadWatchdogId) {
+        clearTimeout(loadWatchdogId);
+        loadWatchdogId = null;
+      }
+      if (!timedOut) revealProductPage();
     }
   }
 
