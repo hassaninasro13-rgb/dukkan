@@ -15,10 +15,6 @@ body {
   background: #f5f5f5;
   color: #111;
   min-height: 100vh;
-  visibility: hidden;
-}
-body.product-page-ready {
-  visibility: visible;
 }
 /* TOP BAR */
 .topbar {
@@ -698,9 +694,6 @@ body.banner-mode {
   .form-row { grid-template-columns: 1fr; }
   .size-grid { grid-template-columns: repeat(4,1fr); }
 }
-/* إخفاء كل المحتوى حتى اكتمال تحميل بيانات المنتج من Supabase — بدون وميض */
-#pageContent { visibility: hidden; }
-#pageContent.product-ready { visibility: visible; }
 </style>
 </head>
 <body>
@@ -905,11 +898,6 @@ body.banner-mode {
   let PIXELS_READY = false;
 
   document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () {
-      document.body.style.visibility = 'visible';
-      document.body.classList.add('product-page-ready');
-      revealProductPage();
-    }, 5000);
     loadProduct();
     document.getElementById('couponApplyBtn')?.addEventListener('click', applyCoupon);
     document.getElementById('couponCode')?.addEventListener('keydown', function (e) {
@@ -918,15 +906,7 @@ body.banner-mode {
   });
 
   function revealProductPage() {
-    document.body.style.visibility = 'visible';
-    document.body.classList.add('product-page-ready');
     document.getElementById('pageContent')?.classList.add('product-ready');
-  }
-
-  function scheduleRevealAfterPaint() {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(revealProductPage);
-    });
   }
 
   async function loadProductWithRetry(productId, retries = 3) {
@@ -1002,7 +982,7 @@ body.banner-mode {
       if (waErr) waErr.style.display = 'none';
       alert('تعذر تحميل المنتج');
     } finally {
-      scheduleRevealAfterPaint();
+      revealProductPage();
     }
   }
 
