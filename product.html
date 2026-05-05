@@ -878,7 +878,7 @@ body.banner-mode {
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
     </div>
     <!-- زر الإرسال -->
-    <button type="button" class="btn-submit" id="submitBtn" onclick="document.getElementById('orderForm').scrollIntoView({behavior:'smooth',block:'start'})">
+    <button type="button" class="btn-submit" id="submitBtn" onclick="smoothScrollTo(document.getElementById('orderForm'), 1200)">
       <span>✅</span>
       <span id="submitText">تأكيد الطلب — الدفع عند الاستلام</span>
     </button>
@@ -1862,3 +1862,19 @@ body.banner-mode {
 </script>
 </body>
 </html>
+<script>
+function smoothScrollTo(el, duration) {
+  const start = window.scrollY;
+  const end = el.getBoundingClientRect().top + window.scrollY - 60;
+  const diff = end - start;
+  let startTime = null;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const ease = progress < 0.5 ? 2*progress*progress : -1+(4-2*progress)*progress;
+    window.scrollTo(0, start + diff * ease);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+</script>
