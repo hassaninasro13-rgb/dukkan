@@ -15,6 +15,10 @@ body {
   background: #f5f5f5;
   color: #111;
   min-height: 100vh;
+  visibility: hidden;
+}
+body.product-page-ready {
+  visibility: visible;
 }
 /* TOP BAR */
 .topbar {
@@ -901,6 +905,11 @@ body.banner-mode {
   let PIXELS_READY = false;
 
   document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      document.body.style.visibility = 'visible';
+      document.body.classList.add('product-page-ready');
+      revealProductPage();
+    }, 5000);
     loadProduct();
     document.getElementById('couponApplyBtn')?.addEventListener('click', applyCoupon);
     document.getElementById('couponCode')?.addEventListener('keydown', function (e) {
@@ -909,6 +918,8 @@ body.banner-mode {
   });
 
   function revealProductPage() {
+    document.body.style.visibility = 'visible';
+    document.body.classList.add('product-page-ready');
     document.getElementById('pageContent')?.classList.add('product-ready');
   }
 
@@ -943,7 +954,6 @@ body.banner-mode {
         const waBad = document.getElementById('whatsappBtn');
         if (waBad) waBad.style.display = 'none';
         alert('رابط المنتج غير صحيح');
-        revealProductPage();
         return;
       }
 
@@ -953,35 +963,46 @@ body.banner-mode {
         document.querySelector('.hero h1').textContent = 'المنتج غير موجود';
         const waMissing = document.getElementById('whatsappBtn');
         if (waMissing) waMissing.style.display = 'none';
-        revealProductPage();
         return;
       }
 
       PRODUCT = normalizeProduct(product);
       BASE = PRODUCT.price;
 
-      const ctx = await fetchProductPageContext(PRODUCT);
-      const settings = ctx.pageSettings || {};
-      PAGE_SETTINGS = settings;
-      MERCHANT = ctx.merchant;
-      SETTINGS = ctx.settings;
-      ACTIVE_PIXELS = ctx.pixels;
-      syncFloatingWhatsAppButton();
-      console.log('[DEBUG] layout_mode:', settings?.layout_mode);
-      console.log('[DEBUG] banner_image:', settings?.banner_image);
+      try {
+        const ctx = await fetchProductPageContext(PRODUCT);
+        const settings = ctx.pageSettings || {};
+        PAGE_SETTINGS = settings;
+        MERCHANT = ctx.merchant;
+        SETTINGS = ctx.settings;
+        ACTIVE_PIXELS = ctx.pixels;
+        syncFloatingWhatsAppButton();
+        console.log('[DEBUG] layout_mode:', settings?.layout_mode);
+        console.log('[DEBUG] banner_image:', settings?.banner_image);
 
-      applyLayoutMode();
-      await recordPageView(productId);
-      initAdPixels();
-      renderProduct();
-      recalc();
-      scheduleRevealAfterPaint();
+        applyLayoutMode();
+        await recordPageView(productId);
+        initAdPixels();
+        renderProduct();
+        recalc();
+      } catch (ctxErr) {
+        console.error('[DEBUG] Supabase context or render failed', ctxErr);
+        PAGE_SETTINGS = PAGE_SETTINGS || {};
+        MERCHANT = MERCHANT || { store_name: 'دكّان' };
+        SETTINGS = SETTINGS || {};
+        ACTIVE_PIXELS = ACTIVE_PIXELS || [];
+        try { syncFloatingWhatsAppButton(); } catch (e) {}
+        try { applyLayoutMode(); } catch (e) {}
+        try { renderProduct(); } catch (e) {}
+        try { recalc(); } catch (e) {}
+      }
     } catch (err) {
       console.error('[DEBUG] loadProduct uncaught', err);
       const waErr = document.getElementById('whatsappBtn');
       if (waErr) waErr.style.display = 'none';
       alert('تعذر تحميل المنتج');
-      revealProductPage();
+    } finally {
+      scheduleRevealAfterPaint();
     }
   }
 
