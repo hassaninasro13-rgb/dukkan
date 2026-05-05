@@ -777,7 +777,7 @@ body.banner-mode {
   </div>
 </div>
 <!-- ORDER FORM -->
-<div class="form-section">
+<div class="form-section" id="orderForm">
   <div class="form-section-header">
     <h2 id="orderFormTitle">📦 اطلب الآن — الدفع عند الاستلام</h2>
     <p id="formSectionSubtitle">أكمل بياناتك وسنتواصل معك لتأكيد الطلب</p>
@@ -878,7 +878,7 @@ body.banner-mode {
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
     </div>
     <!-- زر الإرسال -->
-    <button class="btn-submit" id="submitBtn" onclick="submitOrder()">
+    <button class="btn-submit" id="submitBtn" onclick="handleSubmitButtonClick()">
       <span>✅</span>
       <span id="submitText">تأكيد الطلب — الدفع عند الاستلام</span>
     </button>
@@ -1542,6 +1542,15 @@ body.banner-mode {
     return true;
   }
   // SUBMIT — حفظ في Supabase
+  function handleSubmitButtonClick() {
+    if (!validate()) {
+      const formEl = document.getElementById('orderForm');
+      if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    submitOrder();
+  }
+
   async function submitOrder() {
     if (!validate()) return;
     const btn = document.getElementById('submitBtn');
