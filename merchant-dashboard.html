@@ -868,11 +868,10 @@ function renderProducts(){
   const box=document.getElementById('productsList');
   if(!products.length){box.innerHTML='<div class="empty-state"><div style="font-size:40px">📦</div><div style="margin-top:10px">لا توجد منتجات بعد</div></div>';return;}
   box.innerHTML=products.map(p=>{
-    const img=Array.isArray(p.images)&&p.images.length?p.images[0]:'';
-    const thumb=(p.thumbnail_image&&String(p.thumbnail_image).trim())?p.thumbnail_image:img;
-    const ph=thumb
-      ? '<img class="product-img" src="'+escAttr(thumb)+'" alt="">'
-      : '<div class="product-img-ph" aria-hidden="true"><span>📦</span></div>';
+    const thumbUrl=(p.thumbnail_image&&String(p.thumbnail_image).trim())?String(p.thumbnail_image).trim():'';
+    const ph=thumbUrl
+      ?'<img src="'+escAttr(thumbUrl)+'" style="width:100%;height:120px;object-fit:cover;border-radius:8px;" onerror="this.style.display=\'none\'" alt="">'
+      :'<div class="product-img-ph" aria-hidden="true"><span>📦</span></div>';
     const price=p.price.toLocaleString();
     const old=p.old_price?'<span class="meta">قديم: '+Number(p.old_price).toLocaleString()+' IQD</span>':'';
     const sizes=Array.isArray(p.sizes)?p.sizes.join('، '):'';
@@ -880,8 +879,8 @@ function renderProducts(){
     const stockBadge=p.stock===0
       ? '<span class="status-badge stock-out">نفد المخزون 🚫</span>'
       : (p.stock<=5?'<span class="status-badge stock-low">مخزون منخفض ⚠️</span>':'');
-    return '<div class="product-card"><div class="product-top"><div class="product-main">'+
-      thumb+
+    return       '<div class="product-card"><div class="product-top"><div class="product-main">'+
+      ph+
       '<div><div class="product-name">'+esc(p.name||'—')+'</div><div class="product-desc">'+esc(p.description||'—')+'</div>'+
       '<div class="meta-row"><span class="meta">السعر: '+price+' IQD</span>'+old+'<span class="meta">المخزون: '+(p.stock||0)+'</span><span class="meta">زيارات: '+(p.visits||0)+'</span></div>'+
       '<div class="meta-row">'+(sizes?'<span class="meta">المقاسات: '+esc(sizes)+'</span>':'')+(colors?'<span class="meta">الألوان: '+esc(colors)+'</span>':'')+'</div></div></div>'+
