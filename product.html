@@ -878,7 +878,7 @@ body.banner-mode {
       <div class="summary-total"><span>المجموع الكلي</span><span class="total-num" id="sTotal">0 IQD</span></div>
     </div>
     <!-- زر الإرسال -->
-    <button class="btn-submit" id="submitBtn" onclick="handleSubmitButtonClick()">
+    <button type="button" class="btn-submit" id="submitBtn" onclick="document.getElementById('orderForm').scrollIntoView({behavior:'smooth',block:'start'})">
       <span>✅</span>
       <span id="submitText">تأكيد الطلب — الدفع عند الاستلام</span>
     </button>
@@ -1522,23 +1522,23 @@ body.banner-mode {
     let fn, ln;
     if (banner) {
       const full = document.getElementById('fFullName').value.trim();
-      if (!full) { alert('⚠️ أدخل اسمك'); return false; }
+      if (!full) { console.log('⚠️ أدخل اسمك'); return false; }
       const parts = full.split(/\s+/).filter(Boolean);
       fn = parts[0];
       ln = parts.length > 1 ? parts.slice(1).join(' ') : '—';
     } else {
       fn = document.getElementById('fFirstName').value.trim();
       ln = document.getElementById('fLastName').value.trim();
-      if (!fn) { alert('⚠️ أدخل اسمك'); return false; }
-      if (!ln) { alert('⚠️ أدخل لقبك'); return false; }
+      if (!fn) { console.log('⚠️ أدخل اسمك'); return false; }
+      if (!ln) { console.log('⚠️ أدخل لقبك'); return false; }
     }
     const ph = document.getElementById('fPhone').value.trim();
     const gv = document.getElementById('fGov').value;
     const ad = document.getElementById('fAddress').value.trim();
-    if (!ph || ph.length < 10) { alert('⚠️ أدخل رقم هاتف صحيح'); return false; }
-    if (!gv) { alert('⚠️ اختر محافظتك'); return false; }
-    if (!ad) { alert('⚠️ أدخل عنوانك التفصيلي'); return false; }
-    if (!banner && !SIZE) { alert('⚠️ اختر المقاس'); return false; }
+    if (!ph || ph.length < 10) { console.log('⚠️ أدخل رقم هاتف صحيح'); return false; }
+    if (!gv) { console.log('⚠️ اختر محافظتك'); return false; }
+    if (!ad) { console.log('⚠️ أدخل عنوانك التفصيلي'); return false; }
+    if (!banner && !SIZE) { console.log('⚠️ اختر المقاس'); return false; }
     return true;
   }
   // SUBMIT — حفظ في Supabase
