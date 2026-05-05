@@ -33,7 +33,7 @@ a{text-decoration:none}
 .discount{position:absolute;top:12px;right:12px;background:var(--red);color:white;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900;box-shadow:0 8px 20px rgba(248,81,73,.28)}
 .content{padding:16px}
 .name{font-family:'Tajawal',sans-serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:7px;line-height:1.35}
-.desc{color:var(--muted);font-size:13px;line-height:1.7;min-height:44px;margin-bottom:12px}
+.desc{display:none}
 .price-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .price{font-size:24px;font-weight:900;color:var(--gold);line-height:1}
 .currency{font-size:12px;color:var(--muted);font-weight:700}
@@ -112,7 +112,7 @@ async function loadStore(){
 
   const {data,error}=await SB
     .from('merchant_products')
-    .select('id,name,description,price,old_price,images,sizes,colors,stock,is_active,visits')
+    .select('id,name,description,price,old_price,images,thumbnail_image,sizes,colors,stock,is_active,visits')
     .eq('merchant_id',merchant.id)
     .eq('is_active',true)
     .order('id',{ascending:false});
@@ -131,12 +131,15 @@ function renderStoreHeader(){
 }
 
 function normalizeProduct(p){
+  const mid=merchant?.id||p.merchant_id;
+  const thumbRaw=String(p.thumbnail_image||'').trim();
   return {
     ...p,
     price:num(p.price),
     old_price:num(p.old_price),
     stock:num(p.stock),
-    images:toArray(p.images).map(url=>storagePublicUrl(url,merchant?.id||p.merchant_id)),
+    thumbnail_image:thumbRaw?storagePublicUrl(thumbRaw,mid):'',
+    images:toArray(p.images).map(url=>storagePublicUrl(url,mid)),
     sizes:toArray(p.sizes),
     colors:toArray(p.colors)
   };
@@ -150,7 +153,7 @@ function renderProducts(){
 }
 
 function productCard(p){
-  const image=p.images&&p.images.length?p.images[0]:'';
+  const image=(p.thumbnail_image&&String(p.thumbnail_image).trim())||(p.images&&p.images.length?p.images[0]:'');
   const discount=getDiscount(p.price,p.old_price);
   const sizes=p.sizes.length?'<div class="chips"><span class="chip"><strong>المقاسات:</strong> '+esc(p.sizes.join('، '))+'</span></div>':'';
   const colors=p.colors.length?'<div class="chips"><span class="chip"><strong>الألوان:</strong> '+esc(p.colors.join('، '))+'</span></div>':'';
@@ -162,7 +165,6 @@ function productCard(p){
     '<div class="image-wrap">'+visual+(discount?'<div class="discount">خصم '+discount+'%</div>':'')+'</div>'+
     '<div class="content">'+
       '<h3 class="name">'+esc(p.name||'منتج')+'</h3>'+
-      '<p class="desc">'+esc(p.description||'لا يوجد وصف لهذا المنتج')+'</p>'+
       '<div class="price-row"><span class="price">'+p.price.toLocaleString()+'</span><span class="currency">IQD</span>'+old+'</div>'+
       sizes+colors+
       '<a class="order-btn" href="'+escAttr(productUrl(p))+'" onclick="event.stopPropagation()">🛒 اطلب الآن</a>'+

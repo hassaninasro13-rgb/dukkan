@@ -491,6 +491,19 @@ button{cursor:pointer}
           </div>
           <input type="hidden" id="pLayoutMode" value="gallery">
         </div>
+        <div class="form-group full">
+          <label class="form-label">صورة المنتجات (مصغّرة للمتجر)</label>
+          <div class="image-upload">
+            <input type="hidden" id="pThumbnailHidden">
+            <input class="file-input-hidden" id="pThumbnailFile" type="file" accept="image/*" onchange="handleProductThumbnailFileChange(event)">
+            <button type="button" class="btn btn-gold upload-btn" onclick="document.getElementById('pThumbnailFile').click()">📤 رفع صورة المنتجات (thumbnail)</button>
+            <p class="upload-hint">تظهر في بطاقة المنتج في المتجر — منفصلة عن صور المعرض والصورة الطويلة (إنفوجرافيك)</p>
+            <div class="image-preview" id="pThumbnailPreview">
+              <img id="pThumbnailPreviewImg" src="" alt="معاينة صورة العرض في المتجر">
+              <span id="pThumbnailPreviewText"></span>
+            </div>
+          </div>
+        </div>
         <div class="form-group full" id="pGalleryImagesWrap">
           <label class="form-label">صور المنتج (معرض)</label>
           <div class="image-upload">
@@ -593,7 +606,7 @@ const SUPABASE_URL='https://aukdrcusgnfjkaprgnuf.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1a2RyY3VzZ25mamthcHJnbnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjQ3MzAsImV4cCI6MjA5Mjk0MDczMH0.6asZg-ZjC8BYdaOj3V18_MZvGplcvJqTs_gqFhG1cQM';
 console.log('[Dukkan] Supabase client config',{url:SUPABASE_URL,anonKeyLength:SUPABASE_ANON.length,anonKeyEndsWith:SUPABASE_ANON.slice(-8)});
 const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],productModalBannerUrl='';
+let merchant=null,products=[],orders=[],coupons=[],storeSettings=null,trackingPixels=[],orderFilter='all',currentOrderSheetId=null,editingProductId=null,editingPageSettingsProductId=null,pageSettingsRecordId=null,productSizes=[],productColors=[],currentProductImageUrls=[],productModalBannerUrl='',productModalThumbnailUrl='';
 let analytics={todayViews:0,monthViews:0,totalOrders:0,totalRevenue:0,conversionRate:0,ordersData:[]},ordersChart=null;
 
 const LOGIN_URL='/login.html';
@@ -840,6 +853,7 @@ function normalizeProduct(p){
     description:p.description||'',
     price:normalizeNumber(p.price),
     old_price:normalizeNumber(p.old_price),
+    thumbnail_image:p.thumbnail_image?storagePublicUrl(String(p.thumbnail_image).trim(),p.merchant_id):'',
     images:normalizeArray(p.images).map(url=>storagePublicUrl(url,p.merchant_id)),
     sizes:normalizeArray(p.sizes),
     colors:normalizeArray(p.colors),
@@ -855,8 +869,9 @@ function renderProducts(){
   if(!products.length){box.innerHTML='<div class="empty-state"><div style="font-size:40px">📦</div><div style="margin-top:10px">لا توجد منتجات بعد</div></div>';return;}
   box.innerHTML=products.map(p=>{
     const img=Array.isArray(p.images)&&p.images.length?p.images[0]:'';
-    const thumb=img
-      ? '<img class="product-img" src="'+escAttr(img)+'" alt="">'
+    const thumb=(p.thumbnail_image&&String(p.thumbnail_image).trim())?p.thumbnail_image:img;
+    const ph=thumb
+      ? '<img class="product-img" src="'+escAttr(thumb)+'" alt="">'
       : '<div class="product-img-ph" aria-hidden="true"><span>📦</span></div>';
     const price=p.price.toLocaleString();
     const old=p.old_price?'<span class="meta">قديم: '+Number(p.old_price).toLocaleString()+' IQD</span>':'';
@@ -907,6 +922,11 @@ async function openProductModal(id){
   document.getElementById('pBannerFile').value='';
   renderProductBannerPreview(bannerUrl,bannerUrl?'الصورة الحالية':'');
 
+  productModalThumbnailUrl=p?.thumbnail_image||'';
+  document.getElementById('pThumbnailHidden').value=productModalThumbnailUrl;
+  document.getElementById('pThumbnailFile').value='';
+  renderProductThumbnailPreview(productModalThumbnailUrl,productModalThumbnailUrl?'صورة العرض الحالية':'');
+
   document.getElementById('productModal').classList.add('open');
 }
 
@@ -936,6 +956,24 @@ function handleProductBannerFileChange(event){
   renderProductBannerPreview(URL.createObjectURL(file),file.name);
 }
 
+function handleProductThumbnailFileChange(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){showToast('اختر ملف صورة فقط','error');event.target.value='';return;}
+  renderProductThumbnailPreview(URL.createObjectURL(file),file.name);
+}
+
+function renderProductThumbnailPreview(src,text){
+  const wrap=document.getElementById('pThumbnailPreview');
+  const img=document.getElementById('pThumbnailPreviewImg');
+  const label=document.getElementById('pThumbnailPreviewText');
+  if(!wrap||!img)return;
+  if(!src){wrap.classList.remove('show');img.src='';if(label)label.textContent='';return;}
+  img.src=src;
+  if(label)label.textContent=text||'تم اختيار صورة العرض';
+  wrap.classList.add('show');
+}
+
 function renderProductBannerPreview(src,text){
   const wrap=document.getElementById('pProductBannerPreview');
   const img=document.getElementById('pProductBannerPreviewImg');
@@ -958,6 +996,19 @@ async function uploadProductModalBannerImage(merchantId){
   productModalBannerUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
   document.getElementById('pBannerImageHidden').value=productModalBannerUrl;
   return productModalBannerUrl;
+}
+
+async function uploadProductThumbnail(merchantId){
+  const file=document.getElementById('pThumbnailFile').files?.[0];
+  if(!file)return productModalThumbnailUrl||'';
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'');
+  const path=merchantId+'/thumbs/'+Date.now()+'-'+safeName+'.'+ext;
+  const{data,error}=await SB.storage.from('product-images').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+  if(error)throw error;
+  productModalThumbnailUrl=SB.storage.from('product-images').getPublicUrl(data.path).data.publicUrl;
+  document.getElementById('pThumbnailHidden').value=productModalThumbnailUrl;
+  return productModalThumbnailUrl;
 }
 
 async function persistProductLayoutSettings(productId,layoutMode,bannerImage){
@@ -1091,6 +1142,11 @@ async function saveProduct(){
     btn.disabled=true;btn.textContent='جاري رفع الصورة...';
     const imageUrls=(await uploadProductImages(merchantId)).map(url=>storagePublicUrl(url,merchantId)).slice(0,5);
     console.log('step 5: images ready',{imageUrls});
+    let thumbFinal=productModalThumbnailUrl||'';
+    if(document.getElementById('pThumbnailFile').files?.[0]){
+      btn.textContent='جاري رفع صورة العرض...';
+      thumbFinal=await uploadProductThumbnail(merchantId);
+    }
     btn.textContent='جاري الحفظ...';
     const payload={
       merchant_id:merchantId,
@@ -1099,6 +1155,7 @@ async function saveProduct(){
       price,
       old_price:oldPrice,
       images:JSON.stringify(imageUrls),
+      thumbnail_image:thumbFinal||null,
       sizes:productSizes,
       colors:productColors,
       stock,
