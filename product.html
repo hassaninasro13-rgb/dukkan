@@ -1566,7 +1566,7 @@ body.banner-mode {
   }
 
   async function submitOrder() {
-    if (!validate()) return;
+    // validation done in handleSubmitButtonClick
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<span>⏳</span><span>جاري إرسال طلبك...</span>';
