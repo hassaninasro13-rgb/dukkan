@@ -1522,30 +1522,44 @@ body.banner-mode {
     let fn, ln;
     if (banner) {
       const full = document.getElementById('fFullName').value.trim();
-      if (!full) { console.log('⚠️ أدخل اسمك'); return false; }
+      if (!full) { return false; }
       const parts = full.split(/\s+/).filter(Boolean);
       fn = parts[0];
       ln = parts.length > 1 ? parts.slice(1).join(' ') : '—';
     } else {
       fn = document.getElementById('fFirstName').value.trim();
       ln = document.getElementById('fLastName').value.trim();
-      if (!fn) { console.log('⚠️ أدخل اسمك'); return false; }
-      if (!ln) { console.log('⚠️ أدخل لقبك'); return false; }
+      if (!fn) { return false; }
+      if (!ln) { return false; }
     }
     const ph = document.getElementById('fPhone').value.trim();
     const gv = document.getElementById('fGov').value;
     const ad = document.getElementById('fAddress').value.trim();
-    if (!ph || ph.length < 10) { console.log('⚠️ أدخل رقم هاتف صحيح'); return false; }
-    if (!gv) { console.log('⚠️ اختر محافظتك'); return false; }
-    if (!ad) { console.log('⚠️ أدخل عنوانك التفصيلي'); return false; }
-    if (!banner && !SIZE) { console.log('⚠️ اختر المقاس'); return false; }
+    if (!ph || ph.length < 10) { return false; }
+    if (!gv) { return false; }
+    if (!ad) { return false; }
+    if (!banner && !SIZE) { return false; }
     return true;
   }
   // SUBMIT — حفظ في Supabase
   function handleSubmitButtonClick() {
-    if (!validate()) {
+    const banner = document.body.classList.contains('banner-mode');
+    const requiredFields = banner ? ['fFullName', 'fPhone', 'fGov', 'fAddress'] : ['fFirstName', 'fLastName', 'fPhone', 'fGov', 'fAddress'];
+    let allFilled = true;
+    requiredFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.style.border = '';
+    });
+    requiredFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el || !el.value.trim()) {
+        if (el && el.style) el.style.border = '2px solid red';
+        allFilled = false;
+      }
+    });
+    if (!allFilled) {
       const formEl = document.getElementById('orderForm');
-      if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
+      if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     submitOrder();
