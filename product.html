@@ -1543,6 +1543,8 @@ body.banner-mode {
   }
   // SUBMIT — حفظ في Supabase
   function handleSubmitButtonClick() {
+  submitOrder();
+  return;
     const banner = document.body.classList.contains('banner-mode');
     const requiredFields = banner ? ['fFirstName', 'fPhone', 'fGov', 'fAddress'] : ['fFirstName', 'fLastName', 'fPhone', 'fGov', 'fAddress'];
     let allFilled = true;
