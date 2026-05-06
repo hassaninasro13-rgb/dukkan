@@ -1079,6 +1079,8 @@ body.banner-mode {
 
   async function recordPageView(productId) {
     try {
+      const geo = await fetch('https://api.country.is').then(r=>r.json()).catch(()=>({}));
+      if(['DZ','TN','MA'].includes(geo.country)) return;
       await db.from('page_views').insert({
         merchant_id: PRODUCT.merchant_id,
         product_id: productId,
