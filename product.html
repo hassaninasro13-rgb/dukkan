@@ -1521,7 +1521,7 @@ body.banner-mode {
     const banner = document.body.classList.contains('banner-mode');
     let fn, ln;
     if (banner) {
-      const full = document.getElementById('fFullName').value.trim();
+      const full = document.getElementById('fFirstName').value.trim();
       if (!full) { return false; }
       const parts = full.split(/\s+/).filter(Boolean);
       fn = parts[0];
@@ -1544,7 +1544,7 @@ body.banner-mode {
   // SUBMIT — حفظ في Supabase
   function handleSubmitButtonClick() {
     const banner = document.body.classList.contains('banner-mode');
-    const requiredFields = banner ? ['fFullName', 'fPhone', 'fGov', 'fAddress'] : ['fFirstName', 'fLastName', 'fPhone', 'fGov', 'fAddress'];
+    const requiredFields = banner ? ['fFirstName', 'fPhone', 'fGov', 'fAddress'] : ['fFirstName', 'fLastName', 'fPhone', 'fGov', 'fAddress'];
     let allFilled = true;
     requiredFields.forEach(function (id) {
       const el = document.getElementById(id);
@@ -1575,7 +1575,7 @@ body.banner-mode {
     const banner = document.body.classList.contains('banner-mode');
     let first_name, last_name;
     if (banner) {
-      const full = document.getElementById('fFullName').value.trim();
+      const full = document.getElementById('fFirstName').value.trim();
       const parts = full.split(/\s+/).filter(Boolean);
       first_name = parts[0] || '';
       last_name = parts.length > 1 ? parts.slice(1).join(' ') : '—';
